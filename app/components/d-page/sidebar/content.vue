@@ -6,18 +6,8 @@ const route = useRoute()
 
 const links = [
   {
-    name: "Dokumente",
-    to: "/documents",
-    icon: FileIcon,
-  },
-  {
-    name: "Belege",
-    to: "/?invoices",
-    icon: FileIcon,
-  },
-  {
-    name: "Bank Transaktionen",
-    to: "/?bank-transactions",
+    name: "Sites",
+    to: "/sites",
     icon: FileIcon,
   },
 ]

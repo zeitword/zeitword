@@ -10,7 +10,6 @@ services:
       - "5432:5432"
   minio:
     image: minio/minio:latest
-    container_name: minio
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: password
@@ -22,7 +21,6 @@ services:
     command: server /data --console-address ":9001"
   minio-setup:
     image: minio/mc
-    container_name: minio-setup
     depends_on:
       - minio
     entrypoint: >

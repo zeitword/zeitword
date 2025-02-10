@@ -1,21 +1,11 @@
-import {
-  integer,
-  pgTable,
-  uuid,
-  text,
-  pgEnum,
-  timestamp,
-  boolean,
-  primaryKey,
-  jsonb,
-} from "drizzle-orm/pg-core";
-import { uuidv7 } from "uuidv7";
+import { integer, pgTable, uuid, text, pgEnum, timestamp, boolean, primaryKey, jsonb } from "drizzle-orm/pg-core"
+import { uuidv7 } from "uuidv7"
 
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp({ withTimezone: true }),
-};
+}
 
 // Create an enum type for the allowed field types (as listed in our CMS zod schema)
 export const fieldTypeEnum = pgEnum("field_type", [
@@ -34,20 +24,20 @@ export const fieldTypeEnum = pgEnum("field_type", [
   "link",
   "section",
   "custom",
-]);
+])
 
 const organisationId = {
   organisationId: uuid()
     .notNull()
     .references(() => organisations.id),
-};
+}
 
 // Tables
 export const organisations = pgTable("organisations", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   ...timestamps,
-});
+})
 
 export const users = pgTable("users", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
@@ -58,7 +48,7 @@ export const users = pgTable("users", {
   resetPasswordExpiresAt: timestamp({ withTimezone: true }),
   ...organisationId,
   ...timestamps,
-});
+})
 
 export const sessions = pgTable(
   "sessions",
@@ -70,9 +60,9 @@ export const sessions = pgTable(
     ...timestamps,
   },
   (t) => [primaryKey({ columns: [t.token, t.userId] })],
-);
+)
 
-export const componentsTable = pgTable("components", {
+export const components = pgTable("components", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   displayName: text().notNull(),
@@ -80,14 +70,14 @@ export const componentsTable = pgTable("components", {
   previewField: text().notNull(),
   ...organisationId,
   ...timestamps,
-});
+})
 
-export const componentFieldsTable = pgTable(
+export const componentFields = pgTable(
   "component_fields",
   {
     componentId: uuid()
       .notNull()
-      .references(() => componentsTable.id),
+      .references(() => components.id),
     fieldKey: text().notNull(), // the key used in the component's schema object
     type: fieldTypeEnum().notNull(),
     required: boolean().notNull().default(false),
@@ -99,27 +89,34 @@ export const componentFieldsTable = pgTable(
     ...organisationId,
   },
   (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })],
-);
+)
 
-export const fieldOptionsTable = pgTable("field_options", {
+export const fieldOptions = pgTable("field_options", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   componentId: uuid()
     .notNull()
-    .references(() => componentsTable.id),
+    .references(() => components.id),
   fieldKey: text().notNull(), // which field this option belongs to.
   optionName: text().notNull(),
   optionValue: text().notNull(),
   ...organisationId,
-});
+})
 
-export const storiesTable = pgTable("stories", {
+export const stories = pgTable("stories", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   slug: text().notNull(),
   title: text().notNull(),
   content: jsonb().notNull(),
   componentId: uuid()
     .notNull()
-    .references(() => componentsTable.id),
+    .references(() => components.id),
   ...organisationId,
   ...timestamps,
-});
+})
+
+export const sites = pgTable("sites", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  name: text().notNull(),
+  ...organisationId,
+  ...timestamps,
+})
