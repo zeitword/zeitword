@@ -1,19 +1,82 @@
 <script setup lang="ts">
-interface Props {
-  type?: string
-  placeholder?: string | undefined
+type Props = {
+  name?: string
+  type?: "text" | "password" | "email" | "number" | "tel" | "date" | "datetime-local" | "url"
+  required?: boolean
+  placeholder?: string
+  autocomplete?: string
+  label?: string
+  disabled?: boolean
+  hideArrows?: boolean
+  leading?: string
+  leadingBackground?: boolean
+  trailing?: string
+  trailingBackground?: boolean
+  min?: number
+  max?: number
 }
 
-const { type = "text", placeholder = undefined } = defineProps<Props>()
+const {
+  name,
+  type = "text",
+  required = false,
+  placeholder = "",
+  autocomplete = "",
+  label = "",
+  disabled = false,
+  hideArrows,
+  leading = "",
+  trailing = "",
+  leadingBackground = true,
+  trailingBackground = true,
+  min,
+  max
+} = defineProps<Props>()
 
-const model = defineModel()
+const model = defineModel<string | number>()
 </script>
 
 <template>
-  <input
-    v-model="model"
-    :type
-    :placeholder
-    class="rounded-md bg-neutral-100 px-2 py-2 text-sm leading-0 ring-blue-600 outline-none placeholder:text-neutral-400 focus:border-transparent focus:ring-2"
-  />
+  <div
+    class="border-neutral text-neutral text-copy flex h-9 overflow-hidden rounded-lg border leading-none transition-all outline-none has-[:focus]:border-blue-600 has-[:focus]:bg-white has-[:focus]:ring-2 has-[:focus]:ring-blue-300"
+    :class="[disabled ? 'cursor-not-allowed bg-gray-100 opacity-50' : 'hover:border-neutral-strong/30']"
+  >
+    <div
+      v-if="$slots.leading || leading"
+      class="border-neutral flex items-center border-r px-4"
+      :class="leadingBackground ? 'bg-neutral-subtle' : ''"
+    >
+      <template v-if="leading">
+        {{ leading }}
+      </template>
+      <template v-else>
+        <slot name="leading"></slot>
+      </template>
+    </div>
+    <input
+      :id="name"
+      :name="name"
+      :type="type"
+      :required="required"
+      :placeholder="placeholder"
+      :autocomplete="autocomplete"
+      :label="label"
+      v-model="model"
+      class="text-copy texte-neutral h-full w-full px-2.5 outline-none"
+      :class="[hideArrows ? 'hide-arrows' : '']"
+    />
+
+    <div
+      v-if="$slots.trailing || trailing"
+      class="border-neutral flex items-center border-l px-3"
+      :class="trailingBackground ? 'bg-neutral-subtle' : ''"
+    >
+      <template v-if="trailing">
+        {{ trailing }}
+      </template>
+      <template v-else>
+        <slot name="trailing"></slot>
+      </template>
+    </div>
+  </div>
 </template>

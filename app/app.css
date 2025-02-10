@@ -116,17 +116,17 @@
    * Typography
    */
   /* Titles */
-  --text-title-lg: var(--text-8xl);
+  --text-title-lg: var(--text-5xl);
   --text-title-lg--font-weight: 400;
 
-  --text-title: var(--text-6xl);
+  --text-title: var(--text-4xl);
   --text-title--font-weight: 400;
 
-  --text-title-md: var(--text-5xl);
+  --text-title-md: var(--text-2xl);
   --text-title-md--font-weight: 400;
 
-  --text-title-sm: var(--text-3xl);
-  --text-title-sm--font-weight: 600;
+  --text-title-sm: var(--text-xl);
+  --text-title-sm--font-weight: 400;
 
   --text-copy-xl: var(--text-lg);
   --text-copy-xl--font-weight: 400;
@@ -153,4 +153,16 @@ html,
 body,
 #__nuxt {
   height: 100%;
+  background-color: var(--background-color-neutral-weak);
+}
+
+.slide-fade-leave-active,
+.slide-fade-enter-active {
+  transition: all 0.2s ease-in-out;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
 }

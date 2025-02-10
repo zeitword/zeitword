@@ -3,7 +3,7 @@ import { XIcon } from "lucide-vue-next"
 import { onClickOutside, onKeyDown } from "@vueuse/core"
 
 interface Props {
-  titel: string
+  title: string
   confirmText?: string
 }
 
@@ -27,7 +27,6 @@ function save() {
 const cancelButton = useTemplateRef("cancel")
 
 onMounted(() => {
-  console.log(cancelButton)
   document.getElementById("cancel")?.focus()
 })
 
@@ -42,9 +41,9 @@ onKeyDown("Escape", () => emit("close"))
       <div class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4 text-center">
           <div class="max-h-full w-full max-w-md">
-            <div ref="dialog" class="relative rounded-md bg-white shadow">
-              <div class="flex items-center justify-between rounded-t border-b border-neutral-200 px-4 py-2.5">
-                <h3 class="text-base font-medium text-neutral-900">{{ titel }}</h3>
+            <div ref="dialog" class="relative rounded-lg bg-white shadow">
+              <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-2.5">
+                <h3 class="text-base font-medium text-neutral-900">{{ title }}</h3>
                 <DButton :icon-left="XIcon" variant="secondary" class="!px-1" @click="close"></DButton>
               </div>
               <div class="items-start space-y-6 overflow-auto text-left">
