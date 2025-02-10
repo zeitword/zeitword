@@ -15,6 +15,20 @@
       "when": 1739185696871,
       "tag": "0001_shiny_agent_zero",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739190982695,
+      "tag": "0002_messy_white_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739193426317,
+      "tag": "0003_curly_natasha_romanoff",
+      "breakpoints": true
     }
   ]
 }

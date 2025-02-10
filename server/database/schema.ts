@@ -67,7 +67,10 @@ export const components = pgTable("components", {
   name: text().notNull(),
   displayName: text().notNull(),
   previewImage: text(),
-  previewField: text().notNull(),
+  previewField: text(),
+  siteId: uuid()
+    .notNull()
+    .references(() => sites.id),
   ...organisationId,
   ...timestamps,
 })
