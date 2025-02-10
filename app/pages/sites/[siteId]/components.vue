@@ -3,7 +3,9 @@ const route = useRoute()
 const router = useRouter()
 const siteId = route.params.siteId
 const { data: components, refresh } = await useFetch(`/api/sites/${siteId}/components`)
-import { XIcon, Ellipsis } from "lucide-vue-next"
+import { XIcon, Ellipsis, BlocksIcon } from "lucide-vue-next"
+
+const siteStore = useSiteStore()
 
 const isCreateModalOpen = ref(false)
 
@@ -48,10 +50,11 @@ async function createComponent() {
   <DPageTitle title="Components">
     <DButton @click="isCreateModalOpen = true">Create Component</DButton>
   </DPageTitle>
+
   <DPageWrapper>
     <div class="py-5">
       <div
-        v-if="components"
+        v-if="components && components.length > 0"
         class="border-neutral overflow-hidden rounded-md border"
       >
         <NuxtLink
@@ -76,6 +79,20 @@ async function createComponent() {
             />
           </div>
         </NuxtLink>
+      </div>
+      <div v-else>
+        <DEmpty
+          title="No components yet"
+          description="Create your first component to get started"
+          :icon="BlocksIcon"
+        >
+          <DButton
+            @click="isCreateModalOpen = true"
+            variant="secondary"
+          >
+            Create Component
+          </DButton>
+        </DEmpty>
       </div>
     </div>
   </DPageWrapper>
@@ -108,7 +125,7 @@ async function createComponent() {
   </div>
 
   <DModal
-    v-if="isCreateModalOpen"
+    :open="isCreateModalOpen"
     title="Create Component"
     confirm-text="Create Component"
     @close="isCreateModalOpen = false"
@@ -116,18 +133,38 @@ async function createComponent() {
   >
     <div
       @submit.prevent="createComponent"
-      class="flex w-full flex-col gap-2 p-4"
+      class="flex w-full flex-col gap-4 p-4"
     >
-      <DInput
-        type="text"
-        v-model="name"
-        placeholder="Technical name"
-      />
-      <DInput
-        type="text"
-        v-model="displayName"
-        placeholder="Display name"
-      />
+      <DFormGroup>
+        <DFormLabel
+          name="domain"
+          required
+        >
+          Technical name
+        </DFormLabel>
+        <DInput
+          id="name"
+          name="name"
+          v-model="name"
+          required
+          placeholder="example.com"
+        />
+      </DFormGroup>
+      <DFormGroup>
+        <DFormLabel
+          name="display-name"
+          required
+        >
+          Display name
+        </DFormLabel>
+        <DInput
+          id="display-name"
+          name="display-name"
+          v-model="displayName"
+          required
+          placeholder="Example Domain"
+        />
+      </DFormGroup>
     </div>
   </DModal>
 </template>

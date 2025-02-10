@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// definePageMeta({
-//   layout: false,
-// })
 const route = useRoute()
 const siteId = route.params.siteId
 const componentId = route.params.componentId

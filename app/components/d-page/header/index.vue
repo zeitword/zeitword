@@ -1,19 +1,31 @@
 <script lang="ts" setup>
+import { storeToRefs } from "pinia"
+
 const route = useRoute()
-const siteId = computed(() => {
-  return route.params.siteId
+const siteStore = useSiteStore()
+
+// Use storeToRefs for reactive state
+const { currentSite, isLoading } = storeToRefs(siteStore)
+
+const siteId = computed(() => route.params.siteId)
+
+// Fetch site when siteId changes
+watch(siteId, async (newSiteId) => {
+  if (newSiteId) {
+    await siteStore.fetchSite(newSiteId as string)
+  }
 })
 
 const mainNavigation = [
   { name: "Sites", to: "/sites" },
-  { name: "Settings", to: "/settings" },
+  { name: "Settings", to: "/settings" }
 ]
 
 const siteNavigation = computed(() => {
   return [
     { name: "Components", to: `/sites/${siteId.value}/components` },
     { name: "Content", to: `/sites/${siteId.value}/content` },
-    { name: "Settings", to: `/sites/${siteId.value}/settings` },
+    { name: "Settings", to: `/sites/${siteId.value}/settings` }
   ]
 })
 
@@ -30,14 +42,23 @@ const currentNavigation = computed(() => {
   <header class="bg-neutral border-neutral w-full border-b">
     <div class="flex items-center justify-between px-6 py-3">
       <div class="flex items-center gap-2">
-        <div class="mr-2 flex-shrink-0">
+        <NuxtLink
+          :to="`/sites`"
+          class="flex flex-shrink-0 items-center gap-2"
+        >
           <z-logo />
-        </div>
+        </NuxtLink>
         <DPageHeaderSeparator />
-        <DPageHeaderBreadcrumbLink name="Zeitword" to="/sites" />
+        <DPageHeaderBreadcrumbLink
+          name="Zeitword"
+          to="/sites"
+        />
         <template v-if="siteId">
           <DPageHeaderSeparator />
-          <DPageHeaderBreadcrumbLink :name="siteId as string" :to="`/sites/${siteId}`" />
+          <DPageHeaderBreadcrumbLink
+            :name="siteStore.currentSite?.name"
+            :to="`/sites/${siteId}`"
+          />
         </template>
       </div>
       <div>

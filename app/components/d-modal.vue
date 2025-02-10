@@ -1,62 +1,102 @@
 <script setup lang="ts">
-import { XIcon } from "lucide-vue-next"
-import { onClickOutside, onKeyDown } from "@vueuse/core"
+import {
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle
+} from "reka-ui"
 
-interface Props {
+import { X } from "lucide-vue-next"
+
+type Props = {
+  open: boolean
   title: string
-  confirmText?: string
+  description?: string
+  confirmText: string
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
+}
+const { open, title, description, size = "md" } = defineProps<Props>()
+
+const sizeClasses: { [key: string]: string } = {
+  xs: "max-w-xs",
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl"
 }
 
-withDefaults(defineProps<Props>(), {
-  confirmText: "Speichern",
-  wide: false,
-})
-
-const emit = defineEmits(["close", "confirm"])
-
-const dialog = ref<HTMLElement | null>(null)
+const emit = defineEmits<{
+  close: []
+  confirm: []
+}>()
 
 function close() {
   emit("close")
 }
 
-function save() {
+function confirm() {
   emit("confirm")
 }
-
-const cancelButton = useTemplateRef("cancel")
-
-onMounted(() => {
-  document.getElementById("cancel")?.focus()
-})
-
-onClickOutside(dialog, () => emit("close"))
-onKeyDown("Escape", () => emit("close"))
 </script>
 
 <template>
-  <Teleport to="body">
-    <div>
-      <div class="fixed inset-0 z-50 bg-black/10"></div>
-      <div class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center">
-          <div class="max-h-full w-full max-w-md">
-            <div ref="dialog" class="relative rounded-lg bg-white shadow">
-              <div class="flex items-center justify-between border-b border-neutral-200 px-4 py-2.5">
-                <h3 class="text-base font-medium text-neutral-900">{{ title }}</h3>
-                <DButton :icon-left="XIcon" variant="secondary" class="!px-1" @click="close"></DButton>
-              </div>
-              <div class="items-start space-y-6 overflow-auto text-left">
-                <slot></slot>
-              </div>
-              <div class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4">
-                <DButton id="cancel" variant="secondary" @click="close">Abbrechen</DButton>
-                <DButton variant="primary" @click="save">{{ confirmText }}</DButton>
-              </div>
+  <DialogRoot
+    :open="open"
+    @update:open="close"
+  >
+    <DialogPortal>
+      <DialogOverlay class="data-[state=open]:animate-overlayShow fixed inset-0 z-50 bg-black/50" />
+      <DialogContent
+        class="data-[state=open]:animate-contentShow fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg"
+        :class="sizeClasses[size]"
+      >
+        <div>
+          <div class="mb-4 flex items-center justify-between px-5 pt-5">
+            <DialogTitle class="text-lg font-semibold text-neutral-900">
+              {{ title }}
+            </DialogTitle>
+            <DialogClose asChild>
+              <EditorButton
+                variant="transparent"
+                size="sm"
+                :icon-left="X"
+              />
+            </DialogClose>
+          </div>
+
+          <DialogDescription
+            v-if="description"
+            class="mb-4 text-neutral-600"
+          >
+            {{ description }}
+          </DialogDescription>
+
+          <div>
+            <slot />
+          </div>
+          <div>
+            <div class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4">
+              <DButton
+                id="cancel"
+                variant="secondary"
+                @click="close"
+              >
+                Abbrechen
+              </DButton>
+              <DButton
+                variant="primary"
+                @click="confirm"
+              >
+                {{ confirmText }}
+              </DButton>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </Teleport>
+      </DialogContent>
+    </DialogPortal>
+  </DialogRoot>
 </template>
