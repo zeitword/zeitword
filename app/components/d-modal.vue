@@ -55,7 +55,7 @@ function confirm() {
         :class="sizeClasses[size]"
       >
         <div>
-          <div class="mb-4 flex items-center justify-between px-5 pt-5">
+          <div class="border-neutral flex items-center justify-between border-b p-5">
             <DialogTitle class="text-lg font-semibold text-neutral-900">
               {{ title }}
             </DialogTitle>
@@ -85,7 +85,7 @@ function confirm() {
                 variant="secondary"
                 @click="close"
               >
-                Abbrechen
+                Cancel
               </DButton>
               <DButton
                 variant="primary"

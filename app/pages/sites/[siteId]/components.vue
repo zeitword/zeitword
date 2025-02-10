@@ -131,9 +131,9 @@ async function createComponent() {
     @close="isCreateModalOpen = false"
     @confirm="createComponent"
   >
-    <div
+    <form
       @submit.prevent="createComponent"
-      class="flex w-full flex-col gap-4 p-4"
+      class="flex w-full flex-col gap-4 p-5"
     >
       <DFormGroup>
         <DFormLabel
@@ -147,7 +147,7 @@ async function createComponent() {
           name="name"
           v-model="name"
           required
-          placeholder="example.com"
+          placeholder="some-button"
         />
       </DFormGroup>
       <DFormGroup>
@@ -162,9 +162,9 @@ async function createComponent() {
           name="display-name"
           v-model="displayName"
           required
-          placeholder="Example Domain"
+          placeholder="Some Buttton"
         />
       </DFormGroup>
-    </div>
+    </form>
   </DModal>
 </template>

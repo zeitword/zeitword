@@ -56,7 +56,7 @@ const currentNavigation = computed(() => {
         <template v-if="siteId">
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
-            :name="siteStore.currentSite?.name"
+            :name="siteStore.currentSite?.name as string"
             :to="`/sites/${siteId}`"
           />
         </template>

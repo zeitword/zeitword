@@ -8,7 +8,7 @@ async function createSite() {
   isCreateModalOpen.value = false
   await useRequestFetch()("/api/sites", {
     method: "POST",
-    body: { name: name.value },
+    body: { name: name.value }
   })
   await refresh()
 }
@@ -16,7 +16,7 @@ async function createSite() {
 
 <template>
   <DPageTitle title="Sites">
-    <DButton @click="isCreateModalOpen = true">Add new Site</DButton>
+    <DButton @click="isCreateModalOpen = true">Add</DButton>
   </DPageTitle>
   <DPageWrapper>
     <div class="py-5">
@@ -36,14 +36,24 @@ async function createSite() {
   </DPageWrapper>
 
   <DModal
-    v-if="isCreateModalOpen"
+    :open="isCreateModalOpen"
     title="Add new Site"
     confirm-text="Add Site"
     @close="isCreateModalOpen = false"
     @confirm="createSite"
   >
-    <form class="flex flex-col p-5" @submit.prevent="createSite">
-      <DInput type="text" v-model="name" placeholder="Name of the site" />
+    <form
+      class="flex flex-col p-5"
+      @submit.prevent="createSite"
+    >
+      <DFormGroup>
+        <DFormLabel name="name">Site name</DFormLabel>
+        <DInput
+          type="text"
+          v-model="name"
+          placeholder="Name of the site"
+        />
+      </DFormGroup>
     </form>
   </DModal>
 </template>
