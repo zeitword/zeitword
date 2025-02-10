@@ -1,0 +1,54 @@
+{
+  "name": "zeitword",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^1.1.11",
+    "@libsql/client": "^0.14.0",
+    "@nuxt/fonts": "^0.10.3",
+    "@nuxt/kit": "^3.15.4",
+    "@pinia/nuxt": "^0.9.0",
+    "@tailwindcss/vite": "^4.0.5",
+    "@vueuse/core": "^12.5.0",
+    "@vueuse/nuxt": "^12.5.0",
+    "@vueuse/router": "^12.5.0",
+    "ai": "^4.1.32",
+    "auth-utils": "^1.0.0",
+    "aws4fetch": "^1.0.20",
+    "drizzle-orm": "^0.39.2",
+    "lucide-vue-next": "^0.475.0",
+    "nanoid": "^5.0.9",
+    "nuxt": "^3.15.4",
+    "nuxt-auth-utils": "^0.5.14",
+    "pg": "^8.13.1",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^4.0.5",
+    "typescript": "^5.7.3",
+    "uuidv7": "^1.0.2",
+    "vite": "^6.1.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/bun": "^1.2.2",
+    "@types/pg": "^8.11.11",
+    "drizzle-kit": "^0.30.4",
+    "tsx": "^4.19.2"
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "esbuild",
+    "vue-demi"
+  ]
+}

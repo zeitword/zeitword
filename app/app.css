@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: "Inter", sans-serif;
+}
+
+html,
+body,
+#__nuxt {
+  height: 100%;
+}
