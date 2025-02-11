@@ -33,7 +33,20 @@ const {
   max
 } = defineProps<Props>()
 
-const model = defineModel<string | number>()
+const [model, modifiers] = defineModel<string | number>({
+  set(value) {
+    if (modifiers.capitalize) {
+      return value.charAt(0).toUpperCase() + value.slice(1)
+    }
+    if (modifiers.sanitize) {
+      return value
+        .toLowerCase()
+        .replace(/ /g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+    }
+    return value
+  }
+})
 </script>
 
 <template>

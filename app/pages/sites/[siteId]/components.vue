@@ -31,7 +31,7 @@ onMounted(() => {
 })
 
 function navigateBack() {
-  router.back()
+  router.push(`/sites/${siteId}/components`)
 }
 
 const name = ref("")
@@ -48,7 +48,7 @@ async function createComponent() {
 </script>
 <template>
   <DPageTitle title="Components">
-    <DButton @click="isCreateModalOpen = true">Create Component</DButton>
+    <DButton @click="isCreateModalOpen = true">Add Component</DButton>
   </DPageTitle>
 
   <DPageWrapper>
@@ -97,32 +97,12 @@ async function createComponent() {
     </div>
   </DPageWrapper>
 
-  <div
-    class="fixed inset-0"
-    :class="isComponentSubRoute ? '' : 'pointer-events-none'"
+  <DDrawer
+    :open="isComponentSubRoute"
+    @close="navigateBack"
   >
-    <div
-      class="bg-neutral-inverse/30 pointer-events-none absolute inset-0 z-10 backdrop-blur-xs transition-all"
-      :class="isComponentSubRoute ? 'opacity-100' : 'opacity-0'"
-    ></div>
-    <Transition name="slide-fade">
-      <div
-        v-if="isComponentSubRoute"
-        class="absolute top-0 right-0 z-20 flex h-full w-[500px] flex-col p-5"
-      >
-        <div class="bg-neutral relative flex-1 rounded-lg p-5 shadow-lg">
-          <div class="absolute top-2 right-2">
-            <DButton
-              @click="navigateBack"
-              variant="transparent"
-              :icon-left="XIcon"
-            />
-          </div>
-          <NuxtPage />
-        </div>
-      </div>
-    </Transition>
-  </div>
+    <NuxtPage />
+  </DDrawer>
 
   <DModal
     :open="isCreateModalOpen"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Ellipsis, GripVertical } from "lucide-vue-next"
 const route = useRoute()
 const siteId = route.params.siteId
 const componentId = route.params.componentId
@@ -18,15 +19,19 @@ async function addField() {
 </script>
 
 <template>
-  <div>
-    <div class="text-title-md">Component: {{ component?.displayName }}</div>
+  <div class="flex flex-col gap-4">
+    <div class="text-title-sm">
+      Edit
+      <span class="border-neutral bg-neutral-weak rounded-md border px-1">{{ component?.displayName }}</span>
+      Component
+    </div>
     <form
       @submit.prevent="addField"
-      class="mb-4 flex max-w-sm flex-col gap-2"
+      class="mb-4 flex flex-col gap-2"
     >
       <DInput
         type="text"
-        v-model="name"
+        v-model.sanitize="name"
         placeholder="Field name"
       />
       <select
@@ -45,19 +50,32 @@ async function addField() {
       </select>
       <DButton type="submit">Add Field</DButton>
     </form>
-    <div>
-      <div
-        class="border-neutral-subtle text-copy flex border-b p-2 last:border-none"
+    <div
+      v-if="component?.fields && component?.fields.length > 0"
+      class="border-neutral overflow-hidden rounded-md border"
+    >
+      <NuxtLink
         v-for="(field, index) in component?.fields"
         :key="index"
+        class="hover:bg-neutral-hover group border-neutral flex border-b bg-white px-4 py-3 last:border-transparent"
+        :to="`/sites/${siteId}/components/${component.id}/${field?.fieldKey}`"
       >
-        <div class="w-40">
-          {{ field?.fieldKey }}
+        <div class="text-copy flex w-full items-center justify-between">
+          <div class="flex items-center gap-3">
+            <DButton
+              :icon-left="GripVertical"
+              size="sm"
+              variant="transparent"
+            />
+            <div>
+              {{ field?.fieldKey }}
+            </div>
+          </div>
+          <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
+            {{ field?.type }}
+          </div>
         </div>
-        <div>
-          {{ field?.type }}
-        </div>
-      </div>
+      </NuxtLink>
     </div>
   </div>
 </template>

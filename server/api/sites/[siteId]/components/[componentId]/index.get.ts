@@ -13,7 +13,13 @@ export default defineEventHandler(async (event) => {
   const componentsData = await useDrizzle()
     .select()
     .from(components)
-    .where(and(eq(components.id, componentId), eq(components.siteId, siteId), eq(components.organisationId, secure.organisationId)))
+    .where(
+      and(
+        eq(components.id, componentId),
+        eq(components.siteId, siteId),
+        eq(components.organisationId, secure.organisationId)
+      )
+    )
     .leftJoin(componentFields, eq(components.id, componentFields.componentId))
 
   const component = componentsData[0].components
@@ -22,6 +28,6 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...component,
-    fields,
+    fields
   }
 })

@@ -49,7 +49,9 @@ function confirm() {
     @update:open="close"
   >
     <DialogPortal>
-      <DialogOverlay class="data-[state=open]:animate-overlayShow fixed inset-0 z-50 bg-black/50" />
+      <DialogOverlay
+        class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 pointer-events-none fixed inset-0 z-50 backdrop-blur-xs"
+      />
       <DialogContent
         class="data-[state=open]:animate-contentShow fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg"
         :class="sizeClasses[size]"
