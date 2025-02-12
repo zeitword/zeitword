@@ -4,8 +4,7 @@ import { storeToRefs } from "pinia"
 const route = useRoute()
 const siteStore = useSiteStore()
 
-// Use storeToRefs for reactive state
-const { currentSite, isLoading } = storeToRefs(siteStore)
+const { currentSite } = storeToRefs(siteStore)
 
 const siteId = computed(() => route.params.siteId)
 

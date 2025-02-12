@@ -22,7 +22,7 @@ async function login() {
       }
     })
     await refresh()
-    await navigateTo("/")
+    await navigateTo("/sites")
   } catch (e) {
     errorMsg.value = "Ungültige Anmeldedaten"
   } finally {
