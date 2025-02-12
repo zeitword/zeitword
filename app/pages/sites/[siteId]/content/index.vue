@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { Compass } from "lucide-vue-next"
-
 const route = useRoute()
 const siteId = route.params.siteId
 
-const { data: components, refresh } = await useFetch(`/api/sites/${siteId}/components`)
+const { data: components } = await useFetch(`/api/sites/${siteId}/components`)
+const { data: stories, refresh: refreshStories } = await useFetch(`/api/sites/${siteId}/stories`)
 
 const isCreateModalOpen = ref(false)
 
@@ -20,20 +19,41 @@ const name = ref("")
 const slug = ref("")
 const contentType = ref("")
 
-function createStory() {
-  // Implement the logic to create a new story
+async function createStory() {
+  await useRequestFetch()(`/api/sites/${siteId}/stories`, {
+    method: "POST",
+    body: {
+      slug: slug.value.length > 0 ? slug.value : "index",
+      title: name.value,
+      content: {},
+      componentId: contentType.value
+    }
+  })
+  closeCreateModal()
+  refreshStories()
+}
+
+function closeCreateModal() {
+  name.value = ""
+  slug.value = ""
+  contentType.value = ""
+  isCreateModalOpen.value = false
 }
 </script>
 <template>
   <DPageTitle title="Content">
     <DButton @click="isCreateModalOpen = true">Add Story</DButton>
   </DPageTitle>
+  <pre>
+
+  {{ stories }}
+  </pre>
 
   <DModal
     :open="isCreateModalOpen"
-    title="Create Component"
-    confirm-text="Create Component"
-    @close="isCreateModalOpen = false"
+    title=" New Content Story "
+    confirm-text="Create Story"
+    @close="closeCreateModal"
     @confirm="createStory"
   >
     <form
@@ -65,7 +85,7 @@ function createStory() {
         <DInput
           id="slug"
           name="slug"
-          v-model="slug"
+          v-model.slug="slug"
           required
           leading="/"
           placeholder="landing"

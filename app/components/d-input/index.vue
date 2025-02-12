@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Moon } from "lucide-vue-next"
+
 type Props = {
   name?: string
   type?: "text" | "password" | "email" | "number" | "tel" | "date" | "datetime-local" | "url"
@@ -35,14 +37,21 @@ const {
 
 const [model, modifiers] = defineModel<string | number>({
   set(value) {
-    if (modifiers.capitalize) {
+    if (modifiers.capitalize && typeof value === "string") {
       return value.charAt(0).toUpperCase() + value.slice(1)
     }
-    if (modifiers.sanitize) {
+    if (modifiers.sanitize && typeof value === "string") {
       return value
         .toLowerCase()
         .replace(/ /g, "-")
         .replace(/[^a-z0-9-]/g, "")
+    }
+    if (modifiers.slug && typeof value === "string") {
+      return value
+        .toLowerCase()
+        .replace(/ /g, "-")
+        .replace(/[^a-z0-9-/]/g, "")
+        .replace(/--+/g, "-")
     }
     return value
   }
