@@ -1,11 +1,12 @@
-// stores/site.ts
 import { defineStore } from "pinia"
 import { computed, ref } from "vue"
 import type { sites } from "~~/server/database/schema"
 
 type Site = typeof sites.$inferSelect
 
+
 export const useSiteStore = defineStore("site", () => {
+	const route = useRoute()
   // state
   const currentSite = ref<Site | null>(null)
   const isLoading = ref(false)
@@ -17,10 +18,11 @@ export const useSiteStore = defineStore("site", () => {
 
   // actions
   async function fetchSite(siteId: string) {
-    // Don't fetch if we already have this site
     if (currentSite.value?.id === siteId) {
       return
     }
+
+    console.log("fetching site", siteId)
 
     isLoading.value = true
     error.value = null
@@ -39,6 +41,16 @@ export const useSiteStore = defineStore("site", () => {
       isLoading.value = false
     }
   }
+
+	onMounted(async () => {
+		if (!route.params.siteId) return
+		await fetchSite(route.params.siteId as string)
+	})
+
+  watch(route, async (newRoute) => {
+		if (!newRoute.params.siteId) return
+    await fetchSite(newRoute.params.siteId as string)
+  })
 
   return {
     // state

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { Ellipsis, LetterText } from "lucide-vue-next"
+
+definePageMeta({
+  layout: "site"
+})
+
 const route = useRoute()
 const siteId = route.params.siteId
 
@@ -44,11 +50,48 @@ function closeCreateModal() {
   <DPageTitle title="Content">
     <DButton @click="isCreateModalOpen = true">Add Story</DButton>
   </DPageTitle>
-  <pre>
+  <DPageWrapper>
+    <div class="py-5">
+      <DList v-if="stories && stories.length > 0">
+        <DListItem
+          v-for="story in stories"
+          :key="story.id"
+          :to="`/sites/${siteId}/content/${story.id}`"
+        >
+          <div class="text-copy flex w-full items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-60">
+                {{ story?.title }}
+              </div>
+              <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
+                {{ story?.component?.displayName }}
+              </div>
+            </div>
+            <DButton
+              :icon-left="Ellipsis"
+              size="sm"
+              variant="secondary"
+            />
+          </div>
+        </DListItem>
+      </DList>
 
-  {{ stories }}
-  </pre>
-
+      <div v-else>
+        <DEmpty
+          title="No stories yet"
+          description="Create your first story to get started"
+          :icon="LetterText"
+        >
+          <DButton
+            @click="isCreateModalOpen = true"
+            variant="secondary"
+          >
+            Create Story
+          </DButton>
+        </DEmpty>
+      </div>
+    </div>
+  </DPageWrapper>
   <DModal
     :open="isCreateModalOpen"
     title=" New Content Story "

@@ -14,6 +14,8 @@ async function addField() {
     method: "POST",
     body: { name: name.value, fieldType: fieldType.value }
   })
+	name.value = ""
+  fieldType.value = "text"
   await refresh()
 }
 </script>

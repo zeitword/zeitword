@@ -35,7 +35,7 @@ const open = ref(false)
       :class="[disabled ? 'cursor-not-allowed bg-gray-100 opacity-50' : 'hover:border-neutral-strong/30']"
     >
       <SelectValue :placeholder="placeholder" />
-      <SelectIcon>
+      <div>
         <ChevronDownIcon
           v-if="!open"
           class="ml-2 size-4 text-neutral-700"
@@ -44,7 +44,7 @@ const open = ref(false)
           v-else
           class="ml-2 size-4 text-neutral-700"
         />
-      </SelectIcon>
+      </div>
     </SelectTrigger>
 
     <SelectPortal>

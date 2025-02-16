@@ -15,7 +15,7 @@ type Props = {
   open: boolean
   title: string
   description?: string
-  confirmText: string
+  confirmText?: string
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
 }
 const { open, title, description, size = "md" } = defineProps<Props>()
@@ -53,7 +53,7 @@ function confirm() {
         class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 pointer-events-none fixed inset-0 z-50 backdrop-blur-xs"
       />
       <DialogContent
-        class="data-[state=open]:animate-contentShow fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg"
+        class="data-[state=open]:animate-contentShow fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg outline-none"
         :class="sizeClasses[size]"
       >
         <div>
@@ -90,6 +90,7 @@ function confirm() {
                 Cancel
               </DButton>
               <DButton
+								v-if="confirmText"
                 variant="primary"
                 @click="confirm"
               >

@@ -1,16 +1,22 @@
 <script setup lang="ts">
 type Props = {
   title: string
+  wide?: boolean
 }
 
-const { title } = defineProps<Props>()
+const { title, wide = false } = defineProps<Props>()
 </script>
 <template>
   <div class="border-neutral border-b py-6">
-    <DPageWrapper>
+    <DPageWrapper :wide>
       <div class="flex items-center justify-between">
-        <div class="text-neutral-strong text-title">
-          {{ title }}
+        <div>
+          <div class="text-neutral-strong text-title">
+            <span>
+              {{ title }}
+            </span>
+          </div>
+          <slot name="subtitle" />
         </div>
         <slot />
       </div>

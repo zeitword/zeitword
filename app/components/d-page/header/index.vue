@@ -1,44 +1,21 @@
 <script lang="ts" setup>
-import { storeToRefs } from "pinia"
+type Props = {
+  navigation: Array<{ name: string; to: string }>
+}
+
+const { navigation } = defineProps<Props>()
 
 const route = useRoute()
 const siteStore = useSiteStore()
-
-const { currentSite } = storeToRefs(siteStore)
+const storyStore = useStoryStore()
 
 const siteId = computed(() => route.params.siteId)
+const storyId = computed(() => route.params.storyId)
 
-// Fetch site when siteId changes
-watch(siteId, async (newSiteId) => {
-  if (newSiteId) {
-    await siteStore.fetchSite(newSiteId as string)
-  }
-})
-
-const mainNavigation = [
-  { name: "Sites", to: "/sites" },
-  { name: "Settings", to: "/settings" }
-]
-
-const siteNavigation = computed(() => {
-  return [
-    { name: "Components", to: `/sites/${siteId.value}/components` },
-    { name: "Content", to: `/sites/${siteId.value}/content` },
-    { name: "Settings", to: `/sites/${siteId.value}/settings` }
-  ]
-})
-
-const currentNavigation = computed(() => {
-  if (siteId.value) {
-    return siteNavigation.value
-  } else {
-    return mainNavigation
-  }
-})
 </script>
 
 <template>
-  <header class="bg-neutral border-neutral w-full border-b">
+  <header class="bg-neutral w-full border-b border-neutral">
     <div class="flex items-center justify-between px-6 py-3">
       <div class="flex items-center gap-2">
         <NuxtLink
@@ -56,7 +33,15 @@ const currentNavigation = computed(() => {
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
             :name="siteStore.currentSite?.name as string"
-            :to="`/sites/${siteId}`"
+            :to="`/sites/${siteId}/content`"
+          />
+        </template>
+
+        <template v-if="storyId">
+          <DPageHeaderSeparator />
+          <DPageHeaderBreadcrumbLink
+            :name="storyStore.currentStory?.title as string"
+            :to="`/sites/${siteId}/content/${storyId}`"
           />
         </template>
       </div>
@@ -68,24 +53,10 @@ const currentNavigation = computed(() => {
         </div>
       </div>
     </div>
-    <div class="px-4">
-      <div class="flex">
-        <NuxtLink
-          v-for="item in currentNavigation"
-          :key="item?.name"
-          :to="item?.to"
-          :class="
-            route.path.startsWith(item?.to)
-              ? 'text-neutral border-neutral-strong'
-              : 'text-neutral-subtle border-transparent'
-          "
-          class="group border-b-2 py-2 transition duration-150 ease-in-out hover:text-gray-900"
-        >
-          <div class="group-hover:bg-neutral-subtle text-copy rounded-lg px-3 py-1">
-            {{ item?.name }}
-          </div>
-        </NuxtLink>
-      </div>
-    </div>
+
+		<!-- <pre> -->
+		<!-- {{navigation}} -->
+		<!-- </pre> -->
+		<DPageHeaderNavigation :navigation="navigation" />
   </header>
 </template>

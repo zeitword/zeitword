@@ -1,11 +1,13 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: "site"
+})
+
 const route = useRoute()
 const router = useRouter()
 const siteId = route.params.siteId
 const { data: components, refresh } = await useFetch(`/api/sites/${siteId}/components`)
-import { XIcon, Ellipsis, BlocksIcon } from "lucide-vue-next"
-
-const siteStore = useSiteStore()
+import { Ellipsis, BlocksIcon } from "lucide-vue-next"
 
 const isCreateModalOpen = ref(false)
 
@@ -46,6 +48,7 @@ async function createComponent() {
   await refresh()
 }
 </script>
+
 <template>
   <DPageTitle title="Components">
     <DButton @click="isCreateModalOpen = true">Add Component</DButton>
@@ -53,15 +56,11 @@ async function createComponent() {
 
   <DPageWrapper>
     <div class="py-5">
-      <div
-        v-if="components && components.length > 0"
-        class="border-neutral overflow-hidden rounded-md border"
-      >
-        <NuxtLink
+      <DList v-if="components && components.length > 0">
+        <DListItem
+          :to="`/sites/${siteId}/components/${component.id}`"
           v-for="component in components"
           :key="component.id"
-          class="hover:bg-neutral-hover group border-neutral flex border-b bg-white px-4 py-3 last:border-transparent"
-          :to="`/sites/${siteId}/components/${component.id}`"
         >
           <div class="text-copy flex w-full items-center justify-between">
             <div class="flex items-center gap-2">
@@ -78,8 +77,9 @@ async function createComponent() {
               variant="secondary"
             />
           </div>
-        </NuxtLink>
-      </div>
+        </DListItem>
+      </DList>
+
       <div v-else>
         <DEmpty
           title="No components yet"
@@ -125,7 +125,7 @@ async function createComponent() {
         <DInput
           id="name"
           name="name"
-          v-model="name"
+          v-model.sanitize="name"
           required
           placeholder="some-button"
         />

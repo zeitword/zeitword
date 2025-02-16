@@ -1,12 +1,14 @@
 <script setup lang="ts">
-// code here
+const mainNavigation = [
+  { name: "Sites", to: "/sites" },
+  { name: "Settings", to: "/settings" }
+]
 </script>
 
 <template>
-  <DPageHeader />
+  <DPageHeader :navigation="mainNavigation" />
   <div class="flex h-full max-h-screen flex-col sm:flex-row">
-    <!-- <DPageSidebar /> -->
-    <main class="flex-1 overflow-scroll">
+    <main class="flex-1 overflow-scroll flex flex-col">
       <slot></slot>
     </main>
   </div>

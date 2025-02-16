@@ -51,10 +51,12 @@ const hasChanges = computed(() => {
 
 async function save() {
   if (hasChanges.value) {
-    await useFetch(`/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`, {
+		console.log("saving", formData.value)
+    await $fetch(`/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`, {
       method: "PUT",
       body: formData.value
     })
+		console.log("saved")
     refresh()
   }
 }
@@ -76,7 +78,9 @@ async function save() {
         Field
       </div>
     </div>
-    <div class="flex flex-col gap-4">
+    <form class="flex flex-col gap-4" 
+			@submit.prevent="save"
+		>
       <DFormGroup>
         <DFormLabel name="field-key">Field Key</DFormLabel>
         <DInput
@@ -145,14 +149,15 @@ async function save() {
           v-model="formData.maxValue"
         />
       </DFormGroup>
-    </div>
-    <div>
-      <DButton
-        @click="save"
-        :disabled="!hasChanges"
-      >
-        Save
-      </DButton>
-    </div>
+			<div>
+				<DButton
+					@click="save"
+					type="submit"
+					:disabled="!hasChanges"
+				>
+					Save
+				</DButton>
+			</div>
+    </form>
   </div>
 </template>

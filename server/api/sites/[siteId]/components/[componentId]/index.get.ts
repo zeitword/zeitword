@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
   const component = componentsData[0].components
 
-  const fields = componentsData.map((row) => row.component_fields)
+  const fields = componentsData.map((row) => row.component_fields).filter((field) => field !== null)
 
   return {
     ...component,
