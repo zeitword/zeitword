@@ -11,6 +11,7 @@ export const useSiteStore = defineStore("site", () => {
   const currentSite = ref<Site | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+	const components = ref()
 
   // getters
   const siteName = computed(() => currentSite.value?.name)
@@ -42,14 +43,24 @@ export const useSiteStore = defineStore("site", () => {
     }
   }
 
+	// fetch components
+	async function fetchComponents() {
+		const { data: response } = await useFetch<Component>(`/api/sites/${siteId.value}/components`)
+		if (response.value) {
+			components.value = response.value
+		}
+	}
+
 	onMounted(async () => {
 		if (!route.params.siteId) return
 		await fetchSite(route.params.siteId as string)
+		await fetchComponents()
 	})
 
   watch(route, async (newRoute) => {
 		if (!newRoute.params.siteId) return
     await fetchSite(newRoute.params.siteId as string)
+		await fetchComponents()
   })
 
   return {
@@ -57,6 +68,7 @@ export const useSiteStore = defineStore("site", () => {
     currentSite,
     isLoading,
     error,
+		components,
 
     // getters
     siteName,

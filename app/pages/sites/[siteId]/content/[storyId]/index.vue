@@ -5,6 +5,11 @@ definePageMeta({
 const storyStore = useStoryStore()
 const story = computed(() => storyStore.currentStory)
 
+const route = useRoute()
+const siteId = route.params.siteId
+
+const { data: components } = await useFetch(`/api/sites/${siteId}/components`)
+
 function save() {
   storyStore.save()
 }
