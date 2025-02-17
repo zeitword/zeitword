@@ -23,23 +23,14 @@ export default defineNuxtConfig({
     s3Region: "",
 
     // Postmark credentials
-    postmarkServerToken: "",
+    postmarkServerToken: ""
   },
 
   nitro: {
-    preset: "bun",
+    // preset: "bun",
 
-    storage: {
-      limiter: {
-        driver: "memory",
-      },
-    },
+    storage: { limiter: { driver: "memory" } }
   },
 
-  app: {
-    head: {
-      title: "Zeitword",
-      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.png" }],
-    },
-  },
+  app: { head: { title: "Zeitword", link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.png" }] } }
 })
