@@ -1,7 +1,5 @@
 <script setup lang="ts">
-definePageMeta({
-  layout: "story"
-})
+definePageMeta({ layout: "story" })
 const storyStore = useStoryStore()
 const story = computed(() => storyStore.currentStory)
 
@@ -43,7 +41,7 @@ function publish() {
     v-if="story"
     class="flex flex-1"
   >
-    <div class="flex-1 p-5">
+    <div class="flex-1 overflow-auto p-5">
       <pre>{{ storyStore.content }}</pre>
     </div>
     <div class="border-neutral flex w-[500px] flex-col gap-2 border-l p-5">
