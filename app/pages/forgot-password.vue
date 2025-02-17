@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: false,
+  layout: false
 })
 
 const email = ref("")
@@ -13,8 +13,8 @@ async function requestPasswordReset() {
     await $fetch("/api/forgot-password", {
       method: "POST",
       body: {
-        email: email.value,
-      },
+        email: email.value
+      }
     })
     success.value = true
   } catch (e: any) {
@@ -36,20 +36,55 @@ async function requestPasswordReset() {
     <div class="mx-auto max-w-sm rounded-lg border border-neutral-50 bg-white p-8 shadow">
       <h1 class="mb-4 text-center text-2xl font-semibold text-neutral-900">Passwort vergessen?</h1>
 
-      <form v-if="!success" @submit.prevent="requestPasswordReset" class="flex flex-col gap-4">
-        <p class="text-sm text-neutral-700">Wir senden dir eine E-Mail mit einem Link zum Zurücksetzen des Passworts.</p>
+      <form
+        v-if="!success"
+        @submit.prevent="requestPasswordReset"
+        class="flex flex-col gap-4"
+      >
+        <p class="text-sm text-neutral-700">
+          Wir senden dir eine E-Mail mit einem Link zum Zurücksetzen des Passworts.
+        </p>
         <div class="flex flex-col gap-1">
           <DLabel for="email">E-Mail</DLabel>
-          <DInput v-model="email" type="email" autocomplete="off" id="email" name="email" required placeholder="Deine E-Mail-Adresse" />
+          <DInput
+            v-model="email"
+            type="email"
+            autocomplete="off"
+            id="email"
+            name="email"
+            required
+            placeholder="Deine E-Mail-Adresse"
+          />
         </div>
         <div class="flex flex-col gap-2">
-          <DButton type="submit" text-center>Link anfordern</DButton>
-          <DButton to="/login" variant="secondary" text-center>Zurück zur Anmeldung</DButton>
+          <DButton
+            type="submit"
+            text-center
+          >
+            Link anfordern
+          </DButton>
+          <DButton
+            to="/login"
+            variant="secondary"
+            text-center
+          >
+            Zurück zur Anmeldung
+          </DButton>
         </div>
       </form>
-      <div v-else class="flex flex-col gap-2">
-        <p class="text-sm text-neutral-700">Falls dein Nutzer existiert, erhälst du eine E-Mail mit einem Link zum Zurücksetzen des Passworts.</p>
-        <DButton to="/login" text-center>Zurück zur Anmeldung</DButton>
+      <div
+        v-else
+        class="flex flex-col gap-2"
+      >
+        <p class="text-sm text-neutral-700">
+          Falls dein Nutzer existiert, erhälst du eine E-Mail mit einem Link zum Zurücksetzen des Passworts.
+        </p>
+        <DButton
+          to="/login"
+          text-center
+        >
+          Zurück zur Anmeldung
+        </DButton>
       </div>
     </div>
   </div>

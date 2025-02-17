@@ -4,7 +4,7 @@ import { z } from "zod"
 import type { H3Event } from "h3"
 
 const bodySchema = z.object({
-  email: z.string().email(),
+  email: z.string().email()
 })
 
 export default defineEventHandler(async (event) => {
@@ -26,20 +26,20 @@ async function enforceForgotPasswordRateLimit(event: H3Event, email: string) {
   const globalLimit = await rateLimiter.checkLimit({
     key: "limit:forgot-password:global",
     limit: 100,
-    ttl: 3600,
+    ttl: 3600
   })
 
   // Check per-email rate limit
   const localLimit = await rateLimiter.checkLimit({
     key: `limit:forgot-password:${email}`,
     limit: 3,
-    ttl: 3600,
+    ttl: 3600
   })
 
   if (!globalLimit || !localLimit) {
     throw createError({
       statusCode: 429,
-      message: "Too many requests. Please try again later.",
+      message: "Too many requests. Please try again later."
     })
   }
 }
@@ -61,7 +61,10 @@ async function backgroundProcessEmail({ email }: { email: string }) {
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24)
 
   // Set the reset password token and expiration date
-  await useDrizzle().update(users).set({ resetPasswordToken: passwordResetToken, resetPasswordExpiresAt: expiresAt }).where(eq(users.id, user.id))
+  await useDrizzle()
+    .update(users)
+    .set({ resetPasswordToken: passwordResetToken, resetPasswordExpiresAt: expiresAt })
+    .where(eq(users.id, user.id))
 
   try {
     const emailResult = await postmark.sendEmail({
@@ -73,7 +76,7 @@ async function backgroundProcessEmail({ email }: { email: string }) {
         `<p>du hast eine Anfrage zum Zurücksetzen deines Passworts für Zeitword erhalten. Um dein Passwort zurückzusetzen, klicke bitte auf den folgenden Link:</p>` +
         `<p><a href="${resetLink}">Passwort zurücksetzen</a></p>` +
         `<p>Wenn du diese E-Mail nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>` +
-        `<p>Vielen Dank<br />Dein Zeitword Team</p>`,
+        `<p>Vielen Dank<br />Dein Zeitword Team</p>`
     })
 
     console.log(emailResult)

@@ -11,11 +11,10 @@ const storyStore = useStoryStore()
 
 const siteId = computed(() => route.params.siteId)
 const storyId = computed(() => route.params.storyId)
-
 </script>
 
 <template>
-  <header class="bg-neutral w-full border-b border-neutral">
+  <header class="bg-neutral border-neutral w-full border-b">
     <div class="flex items-center justify-between px-6 py-3">
       <div class="flex items-center gap-2">
         <NuxtLink
@@ -54,9 +53,9 @@ const storyId = computed(() => route.params.storyId)
       </div>
     </div>
 
-		<!-- <pre> -->
-		<!-- {{navigation}} -->
-		<!-- </pre> -->
-		<DPageHeaderNavigation :navigation="navigation" />
+    <!-- <pre> -->
+    <!-- {{navigation}} -->
+    <!-- </pre> -->
+    <DPageHeaderNavigation :navigation="navigation" />
   </header>
 </template>

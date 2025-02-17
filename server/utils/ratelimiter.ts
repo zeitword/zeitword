@@ -28,6 +28,6 @@ export function useRateLimiter() {
   }
 
   return {
-    checkLimit,
+    checkLimit
   }
 }

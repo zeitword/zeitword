@@ -43,37 +43,35 @@ const isRoot = computed(() => path.length === 0)
 </script>
 
 <template>
-  <div class="flex flex-col gap-2"
-	>
-    <DFormLabel
-      :required="field.required"
-    >
+  <div class="flex flex-col gap-2">
+    <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-		<div class="border-neutral rounded-lg bg-neutral-strong">
-    <div v-if="storyStore.getNestedValue([...path, field.fieldKey])"
-			:class="[isRoot ? 'border-neutral border rounded-lg overflow-hidden' : '']"
-		>
-      <DFieldBlock
-        v-for="(block, index) in storyStore.getNestedValue([...path, field.fieldKey])"
-        :block="getBlock(block.id)"
-        :index="index"
-        :path="[...path, field.fieldKey]"
-				class="border-b border-neutral last:border-transparent"
-      />
-    </div>
-
-    <div class="p-1">
-      <DButton
-        variant="transparent"
-					size="sm"
-        :icon-left="PlusIcon"
-        @click="isAddModalOpen = true"
+    <div class="border-neutral bg-neutral-strong rounded-lg">
+      <div
+        v-if="storyStore.getNestedValue([...path, field.fieldKey])"
+        :class="[isRoot ? 'border-neutral overflow-hidden rounded-lg border' : '']"
       >
-        Add Block
-      </DButton>
+        <DFieldBlock
+          v-for="(block, index) in storyStore.getNestedValue([...path, field.fieldKey])"
+          :block="getBlock(block.id)"
+          :index="index"
+          :path="[...path, field.fieldKey]"
+          class="border-neutral border-b last:border-transparent"
+        />
+      </div>
+
+      <div class="p-1">
+        <DButton
+          variant="transparent"
+          size="sm"
+          :icon-left="PlusIcon"
+          @click="isAddModalOpen = true"
+        >
+          Add Block
+        </DButton>
+      </div>
     </div>
-		</div>
 
     <DModal
       :open="isAddModalOpen"

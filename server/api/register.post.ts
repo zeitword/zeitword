@@ -5,7 +5,7 @@ const bodySchema = z.object({
   name: z.string(),
   email: z.string().email(),
   password: z.string().min(8),
-  organisationName: z.string(),
+  organisationName: z.string()
 })
 
 export default defineEventHandler(async (event) => {
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     const createdOrgs = await useDrizzle()
       .insert(organisations)
       .values({
-        name: body.organisationName,
+        name: body.organisationName
       })
       .returning()
 
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
         email: body.email,
         password: hashedPassword,
         role: "admin",
-        organisationId: org.id,
+        organisationId: org.id
       })
       .returning()
 

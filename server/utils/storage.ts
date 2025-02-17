@@ -10,8 +10,8 @@ export function useS3Storage() {
       secretAccessKey: config.s3SecretAccessKey,
       endpoint: config.s3Endpoint,
       bucket: config.s3Bucket,
-      region: config.s3Region,
-    }),
+      region: config.s3Region
+    })
   })
 
   return storage

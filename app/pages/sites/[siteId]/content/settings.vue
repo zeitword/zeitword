@@ -4,7 +4,5 @@ definePageMeta({
 })
 </script>
 <template>
-  <div>
-		story settings
-	</div>
+  <div>story settings</div>
 </template>

@@ -23,6 +23,9 @@ export default defineNitroPlugin(() => {
   sessionHooks.hook("clear", async (session, event) => {
     if (!session.secure) return
 
-    await useDrizzle().update(sessions).set({ deletedAt: new Date() }).where(eq(sessions.token, session.secure.sessionToken))
+    await useDrizzle()
+      .update(sessions)
+      .set({ deletedAt: new Date() })
+      .where(eq(sessions.token, session.secure.sessionToken))
   })
 })

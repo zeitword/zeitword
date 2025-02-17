@@ -4,7 +4,7 @@ import { uuidv7 } from "uuidv7"
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  deletedAt: timestamp({ withTimezone: true }),
+  deletedAt: timestamp({ withTimezone: true })
 }
 
 // Create an enum type for the allowed field types (as listed in our CMS zod schema)
@@ -23,20 +23,20 @@ export const fieldTypeEnum = pgEnum("field_type", [
   "assets",
   "link",
   "section",
-  "custom",
+  "custom"
 ])
 
 const organisationId = {
   organisationId: uuid()
     .notNull()
-    .references(() => organisations.id),
+    .references(() => organisations.id)
 }
 
 // Tables
 export const organisations = pgTable("organisations", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
-  ...timestamps,
+  ...timestamps
 })
 
 export const users = pgTable("users", {
@@ -47,7 +47,7 @@ export const users = pgTable("users", {
   resetPasswordToken: text(),
   resetPasswordExpiresAt: timestamp({ withTimezone: true }),
   ...organisationId,
-  ...timestamps,
+  ...timestamps
 })
 
 export const sessions = pgTable(
@@ -57,9 +57,9 @@ export const sessions = pgTable(
     userId: uuid()
       .notNull()
       .references(() => users.id),
-    ...timestamps,
+    ...timestamps
   },
-  (t) => [primaryKey({ columns: [t.token, t.userId] })],
+  (t) => [primaryKey({ columns: [t.token, t.userId] })]
 )
 
 export const components = pgTable("components", {
@@ -72,7 +72,7 @@ export const components = pgTable("components", {
     .notNull()
     .references(() => sites.id),
   ...organisationId,
-  ...timestamps,
+  ...timestamps
 })
 
 export const componentFields = pgTable(
@@ -89,9 +89,9 @@ export const componentFields = pgTable(
     defaultValue: text(),
     minValue: integer(),
     maxValue: integer(),
-    ...organisationId,
+    ...organisationId
   },
-  (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })],
+  (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })]
 )
 
 export const fieldOptions = pgTable("field_options", {
@@ -102,7 +102,7 @@ export const fieldOptions = pgTable("field_options", {
   fieldKey: text().notNull(), // which field this option belongs to.
   optionName: text().notNull(),
   optionValue: text().notNull(),
-  ...organisationId,
+  ...organisationId
 })
 
 export const stories = pgTable("stories", {
@@ -114,12 +114,12 @@ export const stories = pgTable("stories", {
     .notNull()
     .references(() => components.id),
   ...organisationId,
-  ...timestamps,
+  ...timestamps
 })
 
 export const sites = pgTable("sites", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   ...organisationId,
-  ...timestamps,
+  ...timestamps
 })

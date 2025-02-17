@@ -14,8 +14,8 @@ const model = defineModel<string>()
   <textarea
     v-model="model"
     class="border-neutral rounded-lg border p-2 ring-offset-0 transition-all outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
-		:rows="rows"
-		:cols="cols"
+    :rows="rows"
+    :cols="cols"
     :placeholder="placeholder"
     :disabled="disabled"
   ></textarea>

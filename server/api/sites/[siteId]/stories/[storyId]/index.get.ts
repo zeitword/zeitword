@@ -11,7 +11,6 @@ export default defineEventHandler(async (event) => {
   const storyId = getRouterParam(event, "storyId")
   if (!storyId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
-
   // First get the story and its component
   const [storyData] = await useDrizzle()
     .select({

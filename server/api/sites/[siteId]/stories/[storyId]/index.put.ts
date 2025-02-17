@@ -21,21 +21,21 @@ export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
-	const storyId = getRouterParam(event, "storyId")
+  const storyId = getRouterParam(event, "storyId")
   if (!storyId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
-	const [story] = await useDrizzle()
-	.update(stories)
-	.set({
-		slug: data.slug,
-		title: data.title,
-		content: data.content,
-		componentId: data.componentId
-	})
-	.where(eq(stories.id, storyId))
-	.returning()
+  const [story] = await useDrizzle()
+    .update(stories)
+    .set({
+      slug: data.slug,
+      title: data.title,
+      content: data.content,
+      componentId: data.componentId
+    })
+    .where(eq(stories.id, storyId))
+    .returning()
 
   return story
 })

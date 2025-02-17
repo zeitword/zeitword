@@ -5,5 +5,5 @@ export default defineConfig({
   schema: "./server/database/schema.ts",
   out: "./server/database/migrations",
   dbCredentials: { url: process.env.NUXT_DSN! },
-  casing: "snake_case",
+  casing: "snake_case"
 })

@@ -4,11 +4,7 @@ import { componentFields, components } from "~~/server/database/schema"
 type Field = typeof componentFields.$inferSelect
 type Component = typeof components.$inferSelect
 
-type Props = {
-  field: Field
-  path?: string[]
-	components?: Component[]
-}
+type Props = { field: Field; path?: string[]; components?: Component[] }
 
 const { field, path = [] } = defineProps<Props>()
 
@@ -23,7 +19,7 @@ function updateValue(value: any) {
 }
 </script>
 <template>
-  <DFormGroup v-if="field.type === 'text'" >
+  <DFormGroup v-if="field.type === 'text'">
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
@@ -34,14 +30,14 @@ function updateValue(value: any) {
     />
   </DFormGroup>
 
-  <DFormGroup v-else-if="field.type === 'textarea'" >
+  <DFormGroup v-else-if="field.type === 'textarea'">
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
     <DTextarea
       :model-value="currentValue"
       @input="updateValue(($event.target as HTMLTextAreaElement).value)"
-      class="border-neutral rounded-lg border p-2 ring-offset-0 transition-all outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
+      class="border-neutral rounded-lg border p-2 text-sm ring-offset-0 transition-all outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
     />
   </DFormGroup>
 
@@ -49,7 +45,7 @@ function updateValue(value: any) {
     v-else-if="field.type === 'blocks'"
     :field="field"
     :path="path"
-		:blocks="components"
+    :blocks="components"
   />
 
   <div

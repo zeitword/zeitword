@@ -9,11 +9,11 @@ const EmailMessageSchema = z.object({
   subject: z.string().min(1),
   htmlBody: z.string().min(1),
   textBody: z.string().optional(),
-  messageStream: z.string().optional(),
+  messageStream: z.string().optional()
 })
 
 const PostmarkConfigSchema = z.object({
-  serverToken: z.string().min(1),
+  serverToken: z.string().min(1)
   //   apiUrl: z.string().url().optional().default("https://api.postmarkapp.com/email"),
 })
 
@@ -22,7 +22,7 @@ const PostmarkResponseSchema = z.object({
   Message: z.string(),
   To: z.string(),
   SubmittedAt: z.string(),
-  ErrorCode: z.number().optional(),
+  ErrorCode: z.number().optional()
 })
 
 /**
@@ -39,7 +39,7 @@ class PostmarkError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public response?: unknown,
+    public response?: unknown
   ) {
     super(message)
     this.name = "PostmarkError"
@@ -60,7 +60,7 @@ export function usePostmark(config: PostmarkConfig) {
   const headers = {
     Accept: "application/json",
     "Content-Type": "application/json",
-    "X-Postmark-Server-Token": validatedConfig.serverToken,
+    "X-Postmark-Server-Token": validatedConfig.serverToken
   }
 
   /**
@@ -79,13 +79,13 @@ export function usePostmark(config: PostmarkConfig) {
       Subject: validatedMessage.subject,
       HtmlBody: validatedMessage.htmlBody,
       TextBody: validatedMessage.textBody,
-      MessageStream: validatedMessage.messageStream || "outbound",
+      MessageStream: validatedMessage.messageStream || "outbound"
     }
 
     return fetch(`${API_URL}/email`, {
       method: "POST",
       headers: headers,
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     })
       .then(async function (response) {
         if (!response.ok) {
@@ -109,6 +109,6 @@ export function usePostmark(config: PostmarkConfig) {
   }
 
   return {
-    sendEmail,
+    sendEmail
   }
 }

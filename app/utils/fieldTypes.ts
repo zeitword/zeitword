@@ -13,5 +13,5 @@ export const fieldTypes = [
   "assets",
   "link",
   "section",
-  "custom",
+  "custom"
 ]

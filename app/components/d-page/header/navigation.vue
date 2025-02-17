@@ -8,7 +8,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <div class="px-4 bg-neutral">
+  <div class="bg-neutral px-4">
     <div class="flex">
       <NuxtLink
         v-for="item in navigation"

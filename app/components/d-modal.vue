@@ -90,7 +90,7 @@ function confirm() {
                 Cancel
               </DButton>
               <DButton
-								v-if="confirmText"
+                v-if="confirmText"
                 variant="primary"
                 @click="confirm"
               >

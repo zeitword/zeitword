@@ -5,7 +5,7 @@ import type { H3Event } from "h3"
 
 const bodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(8)
 })
 
 export default defineEventHandler(async (event) => {
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     .insert(sessions)
     .values({
       token: nanoid(64),
-      userId: user.id,
+      userId: user.id
     })
     .returning()
 
@@ -43,13 +43,13 @@ export default defineEventHandler(async (event) => {
       name: user.name,
       email: user.email!,
       role: user.role,
-      organisationId: user.organisationId,
+      organisationId: user.organisationId
     },
     secure: {
       userId: user.id,
       sessionToken: session.token,
-      organisationId: user.organisationId,
-    },
+      organisationId: user.organisationId
+    }
   })
 
   return {}
@@ -62,20 +62,20 @@ async function enforceLoginRateLimit(event: H3Event, email: string) {
   const globalLimit = await rateLimiter.checkLimit({
     key: "limit:login:global",
     limit: 100,
-    ttl: 3600,
+    ttl: 3600
   })
 
   // Check per-email rate limit
   const localLimit = await rateLimiter.checkLimit({
     key: `limit:login:${email}`,
     limit: 3,
-    ttl: 3600,
+    ttl: 3600
   })
 
   if (!globalLimit || !localLimit) {
     throw createError({
       statusCode: 429,
-      message: "Too many requests. Please try again later.",
+      message: "Too many requests. Please try again later."
     })
   }
 }

@@ -2,7 +2,7 @@ import { z } from "zod"
 import { sites } from "~~/server/database/schema"
 
 const bodySchema = z.object({
-  name: z.string().min(1).max(255),
+  name: z.string().min(1).max(255)
 })
 
 export default defineEventHandler(async (event) => {
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     .insert(sites)
     .values({
       name: data.name,
-      organisationId: secure.organisationId,
+      organisationId: secure.organisationId
     })
     .returning()
   return site

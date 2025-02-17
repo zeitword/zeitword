@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: false,
+  layout: false
 })
 
 const route = useRoute()
@@ -18,8 +18,8 @@ async function requestPasswordReset() {
       method: "POST",
       body: {
         password: password.value,
-        token: token.value,
-      },
+        token: token.value
+      }
     })
     success.value = true
     await navigateTo("/login")
@@ -42,23 +42,54 @@ async function requestPasswordReset() {
     <div class="mx-auto max-w-sm rounded-lg border border-neutral-50 bg-white p-8 shadow">
       <h1 class="mb-4 text-center text-2xl font-semibold text-neutral-900">Neues Passwort</h1>
 
-      <form v-if="!success" @submit.prevent="requestPasswordReset" class="flex flex-col gap-4">
+      <form
+        v-if="!success"
+        @submit.prevent="requestPasswordReset"
+        class="flex flex-col gap-4"
+      >
         <p class="mb-2 text-sm text-neutral-700">Es muss mindestens 8 Zeichen lang sein.</p>
 
         <div class="flex flex-col gap-1">
           <DLabel for="email">Passwort</DLabel>
-          <DInput v-model="password" type="password" autocomplete="off" id="password" name="password" required placeholder="Dein neues Passwort" />
+          <DInput
+            v-model="password"
+            type="password"
+            autocomplete="off"
+            id="password"
+            name="password"
+            required
+            placeholder="Dein neues Passwort"
+          />
         </div>
         <div class="flex flex-col gap-2">
-          <DButton type="submit" text-center>Passwort zurücksetzen</DButton>
-          <DButton to="/login" variant="secondary" text-center>Zurück zur Anmeldung</DButton>
+          <DButton
+            type="submit"
+            text-center
+          >
+            Passwort zurücksetzen
+          </DButton>
+          <DButton
+            to="/login"
+            variant="secondary"
+            text-center
+          >
+            Zurück zur Anmeldung
+          </DButton>
         </div>
       </form>
-      <div v-else class="flex flex-col gap-2">
+      <div
+        v-else
+        class="flex flex-col gap-2"
+      >
         <div class="rounded-md bg-green-100 p-4">
           <p class="text-sm text-green-900">Du hast erfolgreich dein Passwort zurückgesetzt.</p>
         </div>
-        <DButton to="/login" text-center>Zurück zur Anmeldung</DButton>
+        <DButton
+          to="/login"
+          text-center
+        >
+          Zurück zur Anmeldung
+        </DButton>
       </div>
     </div>
   </div>

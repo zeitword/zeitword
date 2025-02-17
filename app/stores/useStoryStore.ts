@@ -19,7 +19,7 @@ export const useStoryStore = defineStore("story", () => {
   // state
   const currentStory = ref()
   const currentStoryCompare = ref()
-	const components = ref()
+  const components = ref()
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 

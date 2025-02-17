@@ -19,8 +19,8 @@ const bodySchema = z.object({
     "assets",
     "link",
     "section",
-    "custom",
-  ]),
+    "custom"
+  ])
 })
 
 export default defineEventHandler(async (event) => {
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       fieldKey: data.name,
       type: data.fieldType,
       name: data.name,
-      organisationId: secure.organisationId,
+      organisationId: secure.organisationId
     })
     .returning()
 
