@@ -89,6 +89,9 @@ export const componentFields = pgTable(
     defaultValue: text(),
     minValue: integer(),
     maxValue: integer(),
+    siteId: uuid()
+      .notNull()
+      .references(() => sites.id),
     ...organisationId
   },
   (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })]
@@ -102,6 +105,9 @@ export const fieldOptions = pgTable("field_options", {
   fieldKey: text().notNull(), // which field this option belongs to.
   optionName: text().notNull(),
   optionValue: text().notNull(),
+  siteId: uuid()
+    .notNull()
+    .references(() => sites.id),
   ...organisationId
 })
 
@@ -113,6 +119,9 @@ export const stories = pgTable("stories", {
   componentId: uuid()
     .notNull()
     .references(() => components.id),
+  siteId: uuid()
+    .notNull()
+    .references(() => sites.id),
   ...organisationId,
   ...timestamps
 })

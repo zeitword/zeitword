@@ -29,6 +29,7 @@ export default defineEventHandler(async (event) => {
       slug: data.slug,
       title: data.title,
       content: data.content,
+      siteId: siteId,
       componentId: data.componentId,
       organisationId: secure.organisationId
     })

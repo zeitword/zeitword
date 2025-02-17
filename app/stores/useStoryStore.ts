@@ -14,7 +14,6 @@ export const useStoryStore = defineStore("story", () => {
 
   // state
   const currentStory = ref()
-  const currentStoryCompare = ref()
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -41,8 +40,7 @@ export const useStoryStore = defineStore("story", () => {
       isLoading.value = false
     }
 
-    // copy the current story to compare
-    currentStoryCompare.value = JSON.parse(JSON.stringify(currentStory.value))
+    return currentStory.value
   }
 
   async function updateField(fieldKey: string, value: string) {
@@ -75,11 +73,6 @@ export const useStoryStore = defineStore("story", () => {
     current[lastKey] = value
   }
 
-  async function updateBlock(blockId: string, value: string) {
-    if (!currentStory.value) return
-    currentStory.value.content[blockId] = value
-  }
-
   async function save() {
     if (!currentStory.value) return
 
@@ -97,18 +90,6 @@ export const useStoryStore = defineStore("story", () => {
     console.log("saved", currentStory.value.id)
     await fetchStory(currentStory.value.id)
   }
-
-  onMounted(async () => {
-    if (!route.params.siteId) return
-    if (!route.params.storyId) return
-    await fetchStory(route.params.storyId as string)
-  })
-
-  watch(route, async (newRoute) => {
-    if (!newRoute.params.siteId) return
-    if (!newRoute.params.storyId) return
-    await fetchStory(newRoute.params.storyId as string)
-  })
 
   return {
     // state

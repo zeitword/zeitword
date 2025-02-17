@@ -3,12 +3,12 @@ definePageMeta({ layout: "story" })
 
 const storyStore = useStoryStore()
 
-const siteId = useRouteParams("siteId")
-const storyId = useRouteParams("storyId")
+const siteId = useRouteParams<string>("siteId")
+const storyId = useRouteParams<string>("storyId")
 
-// await storyStore.fetchStory(storyId.value! as string)
+const { currentStory: story } = storeToRefs(storyStore)
 
-const { data: story } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
+await useAsyncData(`/stories/${storyId.value}`, () => storyStore.fetchStory(storyId.value))
 
 async function save() {
   await storyStore.save()
