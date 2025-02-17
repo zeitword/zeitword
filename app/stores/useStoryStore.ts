@@ -8,10 +8,6 @@ interface StoryContent {
   [key: string]: string | number | boolean | null | Object
 }
 
-interface TypedStory extends Omit<Story, "content"> {
-  content: StoryContent
-}
-
 export const useStoryStore = defineStore("story", () => {
   const route = useRoute()
   const siteId = computed(() => route.params.siteId)
@@ -19,21 +15,14 @@ export const useStoryStore = defineStore("story", () => {
   // state
   const currentStory = ref()
   const currentStoryCompare = ref()
-  const components = ref()
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   const content = computed(() => currentStory.value?.content as StoryContent)
-  const hasChanges = computed(() => {
-    console.log("comparing", currentStory.value?.content, currentStoryCompare.value?.content)
-    return JSON.stringify(currentStory.value?.content) !== JSON.stringify(currentStoryCompare.value?.content)
-  })
 
   // actions
   async function fetchStory(storyId: string) {
-    if (currentStory.value?.id === storyId) {
-      return
-    }
+    if (currentStory.value?.id === storyId) return
 
     console.log("fetching story", storyId)
 
@@ -41,12 +30,10 @@ export const useStoryStore = defineStore("story", () => {
     error.value = null
 
     try {
-      const { data: response } = await useFetch<Story>(`/api/sites/${siteId.value}/stories/${storyId}`)
-      if (response.value) {
-        currentStory.value = {
-          ...response.value
-        }
-      }
+      const data = await useRequestFetch()<Story>(`/api/sites/${siteId.value}/stories/${storyId}`)
+      if (!data) throw new Error("Failed to fetch story")
+
+      currentStory.value = { ...data }
     } catch (err) {
       error.value = "Failed to fetch site"
       console.error("Error fetching site:", err)
@@ -97,6 +84,7 @@ export const useStoryStore = defineStore("story", () => {
     if (!currentStory.value) return
 
     console.log("saving", currentStory.value)
+
     await $fetch(`/api/sites/${siteId.value}/stories/${currentStory.value.id}`, {
       method: "PUT",
       body: {
@@ -129,7 +117,6 @@ export const useStoryStore = defineStore("story", () => {
     error,
 
     content,
-    hasChanges,
 
     // actions
     fetchStory,

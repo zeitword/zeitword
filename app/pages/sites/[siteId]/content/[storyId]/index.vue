@@ -1,15 +1,17 @@
 <script setup lang="ts">
 definePageMeta({ layout: "story" })
+
 const storyStore = useStoryStore()
-const story = computed(() => storyStore.currentStory)
 
-const route = useRoute()
-const siteId = route.params.siteId
+const siteId = useRouteParams("siteId")
+const storyId = useRouteParams("storyId")
 
-const { data: components } = await useFetch(`/api/sites/${siteId}/components`)
+// await storyStore.fetchStory(storyId.value! as string)
 
-function save() {
-  storyStore.save()
+const { data: story } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
+
+async function save() {
+  await storyStore.save()
 }
 
 function publish() {
@@ -30,7 +32,6 @@ function publish() {
       <DButton
         variant="secondary"
         @click="save"
-        :disabled="!storyStore.hasChanges"
       >
         Save
       </DButton>
