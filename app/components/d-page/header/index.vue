@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { LogOutIcon } from "lucide-vue-next"
 type Props = {
   navigation: Array<{ name: string; to: string }>
 }
@@ -7,10 +8,28 @@ const { navigation } = defineProps<Props>()
 const siteId = useRouteParams<string>("siteId")
 const storyId = useRouteParams<string>("storyId")
 
-const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
-const { data: story } = await useFetch(
-  `/api/sites/${siteId.value}/stories/${storyId.value}`
-)
+const site = ref()
+if (siteId.value) {
+  let { data } = await useFetch(`/api/sites/${siteId.value}`)
+  site.value = data.value
+}
+
+const story = ref()
+
+if (siteId.value && storyId.value) {
+  const { data } = await useFetch(
+    `/api/sites/${siteId.value}/stories/${storyId.value}`
+  )
+  story.value = data.value
+}
+
+const { data: me } = await useFetch(`/api/me`)
+
+const initials = computed(() => {
+  if (!me.value) return ""
+  const name = me.value.name?.split(" ")
+  return (name[0]?.charAt(0) || "") + (name[1]?.charAt(0) || "")
+})
 </script>
 
 <template>
@@ -25,7 +44,7 @@ const { data: story } = await useFetch(
         </NuxtLink>
         <DPageHeaderSeparator />
         <DPageHeaderBreadcrumbLink
-          name="Zeitword"
+          :name="me?.organisationName as string"
           to="/sites"
         />
         <template v-if="siteId && site">
@@ -44,18 +63,21 @@ const { data: story } = await useFetch(
           />
         </template>
       </div>
-      <div>
+      <div class="flex items-center gap-2">
+        <DButton
+          :icon-left="LogOutIcon"
+          variant="ghost"
+          size="md"
+          to="/logout"
+        />
         <div
           class="bg-neutral-inverse text-neutral-inverse text-copy-sm grid size-8 place-items-center rounded-full font-semibold uppercase"
         >
-          am
+          {{ initials }}
         </div>
       </div>
     </div>
 
-    <!-- <pre> -->
-    <!-- {{navigation}} -->
-    <!-- </pre> -->
     <DPageHeaderNavigation :navigation="navigation" />
   </header>
 </template>

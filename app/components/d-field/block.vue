@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ChevronDownIcon, GripVertical, Trash2Icon } from "lucide-vue-next"
-import { componentFields } from "~~/server/database/schema"
+import type { DField } from "~/types/models"
 
 const siteId = useRouteParams<string>("siteId")
 
-type Field = typeof componentFields.$inferSelect
-
 type Props = {
-  block: Field
+  block: DField
   index: number
   path?: string[]
 }

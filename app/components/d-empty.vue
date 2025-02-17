@@ -3,13 +3,21 @@ type Props = {
   title: string
   description?: string
   icon?: Component
+  size?: "sm" | "md" | "lg"
 }
 
-const { icon, title, description } = defineProps<Props>()
+const paddings = {
+  sm: "py-5",
+  md: "py-10",
+  lg: "py-15"
+}
+
+const { icon, title, description, size = "sm" } = defineProps<Props>()
 </script>
 <template>
   <div
-    class="border-neutral flex flex-col items-center justify-center gap-2 rounded-lg border bg-white px-5 py-5"
+    class="border-neutral flex flex-col items-center justify-center gap-2 rounded-lg border bg-white px-5"
+    :class="paddings[size]"
   >
     <div
       v-if="icon"

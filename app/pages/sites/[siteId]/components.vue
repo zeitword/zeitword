@@ -89,6 +89,7 @@ async function createComponent() {
           title="No components yet"
           description="Create your first component to get started"
           :icon="BlocksIcon"
+          size="lg"
         >
           <DButton
             @click="isCreateModalOpen = true"

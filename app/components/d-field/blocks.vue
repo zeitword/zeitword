@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import { PlusIcon } from "lucide-vue-next"
-import { componentFields } from "~~/server/database/schema"
-
-type Field = typeof componentFields.$inferSelect
+import type { DField } from "~/types/models"
 
 type Props = {
-  field: Field
+  field: DField
   path?: string[]
 }
 
 const { field, path = [] } = defineProps<Props>()
 
 const storyStore = useStoryStore()
-const route = useRoute()
+const siteId = useRouteParams("siteId")
 
-const siteStore = useSiteStore()
-const components = siteStore.components
+const { data: components } = await useFetch(
+  `/api/sites/${siteId.value}/components`
+)
 
 const isAddModalOpen = ref(false)
 
@@ -35,10 +34,8 @@ function addBlock(blockId: string) {
 
 function getBlock(blockId: string) {
   if (!components) return
-  return components.find((block) => block.id === blockId)
+  return components.value?.find((block) => block.id === blockId)
 }
-
-const isRoot = computed(() => path.length === 0)
 </script>
 
 <template>
