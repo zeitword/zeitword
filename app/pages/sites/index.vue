@@ -29,7 +29,7 @@ async function createSite() {
           :to="`/sites/${site.id}/components`"
           v-for="site in sites"
           :key="site.id"
-          class="cursor-pointer overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xs transition-all duration-100 hover:shadow-sm"
+          class="cursor-pointer overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm transition-all duration-100 hover:shadow-md transition-all hover:border-neutral-strong/20"
         >
           <div class="p-5">
             {{ site.name }}

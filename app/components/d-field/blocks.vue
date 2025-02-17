@@ -58,7 +58,7 @@ function getBlock(blockId: string) {
           :block="getBlock(block.id)"
           :index="index"
           :path="[...path, field.fieldKey]"
-          class="border-neutral overflow-hidden border-b last:border-transparent"
+          class="border-neutral overflow-hidden border-b last:border-none"
         />
       </div>
 

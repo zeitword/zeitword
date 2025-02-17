@@ -7,7 +7,7 @@ type Props = {
 const { title, wide = false } = defineProps<Props>()
 </script>
 <template>
-  <div class="border-neutral border-b py-6">
+  <div class="border-neutral border-b py-10">
     <DPageWrapper :wide>
       <div class="flex items-center justify-between">
         <div>

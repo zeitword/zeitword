@@ -66,7 +66,7 @@ const initials = computed(() => {
       <div class="flex items-center gap-2">
         <DButton
           :icon-left="LogOutIcon"
-          variant="ghost"
+          variant="secondary"
           size="md"
           to="/logout"
         />
