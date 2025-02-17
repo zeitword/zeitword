@@ -60,7 +60,9 @@ function close() {
             class="flex items-center gap-2 px-2 py-2"
           >
             <!-- <img src="/file_folder_color.svg" class="size-5" /> -->
-            <div class="line-clamp-1 leading-[1em] font-medium">{{ organisationName }}</div>
+            <div class="line-clamp-1 leading-[1em] font-medium">
+              {{ organisationName }}
+            </div>
           </div>
           <div
             class="hidden items-center rounded-md p-2 hover:bg-neutral-200 sm:flex"
@@ -89,7 +91,11 @@ function close() {
           v-for="link in links"
           class="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-500 hover:bg-neutral-200"
           :to="link.to"
-          :class="route.path.startsWith(link.to) ? 'bg-neutral-200 text-neutral-700' : ''"
+          :class="
+            route.path.startsWith(link.to)
+              ? 'bg-neutral-200 text-neutral-700'
+              : ''
+          "
         >
           <div class="flex h-5 items-center justify-center">
             <component

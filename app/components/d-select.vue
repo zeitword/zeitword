@@ -32,7 +32,11 @@ const open = ref(false)
     <SelectTrigger
       :disabled="disabled"
       class="bg-neutral border-neutral hover: flex h-9 w-full cursor-default items-center justify-between rounded-lg border px-2.5 text-sm outline-none select-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
-      :class="[disabled ? 'cursor-not-allowed bg-neutral-100 opacity-50' : 'hover:border-neutral-strong/30']"
+      :class="[
+        disabled
+          ? 'cursor-not-allowed bg-neutral-100 opacity-50'
+          : 'hover:border-neutral-strong/30'
+      ]"
     >
       <SelectValue :placeholder="placeholder" />
       <div>

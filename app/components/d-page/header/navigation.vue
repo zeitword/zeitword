@@ -21,7 +21,9 @@ const route = useRoute()
         "
         class="group border-b-2 py-2 transition duration-150 ease-in-out hover:text-gray-900"
       >
-        <div class="group-hover:bg-neutral-subtle text-copy rounded-lg px-3 py-1">
+        <div
+          class="group-hover:bg-neutral-subtle text-copy rounded-lg px-3 py-1"
+        >
           {{ item?.name }}
         </div>
       </NuxtLink>

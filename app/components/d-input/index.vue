@@ -3,7 +3,15 @@ import { Moon } from "lucide-vue-next"
 
 type Props = {
   name?: string
-  type?: "text" | "password" | "email" | "number" | "tel" | "date" | "datetime-local" | "url"
+  type?:
+    | "text"
+    | "password"
+    | "email"
+    | "number"
+    | "tel"
+    | "date"
+    | "datetime-local"
+    | "url"
   required?: boolean
   placeholder?: string
   autocomplete?: string
@@ -61,7 +69,11 @@ const [model, modifiers] = defineModel<string | number>({
 <template>
   <div
     class="border-neutral text-neutral text-copy flex h-9 overflow-hidden rounded-lg border leading-none transition-all outline-none has-[:focus]:border-blue-600 has-[:focus]:bg-white has-[:focus]:ring-2 has-[:focus]:ring-blue-300"
-    :class="[disabled ? 'cursor-not-allowed bg-neutral-100 opacity-50' : 'hover:border-neutral-strong/30']"
+    :class="[
+      disabled
+        ? 'cursor-not-allowed bg-neutral-100 opacity-50'
+        : 'hover:border-neutral-strong/30'
+    ]"
   >
     <div
       v-if="$slots.leading || leading"

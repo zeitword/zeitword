@@ -38,13 +38,17 @@ const isRoot = computed(() => path.length === 0)
           class="flex flex-1 items-center gap-2 text-left"
           @click="isBlockOpen = !isBlockOpen"
         >
-          <div class="group-hover:border-neutral grid size-7 place-items-center rounded-md group-hover:border">
+          <div
+            class="group-hover:border-neutral grid size-7 place-items-center rounded-md group-hover:border"
+          >
             <ChevronDownIcon
               class="size-4"
               :class="[isBlockOpen ? 'rotate-180' : '']"
             />
           </div>
-          <div class="text-copy-lg text-neutral flex-1">{{ block.displayName }}</div>
+          <div class="text-copy-lg text-neutral flex-1">
+            {{ block.displayName }}
+          </div>
         </button>
         <div class="hidden group-hover:flex">
           <DButton

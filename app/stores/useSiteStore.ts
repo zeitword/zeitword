@@ -44,7 +44,9 @@ export const useSiteStore = defineStore("site", () => {
 
   // fetch components
   async function fetchComponents() {
-    const { data: response } = await useFetch<Component>(`/api/sites/${siteId.value}/components`)
+    const { data: response } = await useFetch<Component>(
+      `/api/sites/${siteId.value}/components`
+    )
     if (response.value) {
       components.value = response.value
     }

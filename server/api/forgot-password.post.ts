@@ -45,8 +45,13 @@ async function enforceForgotPasswordRateLimit(event: H3Event, email: string) {
 }
 
 async function backgroundProcessEmail({ email }: { email: string }) {
-  const result = await useDrizzle().select().from(users).where(eq(users.email, email)).limit(1)
-  if (result.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
+  const result = await useDrizzle()
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+  if (result.length !== 1)
+    throw createError({ statusCode: 401, message: "Bad credentials" })
   const user = result[0]
 
   if (!user.email) return {}
@@ -63,7 +68,10 @@ async function backgroundProcessEmail({ email }: { email: string }) {
   // Set the reset password token and expiration date
   await useDrizzle()
     .update(users)
-    .set({ resetPasswordToken: passwordResetToken, resetPasswordExpiresAt: expiresAt })
+    .set({
+      resetPasswordToken: passwordResetToken,
+      resetPasswordExpiresAt: expiresAt
+    })
     .where(eq(users.id, user.id))
 
   try {

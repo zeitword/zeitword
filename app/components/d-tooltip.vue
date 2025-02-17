@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from "radix-vue"
+import {
+  TooltipContent,
+  TooltipPortal,
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger
+} from "radix-vue"
 type Props = {
   title?: string
   delay?: number
@@ -7,7 +13,13 @@ type Props = {
   sideOffset?: number
   focusable?: boolean
 }
-const { title, delay = 100, side = "bottom", sideOffset = 2, focusable = true } = defineProps<Props>()
+const {
+  title,
+  delay = 100,
+  side = "bottom",
+  sideOffset = 2,
+  focusable = true
+} = defineProps<Props>()
 </script>
 
 <template>

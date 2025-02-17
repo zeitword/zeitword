@@ -50,10 +50,15 @@ const isRoot = computed(() => path.length === 0)
     <div class="border-neutral bg-neutral-strong rounded-lg">
       <div
         v-if="storyStore.getNestedValue([...path, field.fieldKey])"
-        :class="[isRoot ? 'border-neutral overflow-hidden rounded-lg border' : '']"
+        :class="[
+          isRoot ? 'border-neutral overflow-hidden rounded-lg border' : ''
+        ]"
       >
         <DFieldBlock
-          v-for="(block, index) in storyStore.getNestedValue([...path, field.fieldKey])"
+          v-for="(block, index) in storyStore.getNestedValue([
+            ...path,
+            field.fieldKey
+          ])"
           :block="getBlock(block.id)"
           :index="index"
           :path="[...path, field.fieldKey]"

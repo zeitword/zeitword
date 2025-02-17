@@ -8,7 +8,9 @@ const storyId = useRouteParams<string>("storyId")
 
 const { currentStory: story } = storeToRefs(storyStore)
 
-await useAsyncData(`/stories/${storyId.value}`, () => storyStore.fetchStory(storyId.value))
+await useAsyncData(`/stories/${storyId.value}`, () =>
+  storyStore.fetchStory(storyId.value)
+)
 
 async function save() {
   await storyStore.save()

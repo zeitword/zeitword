@@ -57,7 +57,9 @@ function confirm() {
         :class="sizeClasses[size]"
       >
         <div>
-          <div class="border-neutral flex items-center justify-between border-b p-5">
+          <div
+            class="border-neutral flex items-center justify-between border-b p-5"
+          >
             <DialogTitle class="text-lg font-semibold text-neutral-900">
               {{ title }}
             </DialogTitle>
@@ -81,7 +83,9 @@ function confirm() {
             <slot />
           </div>
           <div>
-            <div class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4">
+            <div
+              class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4"
+            >
               <DButton
                 id="cancel"
                 variant="secondary"

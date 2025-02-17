@@ -24,7 +24,9 @@ const fieldTypeOptions = computed(() => {
   }))
 })
 
-const { data: field, refresh } = await useFetch(`/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`)
+const { data: field, refresh } = await useFetch(
+  `/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`
+)
 
 watch(
   field,
@@ -52,10 +54,13 @@ const hasChanges = computed(() => {
 async function save() {
   if (hasChanges.value) {
     console.log("saving", formData.value)
-    await $fetch(`/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`, {
-      method: "PUT",
-      body: formData.value
-    })
+    await $fetch(
+      `/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`,
+      {
+        method: "PUT",
+        body: formData.value
+      }
+    )
     console.log("saved")
     refresh()
   }
@@ -74,7 +79,9 @@ async function save() {
       </NuxtLink>
       <div class="text-title-sm">
         Edit
-        <span class="border-neutral bg-neutral-weak rounded-md border px-1">{{ field?.fieldKey }}</span>
+        <span class="border-neutral bg-neutral-weak rounded-md border px-1">
+          {{ field?.fieldKey }}
+        </span>
         Field
       </div>
     </div>

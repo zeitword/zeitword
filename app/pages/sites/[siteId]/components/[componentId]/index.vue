@@ -7,13 +7,18 @@ const componentId = route.params.componentId
 const name = ref("")
 const fieldType = ref("text")
 
-const { data: component, refresh } = await useFetch(`/api/sites/${siteId}/components/${componentId}`)
+const { data: component, refresh } = await useFetch(
+  `/api/sites/${siteId}/components/${componentId}`
+)
 
 async function addField() {
-  await useRequestFetch()(`/api/sites/${siteId}/components/${componentId}/fields`, {
-    method: "POST",
-    body: { name: name.value, fieldType: fieldType.value }
-  })
+  await useRequestFetch()(
+    `/api/sites/${siteId}/components/${componentId}/fields`,
+    {
+      method: "POST",
+      body: { name: name.value, fieldType: fieldType.value }
+    }
+  )
   name.value = ""
   fieldType.value = "text"
   await refresh()
@@ -24,7 +29,9 @@ async function addField() {
   <div class="flex flex-col gap-4">
     <div class="text-title-sm">
       Edit
-      <span class="border-neutral bg-neutral-weak rounded-md border px-1">{{ component?.displayName }}</span>
+      <span class="border-neutral bg-neutral-weak rounded-md border px-1">
+        {{ component?.displayName }}
+      </span>
       Component
     </div>
     <form
@@ -73,7 +80,9 @@ async function addField() {
               {{ field?.fieldKey }}
             </div>
           </div>
-          <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
+          <div
+            class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px"
+          >
             {{ field?.type }}
           </div>
         </div>

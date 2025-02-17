@@ -25,7 +25,9 @@ function close() {
         v-if="open"
         class="absolute top-0 right-0 z-20 flex h-full w-[500px] flex-col p-5"
       >
-        <div class="bg-neutral relative flex-1 overflow-y-auto rounded-lg p-5 shadow-lg">
+        <div
+          class="bg-neutral relative flex-1 overflow-y-auto rounded-lg p-5 shadow-lg"
+        >
           <div class="absolute top-2 right-2">
             <DButton
               @click="close"

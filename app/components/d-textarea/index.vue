@@ -6,7 +6,12 @@ type Props = {
   disabled?: boolean
 }
 
-const { rows = 5, cols = 50, placeholder = "", disabled = false } = defineProps<Props>()
+const {
+  rows = 5,
+  cols = 50,
+  placeholder = "",
+  disabled = false
+} = defineProps<Props>()
 
 const model = defineModel<string>()
 </script>

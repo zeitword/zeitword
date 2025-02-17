@@ -2,13 +2,19 @@ import { componentFields, components } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  if (!secure)
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const siteId = getRouterParam(event, "siteId")
-  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
+  if (!siteId)
+    throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
 
   const componentId = getRouterParam(event, "componentId")
-  if (!componentId) throw createError({ statusCode: 400, statusMessage: "Invalid Component ID" })
+  if (!componentId)
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid Component ID"
+    })
 
   const componentsData = await useDrizzle()
     .select()
@@ -24,7 +30,9 @@ export default defineEventHandler(async (event) => {
 
   const component = componentsData[0].components
 
-  const fields = componentsData.map((row) => row.component_fields).filter((field) => field !== null)
+  const fields = componentsData
+    .map((row) => row.component_fields)
+    .filter((field) => field !== null)
 
   return {
     ...component,

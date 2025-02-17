@@ -30,13 +30,19 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  if (!secure)
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const componentId = getRouterParam(event, "componentId")
-  if (!componentId) throw createError({ statusCode: 400, statusMessage: "Invalid Component ID" })
+  if (!componentId)
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid Component ID"
+    })
 
   const fieldKey = getRouterParam(event, "fieldKey")
-  if (!fieldKey) throw createError({ statusCode: 400, statusMessage: "Invalid Field Key" })
+  if (!fieldKey)
+    throw createError({ statusCode: 400, statusMessage: "Invalid Field Key" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
 

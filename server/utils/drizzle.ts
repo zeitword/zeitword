@@ -4,7 +4,10 @@ export { sql, eq, and, or } from "drizzle-orm"
 
 export const tables = schema
 
-const database = drizzle(process.env.NUXT_DSN!, { schema, casing: "snake_case" })
+const database = drizzle(process.env.NUXT_DSN!, {
+  schema,
+  casing: "snake_case"
+})
 
 export function useDrizzle() {
   return database

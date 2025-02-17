@@ -13,7 +13,10 @@ export default defineEventHandler(async (event) => {
     const body = await readValidatedBody(event, bodySchema.parse)
 
     // check if the user already exists
-    const existing = await useDrizzle().select().from(users).where(eq(users.email, body.email))
+    const existing = await useDrizzle()
+      .select()
+      .from(users)
+      .where(eq(users.email, body.email))
     if (existing.length > 0) return {}
 
     // Create organisation
