@@ -2,15 +2,15 @@
 type Props = {
   navigation: Array<{ name: string; to: string }>
 }
-
 const { navigation } = defineProps<Props>()
 
-const route = useRoute()
-const siteStore = useSiteStore()
-const storyStore = useStoryStore()
+const siteId = useRouteParams<string>("siteId")
+const storyId = useRouteParams<string>("storyId")
 
-const siteId = computed(() => route.params.siteId)
-const storyId = computed(() => route.params.storyId)
+const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
+const { data: story } = await useFetch(
+  `/api/sites/${siteId.value}/stories/${storyId.value}`
+)
 </script>
 
 <template>
@@ -28,18 +28,18 @@ const storyId = computed(() => route.params.storyId)
           name="Zeitword"
           to="/sites"
         />
-        <template v-if="siteId">
+        <template v-if="siteId && site">
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
-            :name="siteStore.currentSite?.name as string"
+            :name="site?.name"
             :to="`/sites/${siteId}/content`"
           />
         </template>
 
-        <template v-if="storyId">
+        <template v-if="storyId && story">
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
-            :name="storyStore.currentStory?.title as string"
+            :name="story?.title"
             :to="`/sites/${siteId}/content/${storyId}`"
           />
         </template>

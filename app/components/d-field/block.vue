@@ -2,6 +2,8 @@
 import { ChevronDownIcon, GripVertical, Trash2Icon } from "lucide-vue-next"
 import { componentFields } from "~~/server/database/schema"
 
+const siteId = useRouteParams<string>("siteId")
+
 type Field = typeof componentFields.$inferSelect
 
 type Props = {
@@ -46,7 +48,7 @@ const isRoot = computed(() => path.length === 0)
               :class="[isBlockOpen ? 'rotate-180' : '']"
             />
           </div>
-          <div class="text-copy-lg text-neutral flex-1">
+          <div class="text-copy text-neutral flex-1">
             {{ block.displayName }}
           </div>
         </button>
@@ -63,12 +65,28 @@ const isRoot = computed(() => path.length === 0)
         class="bg-neutral-subtle flex flex-col gap-2 p-2"
         v-if="isBlockOpen"
       >
-        <template v-for="field in block.fields">
+        <template
+          v-if="block.fields.length > 0"
+          v-for="field in block.fields"
+        >
           <DField
             :field="field"
             :path="blockPath"
           />
         </template>
+        <DEmpty
+          v-else
+          title="No fields available"
+          description="Add fields to the component"
+        >
+          <DButton
+            variant="secondary"
+            size="sm"
+            :to="`/sites/${siteId}/components/${block.id}`"
+          >
+            Edit component
+          </DButton>
+        </DEmpty>
       </div>
     </div>
   </div>

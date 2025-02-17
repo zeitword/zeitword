@@ -13,7 +13,6 @@ const { field, path = [] } = defineProps<Props>()
 
 const storyStore = useStoryStore()
 const route = useRoute()
-const siteId = route.params.siteId
 
 const siteStore = useSiteStore()
 const components = siteStore.components
@@ -47,12 +46,12 @@ const isRoot = computed(() => path.length === 0)
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <div class="border-neutral bg-neutral-strong rounded-lg">
+    <div
+      class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border"
+    >
       <div
         v-if="storyStore.getNestedValue([...path, field.fieldKey])"
-        :class="[
-          isRoot ? 'border-neutral overflow-hidden rounded-lg border' : ''
-        ]"
+        class="overflow-hidden rounded-lg shadow-md"
       >
         <DFieldBlock
           v-for="(block, index) in storyStore.getNestedValue([
@@ -62,7 +61,7 @@ const isRoot = computed(() => path.length === 0)
           :block="getBlock(block.id)"
           :index="index"
           :path="[...path, field.fieldKey]"
-          class="border-neutral border-b last:border-transparent"
+          class="border-neutral overflow-hidden border-b last:border-transparent"
         />
       </div>
 
@@ -72,6 +71,7 @@ const isRoot = computed(() => path.length === 0)
           size="sm"
           :icon-left="PlusIcon"
           @click="isAddModalOpen = true"
+          class="w-full"
         >
           Add Block
         </DButton>

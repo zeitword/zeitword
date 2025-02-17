@@ -349,6 +349,25 @@
   --animate-overlayShow: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-contentShow: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
 
+  /**
+   * Shadows
+   */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+
+  --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+
+  --shadow-md: 0 1px 1px 0 rgba(0, 0, 0, 0.02),
+    0 8px 16px -4px rgba(0, 0, 0, 0.04);
+
+  --shadow-lg: 0 2px 2px 0 rgba(0, 0, 0, 0.02),
+    0 12px 20px -4px rgba(0, 0, 0, 0.04);
+
+  --shadow-xl: 0 1px 1px 0 rgba(0, 0, 0, 0.02),
+    0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
+
+  --shadow-2xl: 0 1px 1px 0 rgba(0, 0, 0, 0.02),
+    0 8px 16px -4px rgba(0, 0, 0, 0.04), 0 24px 32px -8px rgba(0, 0, 0, 0.06);
+
   @keyframes overlayShow {
     from {
       opacity: 0;

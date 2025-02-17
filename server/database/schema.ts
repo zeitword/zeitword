@@ -123,7 +123,7 @@ export const fieldOptions = pgTable("field_options", {
 
 export const stories = pgTable("stories", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
-  slug: text().notNull(),
+  slug: text().notNull().unique(),
   title: text().notNull(),
   content: jsonb().notNull(),
   componentId: uuid()

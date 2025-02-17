@@ -29,6 +29,13 @@
       "when": 1739193426317,
       "tag": "0003_curly_natasha_romanoff",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1739821790290,
+      "tag": "0004_classy_vulcan",
+      "breakpoints": true
     }
   ]
 }

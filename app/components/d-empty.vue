@@ -9,7 +9,7 @@ const { icon, title, description } = defineProps<Props>()
 </script>
 <template>
   <div
-    class="border-neutral flex flex-col items-center justify-center gap-2 rounded-lg border bg-white px-5 py-14"
+    class="border-neutral flex flex-col items-center justify-center gap-2 rounded-lg border bg-white px-5 py-5"
   >
     <div
       v-if="icon"
@@ -31,7 +31,10 @@ const { icon, title, description } = defineProps<Props>()
       >
         {{ description }}
       </p>
-      <div class="mt-4 flex flex-col items-center justify-center gap-1">
+      <div
+        v-if="$slots.default"
+        class="mt-4 flex flex-col items-center justify-center gap-1"
+      >
         <slot />
       </div>
     </div>

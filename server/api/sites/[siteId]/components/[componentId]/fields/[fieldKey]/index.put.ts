@@ -33,6 +33,13 @@ export default defineEventHandler(async (event) => {
   if (!secure)
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
+  const siteId = getRouterParam(event, "siteId")
+  if (!siteId)
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid Site ID"
+    })
+
   const componentId = getRouterParam(event, "componentId")
   if (!componentId)
     throw createError({
@@ -45,6 +52,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Invalid Field Key" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
+
+  console.log(data)
 
   const [componentField] = await useDrizzle()
     .update(componentFields)
@@ -62,7 +71,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(componentFields.organisationId, secure.organisationId),
         eq(componentFields.componentId, componentId),
-        eq(componentFields.fieldKey, fieldKey)
+        eq(componentFields.fieldKey, fieldKey),
+        eq(componentFields.siteId, siteId)
       )
     )
     .returning()

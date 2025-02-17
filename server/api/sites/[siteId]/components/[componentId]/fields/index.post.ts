@@ -51,7 +51,8 @@ export default defineEventHandler(async (event) => {
       componentId: componentId,
       fieldKey: data.name,
       type: data.fieldType,
-      name: data.name,
+      displayName: data.name,
+      siteId: siteId,
       organisationId: secure.organisationId
     })
     .returning()

@@ -15,8 +15,8 @@ const navigation = computed(() => {
 </script>
 
 <template>
-  <DPageHeader :navigation="navigation" />
-  <div class="flex h-full max-h-screen flex-col sm:flex-row">
+  <div class="flex h-full max-h-screen flex-col">
+    <DPageHeader :navigation="navigation" />
     <main class="flex flex-1 flex-col overflow-scroll">
       <slot></slot>
     </main>

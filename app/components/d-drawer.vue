@@ -7,6 +7,9 @@ type Props = {
 const props = defineProps<Props>()
 const emit = defineEmits(["close"])
 
+const drawer = useTemplateRef<HTMLElement>("drawer")
+onClickOutside(drawer, (event) => close())
+
 function close() {
   emit("close")
 }
@@ -24,6 +27,7 @@ function close() {
       <div
         v-if="open"
         class="absolute top-0 right-0 z-20 flex h-full w-[500px] flex-col p-5"
+        ref="drawer"
       >
         <div
           class="bg-neutral relative flex-1 overflow-y-auto rounded-lg p-5 shadow-lg"
