@@ -1,21 +1,25 @@
 <script setup lang="ts">
 type Props = {
   navigation: Array<{ name: string; to: string }>
+  padding?: boolean
 }
 
-const { navigation } = defineProps<Props>()
+const { navigation, padding = true } = defineProps<Props>()
 const route = useRoute()
 </script>
 
 <template>
-  <div class="bg-neutral px-4">
+  <div
+    class="bg-neutral"
+    :class="[padding ? 'px-4' : '']"
+  >
     <div class="flex">
       <NuxtLink
         v-for="item in navigation"
         :key="item?.name"
         :to="item?.to"
         :class="
-          route.path.startsWith(item?.to)
+          route.path.endsWith(item?.to)
             ? 'text-neutral border-neutral-strong'
             : 'text-neutral-subtle border-transparent'
         "

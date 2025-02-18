@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Trash2 } from "lucide-vue-next"
+
 definePageMeta({
   layout: "site"
 })
@@ -17,6 +19,21 @@ const isComponentSubRoute = computed(() => {
   }
   return false
 })
+
+const { toast } = useToast()
+let toastTypes = ["success", "error", "warning", "info"]
+const toastType = ref(0)
+function testToast() {
+  console.log("toasting")
+
+  toast[toastTypes[toastType.value]]({
+    title: "Test Toast",
+    description: "This is a test toast message.",
+    duration: 300000
+  })
+
+  toastType.value = (toastType.value + 1) % toastTypes.length
+}
 
 onMounted(() => {
   const handleEsc = (e: KeyboardEvent) => {
@@ -40,28 +57,54 @@ const name = ref("")
 const displayName = ref("")
 
 async function createComponent() {
-  isCreateModalOpen.value = false
-  await useRequestFetch()(`/api/sites/${siteId}/components`, {
-    method: "POST",
-    body: { name: name.value, displayName: displayName.value }
-  })
-  await refresh()
+  try {
+    await useRequestFetch()(`/api/sites/${siteId}/components`, {
+      method: "POST",
+      body: { name: name.value, displayName: displayName.value }
+    })
+  } finally {
+    isCreateModalOpen.value = false
+    name.value = ""
+    displayName.value = ""
+    await refresh()
+  }
+}
+
+const isDeleteModalOpen = ref(false)
+const selectedComponentId = ref<string | null>(null)
+
+function showDeleteModal(id: string) {
+  isDeleteModalOpen.value = true
+  selectedComponentId.value = id
+}
+async function deleteComponent() {
+  if (!selectedComponentId.value) return
+  try {
+    await useRequestFetch()(`/api/sites/${siteId}/components/${selectedComponentId.value}`, {
+      method: "DELETE"
+    })
+  } finally {
+    selectedComponentId.value = null
+    isDeleteModalOpen.value = false
+    await refresh()
+  }
 }
 </script>
 
 <template>
   <DPageTitle title="Components">
     <DButton @click="isCreateModalOpen = true">Add Component</DButton>
+    <DButton @click="testToast">Toast</DButton>
   </DPageTitle>
 
   <DPageWrapper>
     <div class="py-5">
       <DList v-if="components && components.length > 0">
         <DListItem
-          :to="`/sites/${siteId}/components/${component.id}`"
           v-for="component in components"
           :key="component.id"
-          class="select-none"
+          class="group h-14 select-none"
+          @click="navigateTo(`/sites/${siteId}/components/${component.id}`)"
         >
           <div class="text-copy flex w-full items-center justify-between">
             <div class="flex items-center gap-2">
@@ -72,11 +115,14 @@ async function createComponent() {
                 {{ component?.name }}
               </div>
             </div>
-            <DButton
-              :icon-left="Ellipsis"
-              size="sm"
-              variant="secondary"
-            />
+            <div class="hidden group-hover:block">
+              <DButton
+                :icon-left="Trash2"
+                size="sm"
+                variant="secondary"
+                @click.stop="showDeleteModal(component.id)"
+              />
+            </div>
           </div>
         </DListItem>
       </DList>
@@ -149,4 +195,14 @@ async function createComponent() {
       </DFormGroup>
     </form>
   </DModal>
+
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Component"
+    description="All related stories will be deleted"
+    confirm-text="Delete Component"
+    danger
+    @confirm="deleteComponent"
+    @close="isDeleteModalOpen = false"
+  ></DModal>
 </template>

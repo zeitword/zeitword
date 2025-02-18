@@ -22,10 +22,12 @@ const variantClasses: { [key: string]: string } = {
   secondary:
     "text-neutra border border-neutral hover:bg-neutral-weak hover:shadow-button active:inset-shadow bg-neutral",
   danger:
-    "bg-red-700 text-white hover:bg-red-600 hover:shadow-button hover:inset-shadow-sm hover:inset-shadow-white/20 active:inset-shadow active:inset-shadow-black/30",
-  "danger-light":
-    "text-red-700 hover:bg-red-100 active:inset-shadow-sm active:inset-shadow-black/10 active:bg-red-200",
-  transparent: "text-neutral-700 hover:bg-neutral-100 active:inset-shadow"
+    "bg-danger text-danger-onsurface hover:bg-danger-hover hover:shadow-button hover:inset-shadow-sm active:inset-shadow active:inset-shadow-black/30",
+  success:
+    "bg-success text-success-onsurface hover:bg-success-hover active:inset-shadow-sm active:inset-shadow-black/10 active:bg-success-strong",
+  warning:
+    "bg-warn text-warn-onsurface hover:bg-warn-hover active:inset-shadow-sm active:inset-shadow-black/10 active:bg-warn-strong",
+  transparent: "text-neutral hover:bg-neutral-strong/10 active:inset-shadow"
 }
 
 const paddingClasses: { [key: string]: string } = {
