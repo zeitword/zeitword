@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { min } from "drizzle-orm"
 import { XIcon } from "lucide-vue-next"
 import {
   ToastProvider,
@@ -19,19 +20,31 @@ const toastPositions: Record<number, string> = {
 }
 
 function getToastStyle(index: number) {
-  const total = toasts.value.length
-  const position = total - index - 1
+  // Calculate relative position (newest toast at 0)
+  const totalToasts = toasts.value.length
+  const position = totalToasts - 1 - index
+
+  // Scale calculation - starts at 1, reduces by 0.1 for each position
+  const scale = Math.max(1 - position * 0.1, 0.65)
+  // TranslateY increases by 20px for each position
+  const translateY = position * 20
+  const zIndex = 100 - position
 
   if (position > 2) {
     return {
-      transform: `translateY(-${position * 100}px) scale(0.65)`,
+      transform: `translateY(-${translateY}px) scale(${scale})`,
       opacity: 0,
+      visibility: "hidden",
+      zIndex,
       "--hover-transform": `translateY(-${position * 100}px) scale(1)`
     }
   }
 
   return {
-    transform: toastPositions[position],
+    transform: `translateY(-${translateY}px) scale(${scale})`,
+    opacity: 1,
+    visibility: "visible",
+    zIndex,
     "--hover-transform": `translateY(-${position * 100}px) scale(1)`
   }
 }
@@ -54,13 +67,13 @@ const buttonVariants: Record<string, string> = {
 <template>
   <ToastProvider swipeDirection="right">
     <ToastViewport
-      class="group fixed right-0 bottom-0 z-[2147483647] m-0 flex w-[390px] list-none flex-col gap-[10px] p-5 outline-none before:absolute before:inset-x-0 before:bottom-0 before:h-[400px]"
+      class="group fixed right-0 bottom-0 z-[2147483647] m-0 flex min-h-[200px] w-[390px] origin-bottom-right list-none flex-col gap-[10px] p-5 outline-none before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-[400px] before:content-[''] hover:min-h-[300px] hover:scale-100"
     >
       <ToastRoot
         v-for="(toast, index) in toasts"
         :key="toast.id"
         :duration="toast.duration"
-        class="data-[state=closed]:animate-toast-hide fixed right-5 bottom-5 w-[300px] rounded-lg p-4 shadow-md transition-all duration-300"
+        class="data-[state=closed]:animate-toast-hide data-[state=open]:animate-toast-slide-in fixed right-5 bottom-5 w-[300px] rounded-lg p-4 shadow-md transition-all duration-300"
         :class="toastClasses[toast.type]"
         :style="getToastStyle(index)"
       >
@@ -91,10 +104,5 @@ const buttonVariants: Record<string, string> = {
 <style>
 .group:hover .fixed {
   transform: var(--hover-transform) !important;
-}
-
-.group::before {
-  content: "";
-  pointer-events: none;
 }
 </style>

@@ -20,21 +20,6 @@ const isComponentSubRoute = computed(() => {
   return false
 })
 
-const { toast } = useToast()
-let toastTypes = ["success", "error", "warning", "info"]
-const toastType = ref(0)
-function testToast() {
-  console.log("toasting")
-
-  toast[toastTypes[toastType.value]]({
-    title: "Test Toast",
-    description: "This is a test toast message.",
-    duration: 300000
-  })
-
-  toastType.value = (toastType.value + 1) % toastTypes.length
-}
-
 onMounted(() => {
   const handleEsc = (e: KeyboardEvent) => {
     if (e.key === "Escape" && isComponentSubRoute.value) {
@@ -94,7 +79,6 @@ async function deleteComponent() {
 <template>
   <DPageTitle title="Components">
     <DButton @click="isCreateModalOpen = true">Add Component</DButton>
-    <DButton @click="testToast">Toast</DButton>
   </DPageTitle>
 
   <DPageWrapper>
