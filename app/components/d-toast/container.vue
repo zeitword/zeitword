@@ -13,16 +13,27 @@ import { computed } from "vue"
 const { toasts, removeToast } = useToast()
 
 const toastPositions: Record<number, string> = {
-  0: "",
-  1: "-translate-y-5 scale-90",
-  2: "-translate-y-10 scale-80"
+  0: "translateY(0)",
+  1: "translateY(-20px) scale(0.9)",
+  2: "translateY(-38px) scale(0.8)"
 }
 
 function getToastStyle(index: number) {
   const total = toasts.value.length
   const position = total - index - 1
-  if (position > 2) return "opacity-0 -translate-y-12 scale-65"
-  return toastPositions[position]
+
+  if (position > 2) {
+    return {
+      transform: `translateY(-${position * 100}px) scale(0.65)`,
+      opacity: 0,
+      "--hover-transform": `translateY(-${position * 100}px) scale(1)`
+    }
+  }
+
+  return {
+    transform: toastPositions[position],
+    "--hover-transform": `translateY(-${position * 100}px) scale(1)`
+  }
 }
 
 const toastClasses: Record<string, string> = {
@@ -43,14 +54,15 @@ const buttonVariants: Record<string, string> = {
 <template>
   <ToastProvider swipeDirection="right">
     <ToastViewport
-      class="fixed right-0 bottom-0 z-[2147483647] m-0 flex w-[390px] list-none flex-col gap-[10px] p-5 outline-none"
+      class="group fixed right-0 bottom-0 z-[2147483647] m-0 flex w-[390px] list-none flex-col gap-[10px] p-5 outline-none before:absolute before:inset-x-0 before:bottom-0 before:h-[400px]"
     >
       <ToastRoot
         v-for="(toast, index) in toasts"
         :key="toast.id"
         :duration="toast.duration"
-        class="data-[state=closed]:animate-toast-hide data-[state=open]:animate-toast-slide-in fixed right-5 bottom-5 w-[300px] rounded-lg p-4 shadow-md transition-all"
-        :class="[toastClasses[toast.type], getToastStyle(index)]"
+        class="data-[state=closed]:animate-toast-hide fixed right-5 bottom-5 w-[300px] rounded-lg p-4 shadow-md transition-all duration-300"
+        :class="toastClasses[toast.type]"
+        :style="getToastStyle(index)"
       >
         <div class="flex items-start justify-between gap-2">
           <div>
@@ -75,3 +87,14 @@ const buttonVariants: Record<string, string> = {
     </ToastViewport>
   </ToastProvider>
 </template>
+
+<style>
+.group:hover .fixed {
+  transform: var(--hover-transform) !important;
+}
+
+.group::before {
+  content: "";
+  pointer-events: none;
+}
+</style>
