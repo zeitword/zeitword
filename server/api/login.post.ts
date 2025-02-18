@@ -15,23 +15,16 @@ export default defineEventHandler(async (event) => {
   await enforceLoginRateLimit(event, email)
 
   // Find user
-  const results = await useDrizzle()
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1)
-  if (results.length !== 1)
-    throw createError({ statusCode: 401, message: "Bad credentials" })
+  const results = await useDrizzle().select().from(users).where(eq(users.email, email)).limit(1)
+  if (results.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
   const user = results[0]
 
   // Without a password, we can't login
-  if (!user.password)
-    throw createError({ statusCode: 401, message: "Bad credentials" })
+  if (!user.password) throw createError({ statusCode: 401, message: "Bad credentials" })
 
   // Verify password
   const isMatch = await verifyPassword(user.password, password)
-  if (!isMatch)
-    throw createError({ statusCode: 401, message: "Bad credentials" })
+  if (!isMatch) throw createError({ statusCode: 401, message: "Bad credentials" })
 
   // Create a user session
   const created = await useDrizzle()

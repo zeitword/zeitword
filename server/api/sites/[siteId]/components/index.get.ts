@@ -2,22 +2,15 @@ import { components, componentFields } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
-  if (!secure)
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const siteId = getRouterParam(event, "siteId")
-  if (!siteId)
-    throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
+  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const componentsData = await useDrizzle()
     .select()
     .from(components)
-    .where(
-      and(
-        eq(components.siteId, siteId),
-        eq(components.organisationId, secure.organisationId)
-      )
-    )
+    .where(and(eq(components.siteId, siteId), eq(components.organisationId, secure.organisationId)))
     .leftJoin(componentFields, eq(components.id, componentFields.componentId))
 
   const componentMap = new Map()

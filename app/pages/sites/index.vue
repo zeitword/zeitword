@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FileTextIcon } from "lucide-vue-next"
 const { data: sites, refresh } = await useFetch("/api/sites")
+const { data: me } = await useFetch("/api/me")
 
 const isCreateModalOpen = ref(false)
 const name = ref("")
@@ -29,7 +30,7 @@ async function createSite() {
           :to="`/sites/${site.id}/components`"
           v-for="site in sites"
           :key="site.id"
-          class="cursor-pointer overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm transition-all duration-100 hover:shadow-md transition-all hover:border-neutral-strong/20"
+          class="hover:border-neutral-strong/20 cursor-pointer overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm transition-all duration-100 hover:shadow-md"
         >
           <div class="p-5">
             {{ site.name }}
@@ -67,8 +68,10 @@ async function createSite() {
       <DFormGroup>
         <DFormLabel name="name">Site name</DFormLabel>
         <DInput
+          v-if="me"
           type="text"
-          v-model="name"
+          v-model.sanitize="name"
+          :leading="`zeitword.com/${me.organisationName.toLowerCase()}/`"
           placeholder="Name of the site"
         />
       </DFormGroup>

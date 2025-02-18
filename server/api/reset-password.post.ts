@@ -16,8 +16,7 @@ export default defineEventHandler(async (event) => {
     .from(users)
     .where(eq(users.resetPasswordToken, token))
     .limit(1)
-  if (result.length !== 1)
-    throw createError({ statusCode: 401, message: "Bad credentials" })
+  if (result.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
   const user = result[0]
 
   // Check if both reset password token and expiration date are set

@@ -17,9 +17,7 @@ if (siteId.value) {
 const story = ref()
 
 if (siteId.value && storyId.value) {
-  const { data } = await useFetch(
-    `/api/sites/${siteId.value}/stories/${storyId.value}`
-  )
+  const { data } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
   story.value = data.value
 }
 

@@ -3,16 +3,13 @@ import { eq, and } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
-  if (!secure)
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const siteId = getRouterParam(event, "siteId")
-  if (!siteId)
-    throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
+  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const storyId = getRouterParam(event, "storyId")
-  if (!storyId)
-    throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
+  if (!storyId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   // First get the story and its component
   const [storyData] = await useDrizzle()
@@ -39,8 +36,7 @@ export default defineEventHandler(async (event) => {
       )
     )
 
-  if (!storyData)
-    throw createError({ statusCode: 404, statusMessage: "Story not found" })
+  if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
   const fields = await useDrizzle()
     .select({

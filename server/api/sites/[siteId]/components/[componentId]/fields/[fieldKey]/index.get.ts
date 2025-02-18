@@ -2,8 +2,7 @@ import { componentFields, components } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
-  if (!secure)
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const componentId = getRouterParam(event, "componentId")
   if (!componentId)

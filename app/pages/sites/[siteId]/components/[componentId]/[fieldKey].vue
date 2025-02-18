@@ -54,13 +54,10 @@ const hasChanges = computed(() => {
 async function save() {
   if (hasChanges.value) {
     console.log("saving", formData.value)
-    await $fetch(
-      `/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`,
-      {
-        method: "PUT",
-        body: formData.value
-      }
-    )
+    await $fetch(`/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`, {
+      method: "PUT",
+      body: formData.value
+    })
     console.log("saved")
     refresh()
   }

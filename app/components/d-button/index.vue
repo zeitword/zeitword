@@ -5,13 +5,7 @@ import { RouterLink } from "vue-router"
 const slots = useSlots()
 
 interface Props {
-  variant?:
-    | "primary"
-    | "secondary"
-    | "danger"
-    | "danger-light"
-    | "transparent"
-    | "outline"
+  variant?: "primary" | "secondary" | "danger" | "danger-light" | "transparent" | "outline"
   iconLeft?: Component
   to?: any
   size?: "xs" | "sm" | "md" | "lg"
@@ -20,12 +14,7 @@ interface Props {
   disabled?: boolean
 }
 
-const {
-  variant = "primary",
-  size = "lg",
-  type = "button",
-  loading = false
-} = defineProps<Props>()
+const { variant = "primary", size = "lg", type = "button", loading = false } = defineProps<Props>()
 
 const variantClasses: { [key: string]: string } = {
   primary:
@@ -75,11 +64,7 @@ const sizeClass = computed(() => {
     :type
     :to
     class="relative inline-flex cursor-default items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2"
-    :class="[
-      sizeClass,
-      variantClasses[variant],
-      disabled ? 'pointer-events-none opacity-50' : ''
-    ]"
+    :class="[sizeClass, variantClasses[variant], disabled ? 'pointer-events-none opacity-50' : '']"
     :disabled
   >
     <component

@@ -1,17 +1,7 @@
 <script setup lang="ts">
-import { Moon } from "lucide-vue-next"
-
 type Props = {
   name?: string
-  type?:
-    | "text"
-    | "password"
-    | "email"
-    | "number"
-    | "tel"
-    | "date"
-    | "datetime-local"
-    | "url"
+  type?: "text" | "password" | "email" | "number" | "tel" | "date" | "datetime-local" | "url"
   required?: boolean
   placeholder?: string
   autocomplete?: string
@@ -61,6 +51,7 @@ const [model, modifiers] = defineModel<string | number>({
         .replace(/[^a-z0-9-/]/g, "")
         .replace(/--+/g, "-")
     }
+
     return value
   }
 })
@@ -70,9 +61,7 @@ const [model, modifiers] = defineModel<string | number>({
   <div
     class="border-neutral text-neutral text-copy flex h-9 overflow-hidden rounded-lg border leading-none transition-all outline-none has-[:focus]:border-blue-600 has-[:focus]:bg-white has-[:focus]:ring-2 has-[:focus]:ring-blue-300"
     :class="[
-      disabled
-        ? 'cursor-not-allowed bg-neutral-100 opacity-50'
-        : 'hover:border-neutral-strong/30'
+      disabled ? 'cursor-not-allowed bg-neutral-100 opacity-50' : 'hover:border-neutral-strong/30'
     ]"
   >
     <div
@@ -95,6 +84,7 @@ const [model, modifiers] = defineModel<string | number>({
       :placeholder="placeholder"
       :autocomplete="autocomplete"
       :label="label"
+      :disabled="disabled"
       v-model="model"
       class="text-copy texte-neutral h-full w-full px-2.5 outline-none"
       :class="[hideArrows ? 'hide-arrows' : '']"

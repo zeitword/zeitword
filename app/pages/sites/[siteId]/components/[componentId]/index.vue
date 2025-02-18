@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ellipsis, GripVertical } from "lucide-vue-next"
+import { GripVertical } from "lucide-vue-next"
 const route = useRoute()
 const siteId = route.params.siteId
 const componentId = route.params.componentId
@@ -12,13 +12,10 @@ const { data: component, refresh } = await useFetch(
 )
 
 async function addField() {
-  await useRequestFetch()(
-    `/api/sites/${siteId}/components/${componentId}/fields`,
-    {
-      method: "POST",
-      body: { name: name.value, fieldType: fieldType.value }
-    }
-  )
+  await useRequestFetch()(`/api/sites/${siteId}/components/${componentId}/fields`, {
+    method: "POST",
+    body: { name: name.value, fieldType: fieldType.value }
+  })
   name.value = ""
   fieldType.value = "text"
   await refresh()
@@ -43,20 +40,11 @@ async function addField() {
         v-model.sanitize="name"
         placeholder="Field name"
       />
-      <select
+      <DSelect
         v-model="fieldType"
         class="bg-neutral-subtle text-copy w-full rounded-md p-2"
-      >
-        <option value="">Select a field type</option>
-        <!-- TODO: use fieldTypeEnum from server -->
-        <option
-          v-for="type in fieldTypes"
-          :key="type"
-          :value="type"
-        >
-          {{ type }}
-        </option>
-      </select>
+        :options="fieldTypes.map((type) => ({ display: type, value: type }))"
+      />
       <DButton type="submit">Add Field</DButton>
     </form>
     <div
@@ -80,9 +68,7 @@ async function addField() {
               {{ field?.fieldKey }}
             </div>
           </div>
-          <div
-            class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px"
-          >
+          <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
             {{ field?.type }}
           </div>
         </div>

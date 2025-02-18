@@ -1,9 +1,5 @@
 import { z } from "zod"
-import {
-  componentFields,
-  components,
-  fieldTypeEnum
-} from "~~/server/database/schema"
+import { componentFields, components, fieldTypeEnum } from "~~/server/database/schema"
 
 const bodySchema = z.object({
   name: z.string().min(1).max(255),
@@ -29,12 +25,10 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
-  if (!secure)
-    throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const siteId = getRouterParam(event, "siteId")
-  if (!siteId)
-    throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
+  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
 
   const componentId = getRouterParam(event, "componentId")
   if (!componentId)

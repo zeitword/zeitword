@@ -139,6 +139,7 @@ export const stories = pgTable("stories", {
 export const sites = pgTable("sites", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
+  domain: text().notNull().default(""),
   ...organisationId,
   ...timestamps
 })

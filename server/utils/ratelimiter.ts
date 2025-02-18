@@ -16,9 +16,7 @@ export function useRateLimiter() {
     const requests: number[] = Array.isArray(storedValue) ? storedValue : []
 
     // Filter out expired timestamps
-    const validRequests = requests.filter(
-      (timestamp) => timestamp > windowStart
-    )
+    const validRequests = requests.filter((timestamp) => timestamp > windowStart)
 
     if (validRequests.length >= limit) return false
 

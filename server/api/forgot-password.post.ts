@@ -45,13 +45,8 @@ async function enforceForgotPasswordRateLimit(event: H3Event, email: string) {
 }
 
 async function backgroundProcessEmail({ email }: { email: string }) {
-  const result = await useDrizzle()
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1)
-  if (result.length !== 1)
-    throw createError({ statusCode: 401, message: "Bad credentials" })
+  const result = await useDrizzle().select().from(users).where(eq(users.email, email)).limit(1)
+  if (result.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
   const user = result[0]
 
   if (!user.email) return {}

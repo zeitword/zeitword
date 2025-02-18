@@ -91,11 +91,7 @@ function close() {
           v-for="link in links"
           class="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm text-neutral-500 hover:bg-neutral-200"
           :to="link.to"
-          :class="
-            route.path.startsWith(link.to)
-              ? 'bg-neutral-200 text-neutral-700'
-              : ''
-          "
+          :class="route.path.startsWith(link.to) ? 'bg-neutral-200 text-neutral-700' : ''"
         >
           <div class="flex h-5 items-center justify-center">
             <component

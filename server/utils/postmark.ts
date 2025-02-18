@@ -92,10 +92,7 @@ export function usePostmark(config: PostmarkConfig) {
           console.log(response)
           const res = await response.json()
           console.log(res)
-          throw new PostmarkError(
-            "Postmark API request failed",
-            response.status
-          )
+          throw new PostmarkError("Postmark API request failed", response.status)
         }
         return response.json()
       })
@@ -105,11 +102,7 @@ export function usePostmark(config: PostmarkConfig) {
       })
       .catch(function (error) {
         if (error instanceof z.ZodError) {
-          throw new PostmarkError(
-            "Invalid API response format",
-            undefined,
-            error.errors
-          )
+          throw new PostmarkError("Invalid API response format", undefined, error.errors)
         }
         throw error
       })

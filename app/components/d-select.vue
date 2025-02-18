@@ -33,9 +33,7 @@ const open = ref(false)
       :disabled="disabled"
       class="bg-neutral border-neutral hover: flex h-9 w-full cursor-default items-center justify-between rounded-lg border px-2.5 text-sm outline-none select-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
       :class="[
-        disabled
-          ? 'cursor-not-allowed bg-neutral-100 opacity-50'
-          : 'hover:border-neutral-strong/30'
+        disabled ? 'cursor-not-allowed bg-neutral-100 opacity-50' : 'hover:border-neutral-strong/30'
       ]"
     >
       <SelectValue :placeholder="placeholder" />
@@ -58,6 +56,7 @@ const open = ref(false)
         align="start"
         class="border-neutral z-[9999] w-[var(--reka-select-trigger-width)] rounded-lg border bg-white shadow-sm"
         :side-offset="5"
+        ref="selectContentRef"
       >
         <SelectViewport class="max-h-48 overflow-auto p-1">
           <SelectItem

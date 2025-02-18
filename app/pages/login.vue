@@ -33,12 +33,8 @@ async function login() {
 
 <template>
   <div class="min-h-screen bg-neutral-100 px-8 pt-24">
-    <div
-      class="mx-auto max-w-sm rounded-lg border border-neutral-50 bg-white p-8 shadow"
-    >
-      <h1 class="mb-4 text-center text-2xl font-semibold text-neutral-900">
-        Zeitword
-      </h1>
+    <div class="mx-auto max-w-sm rounded-lg border border-neutral-50 bg-white p-8 shadow">
+      <h1 class="mb-4 text-center text-2xl font-semibold text-neutral-900">Zeitword</h1>
 
       <form
         @submit.prevent="login"

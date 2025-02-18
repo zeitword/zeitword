@@ -16,6 +16,7 @@ type Props = {
   title: string
   description?: string
   confirmText?: string
+  danger?: boolean
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
 }
 const { open, title, description, size = "md" } = defineProps<Props>()
@@ -58,13 +59,22 @@ function confirm() {
       >
         <div>
           <div
-            class="border-neutral flex items-center justify-between border-b p-5"
+            class="border-neutral flex items-start justify-between border-b p-5"
+            :class="[$slots.default ? 'border-b' : 'border-b-0']"
           >
-            <DialogTitle class="text-lg font-semibold text-neutral-900">
-              {{ title }}
-            </DialogTitle>
+            <div>
+              <DialogTitle class="text-lg font-semibold text-neutral-900">
+                {{ title }}
+              </DialogTitle>
+              <DialogDescription
+                v-if="description"
+                class="text-neutral"
+              >
+                {{ description }}
+              </DialogDescription>
+            </div>
             <DialogClose asChild>
-              <EditorButton
+              <DButton
                 variant="transparent"
                 size="sm"
                 :icon-left="X"
@@ -72,20 +82,11 @@ function confirm() {
             </DialogClose>
           </div>
 
-          <DialogDescription
-            v-if="description"
-            class="mb-4 text-neutral-600"
-          >
-            {{ description }}
-          </DialogDescription>
-
-          <div>
+          <div v-if="$slots.default">
             <slot />
           </div>
           <div>
-            <div
-              class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4"
-            >
+            <div class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4">
               <DButton
                 id="cancel"
                 variant="secondary"
@@ -95,7 +96,7 @@ function confirm() {
               </DButton>
               <DButton
                 v-if="confirmText"
-                variant="primary"
+                :variant="danger ? 'danger' : 'primary'"
                 @click="confirm"
               >
                 {{ confirmText }}

@@ -13,11 +13,10 @@ export default defineEventHandler(async (event) => {
   const data = await readValidatedBody(event, bodySchema.parse)
 
   const [site] = await useDrizzle()
-    .insert(sites)
-    .values({
+    .update(sites)
+    .set({
       name: data.name,
-      domain: data.domain || "",
-      organisationId: secure.organisationId
+      domain: data.domain
     })
     .returning()
   return site

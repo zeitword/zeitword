@@ -29,9 +29,7 @@ const { icon, title, description, size = "sm" } = defineProps<Props>()
       />
     </div>
 
-    <div
-      class="text-neutral flex flex-col items-center justify-center gap-1 text-center"
-    >
+    <div class="text-neutral flex flex-col items-center justify-center gap-1 text-center">
       <h1 class="text-neutral text-copy-lg">{{ title }}</h1>
       <p
         v-if="description"

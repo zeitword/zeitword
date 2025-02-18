@@ -12,9 +12,7 @@ const { field, path = [] } = defineProps<Props>()
 const storyStore = useStoryStore()
 const siteId = useRouteParams("siteId")
 
-const { data: components } = await useFetch(
-  `/api/sites/${siteId.value}/components`
-)
+const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
 
 const isAddModalOpen = ref(false)
 
@@ -43,18 +41,13 @@ function getBlock(blockId: string) {
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <div
-      class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border"
-    >
+    <div class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border">
       <div
         v-if="storyStore.getNestedValue([...path, field.fieldKey])"
         class="overflow-hidden rounded-lg shadow-md"
       >
         <DFieldBlock
-          v-for="(block, index) in storyStore.getNestedValue([
-            ...path,
-            field.fieldKey
-          ])"
+          v-for="(block, index) in storyStore.getNestedValue([...path, field.fieldKey])"
           :block="getBlock(block.id)"
           :index="index"
           :path="[...path, field.fieldKey]"

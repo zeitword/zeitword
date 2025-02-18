@@ -9,9 +9,7 @@ const route = useRoute()
 const siteId = route.params.siteId
 
 const { data: components } = await useFetch(`/api/sites/${siteId}/components`)
-const { data: stories, refresh: refreshStories } = await useFetch(
-  `/api/sites/${siteId}/stories`
-)
+const { data: stories, refresh: refreshStories } = await useFetch(`/api/sites/${siteId}/stories`)
 
 const isCreateModalOpen = ref(false)
 
@@ -65,9 +63,7 @@ function closeCreateModal() {
               <div class="w-60">
                 {{ story?.title }}
               </div>
-              <div
-                class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px"
-              >
+              <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
                 {{ story?.component?.displayName }}
               </div>
             </div>
@@ -85,6 +81,7 @@ function closeCreateModal() {
           title="No stories yet"
           description="Create your first story to get started"
           :icon="LetterText"
+          size="lg"
         >
           <DButton
             @click="isCreateModalOpen = true"

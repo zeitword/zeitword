@@ -29,9 +29,7 @@ export const useStoryStore = defineStore("story", () => {
     error.value = null
 
     try {
-      const data = await useRequestFetch()<Story>(
-        `/api/sites/${siteId.value}/stories/${storyId}`
-      )
+      const data = await useRequestFetch()<Story>(`/api/sites/${siteId.value}/stories/${storyId}`)
       if (!data) throw new Error("Failed to fetch story")
 
       currentStory.value = { ...data }
@@ -51,10 +49,7 @@ export const useStoryStore = defineStore("story", () => {
   }
 
   function getNestedValue(path: string[]) {
-    return path.reduce(
-      (obj: any, key) => obj?.[key],
-      currentStory.value?.content
-    )
+    return path.reduce((obj: any, key) => obj?.[key], currentStory.value?.content)
   }
 
   function updateNestedField(path: string[], value: any) {
@@ -83,18 +78,15 @@ export const useStoryStore = defineStore("story", () => {
 
     console.log("saving", currentStory.value)
 
-    await $fetch(
-      `/api/sites/${siteId.value}/stories/${currentStory.value.id}`,
-      {
-        method: "PUT",
-        body: {
-          slug: currentStory.value.slug,
-          title: currentStory.value.title,
-          content: currentStory.value.content,
-          componentId: currentStory.value.component.id
-        }
+    await $fetch(`/api/sites/${siteId.value}/stories/${currentStory.value.id}`, {
+      method: "PUT",
+      body: {
+        slug: currentStory.value.slug,
+        title: currentStory.value.title,
+        content: currentStory.value.content,
+        componentId: currentStory.value.component.id
       }
-    )
+    })
     console.log("saved", currentStory.value.id)
     await fetchStory(currentStory.value.id)
   }
