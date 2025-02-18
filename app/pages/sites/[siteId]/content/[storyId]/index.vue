@@ -9,9 +9,12 @@ const storyId = useRouteParams<string>("storyId")
 const { currentStory: story } = storeToRefs(storyStore)
 
 await useAsyncData(`/stories/${storyId.value}`, () => storyStore.fetchStory(storyId.value))
-
+const { toast } = useToast()
 async function save() {
   await storyStore.save()
+  toast.success({
+    description: "The story has been saved."
+  })
 }
 
 function publish() {

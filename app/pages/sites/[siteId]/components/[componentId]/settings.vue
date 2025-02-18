@@ -13,7 +13,6 @@ async function saveChanges() {
     body: component.value
   })
   toast.success({
-    title: "Success!",
     description: "Your changes have been saved",
     duration: 3000
   })

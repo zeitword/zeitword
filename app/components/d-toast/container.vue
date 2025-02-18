@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { min } from "drizzle-orm"
 import { XIcon } from "lucide-vue-next"
 import {
   ToastProvider,
@@ -9,15 +8,8 @@ import {
   ToastClose,
   ToastViewport
 } from "reka-ui"
-import { computed } from "vue"
 
 const { toasts, removeToast } = useToast()
-
-const toastPositions: Record<number, string> = {
-  0: "translateY(0)",
-  1: "translateY(-20px) scale(0.9)",
-  2: "translateY(-38px) scale(0.8)"
-}
 
 function getToastStyle(index: number) {
   // Calculate relative position (newest toast at 0)
@@ -73,11 +65,14 @@ const buttonVariants: Record<string, string> = {
         v-for="(toast, index) in toasts"
         :key="toast.id"
         :duration="toast.duration"
-        class="data-[state=closed]:animate-toast-hide data-[state=open]:animate-toast-slide-in fixed right-5 bottom-5 w-[300px] rounded-lg p-4 shadow-md transition-all duration-300"
+        class="data-[state=closed]:animate-toast-hide data-[state=open]:animate-toast-slide-in fixed right-6 bottom-6 w-[300px] rounded-lg p-4 shadow-md transition-all duration-300"
         :class="toastClasses[toast.type]"
         :style="getToastStyle(index)"
       >
-        <div class="flex items-start justify-between gap-2">
+        <div
+          class="flex items-center justify-between gap-2"
+          v-if="toast && toast.type"
+        >
           <div>
             <ToastTitle
               v-if="toast.title"

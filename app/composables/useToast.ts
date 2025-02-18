@@ -1,4 +1,3 @@
-// useToast.ts
 import { uuidv7 } from "uuidv7"
 import { ref } from "vue"
 
@@ -11,11 +10,14 @@ interface ToastOptions {
 
 interface Toast extends ToastOptions {
   id: string
+  removing?: boolean
 }
 
 const toasts = ref<Toast[]>([])
 
 export function useToast() {
+  const ANIMATION_DURATION = 300
+
   const toast = {
     success(options: Omit<ToastOptions, "type">) {
       addToast({ ...options, type: "success" })
@@ -35,15 +37,42 @@ export function useToast() {
     const id = uuidv7()
     const newToast: Toast = {
       id,
-      duration: 5000, // default duration
-      ...options
+      duration: 5000,
+      ...options,
+      removing: false
     }
 
     toasts.value.push(newToast)
+
+    // Automatically remove toast after duration
+    if (newToast.duration !== Infinity) {
+      setTimeout(() => {
+        // Start removal process
+        const toast = toasts.value.find((t) => t.id === id)
+        if (toast) {
+          toast.removing = true
+        }
+
+        // Actually remove after animation completes
+        setTimeout(() => {
+          removeToast(id)
+        }, ANIMATION_DURATION)
+      }, newToast.duration)
+    }
   }
 
   function removeToast(id: string) {
-    toasts.value = toasts.value.filter((t) => t.id !== id)
+    const toast = toasts.value.find((t) => t.id === id)
+    if (toast && !toast.removing) {
+      // If not already removing, start removal animation
+      toast.removing = true
+      setTimeout(() => {
+        toasts.value = toasts.value.filter((t) => t.id !== id)
+      }, ANIMATION_DURATION)
+    } else {
+      // If already removing or toast not found, remove immediately
+      toasts.value = toasts.value.filter((t) => t.id !== id)
+    }
   }
 
   return {
