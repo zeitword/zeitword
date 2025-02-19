@@ -1,38 +1,57 @@
 <script setup lang="ts">
 import { PlusIcon } from "lucide-vue-next"
-import type { DField } from "~/types/models"
+import { componentFields, components } from "~~/server/database/schema"
+
+type Field = typeof componentFields.$inferSelect
+type Component = typeof components.$inferSelect
 
 type Props = {
-  field: DField
+  field: Field
   path?: string[]
+  value: any
 }
 
-const { field, path = [] } = defineProps<Props>()
+const { field, path = [], value } = defineProps<Props>()
 
-const storyStore = useStoryStore()
+const emit = defineEmits<{
+  (e: "update:value", value: any): void
+  (e: "delete-block", index: number): void
+}>()
+
 const siteId = useRouteParams("siteId")
 
-const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
+const { data: availableComponents } = await useFetch<Component[]>(
+  `/api/sites/${siteId.value}/components`
+)
 
 const isAddModalOpen = ref(false)
 
 function addBlock(blockId: string) {
   isAddModalOpen.value = false
 
-  const blockPath = [...path, field.fieldKey]
-  const currentBlocks = storyStore.getNestedValue(blockPath) || []
+  const currentBlocks = Array.isArray(value) ? value : [] // Ensure it's an array
 
   const newBlock = {
     id: blockId,
     content: {}
   }
 
-  storyStore.updateNestedField(blockPath, [...currentBlocks, newBlock])
+  emit("update:value", [...currentBlocks, newBlock])
 }
 
 function getBlock(blockId: string) {
-  if (!components) return
-  return components.value?.find((block) => block.id === blockId)
+  return availableComponents.value?.find((block) => block.id === blockId)
+}
+
+// Corrected function
+function updateNestedBlock(index: number, updatedBlock: any) {
+  if (!Array.isArray(value)) {
+    console.error("Value is not an array in updateNestedBlock", value)
+    return
+  }
+  const newBlocks = [...value]
+  newBlocks[index] = updatedBlock
+  emit("update:value", newBlocks)
 }
 </script>
 
@@ -43,15 +62,19 @@ function getBlock(blockId: string) {
     </DFormLabel>
     <div class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border">
       <div
-        v-if="storyStore.getNestedValue([...path, field.fieldKey])"
+        v-if="value"
         class="overflow-hidden rounded-lg shadow-md"
       >
         <DFieldBlock
-          v-for="(block, index) in storyStore.getNestedValue([...path, field.fieldKey])"
+          v-for="(block, index) in value"
+          :key="index"
           :block="getBlock(block.id)"
+          :block-content="block"
           :index="index"
-          :path="[...path, field.fieldKey]"
+          :path="path"
           class="border-neutral overflow-hidden border-b last:border-none"
+          @update:value="updateNestedBlock(index, $event)"
+          @delete-block="$emit('delete-block', index)"
         />
       </div>
 
@@ -76,7 +99,7 @@ function getBlock(blockId: string) {
       <div class="flex flex-col gap-2 p-5">
         <DList>
           <DListItem
-            v-for="block in components"
+            v-for="block in availableComponents"
             :key="block.id"
             @click="addBlock(block.id)"
           >

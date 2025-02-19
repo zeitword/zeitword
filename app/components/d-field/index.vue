@@ -1,22 +1,18 @@
 <script setup lang="ts">
-import { componentFields, components } from "~~/server/database/schema"
+import type { DField, DComponent } from "~/types/models"
 
-type Field = typeof componentFields.$inferSelect
-type Component = typeof components.$inferSelect
-
-type Props = { field: Field; path?: string[]; components?: Component[] }
-
-const { field, path = [] } = defineProps<Props>()
-
-const storyStore = useStoryStore()
-
-const currentValue = computed(() => {
-  return storyStore.getNestedValue([...path, field.fieldKey])
-})
-
-function updateValue(value: any) {
-  storyStore.updateNestedField([...path, field.fieldKey], value)
+type Props = {
+  field: DField
+  path?: string[]
+  components?: DComponent[]
+  value: any
 }
+
+const { field, path = [], value } = defineProps<Props>()
+
+const emit = defineEmits<{
+  (e: "update:value", value: any): void // Define the emit
+}>()
 </script>
 
 <template>
@@ -25,8 +21,8 @@ function updateValue(value: any) {
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
     <DInput
-      :model-value="currentValue"
-      @input="updateValue($event.target.value)"
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
       :placeholder="field.displayName || field.fieldKey"
     />
   </DFormGroup>
@@ -36,8 +32,8 @@ function updateValue(value: any) {
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
     <DTextarea
-      :model-value="currentValue"
-      @input="updateValue(($event.target as HTMLTextAreaElement).value)"
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
     />
   </DFormGroup>
 
@@ -46,6 +42,9 @@ function updateValue(value: any) {
     :field="field"
     :path="path"
     :blocks="components"
+    :value="value"
+    @update:value="emit('update:value', $event)"
+    @delete-block="(index) => $emit('delete-block', index)"
   />
 
   <div
@@ -53,6 +52,6 @@ function updateValue(value: any) {
     v-else-if="field.type === 'asset'"
   >
     Image
-    <pre>{{ currentValue }}</pre>
+    <pre>{{ value }}</pre>
   </div>
 </template>

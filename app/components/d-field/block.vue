@@ -1,27 +1,38 @@
 <script setup lang="ts">
 import { ChevronDownIcon, GripVertical, Trash2Icon } from "lucide-vue-next"
-import type { DField } from "~/types/models"
+import { componentFields, components } from "~~/server/database/schema"
 
-const siteId = useRouteParams<string>("siteId")
+type Component = typeof components.$inferSelect
 
 type Props = {
-  block: DField
+  block: Component | undefined
+  blockContent: { id: string; content: { [key: string]: any } } // the content of the block
   index: number
   path?: string[]
 }
 
-const { block, index, path = [] } = defineProps<Props>()
-
-const blockPath = computed(() => [...path, index.toString(), "content"])
+const { block, index, path = [], blockContent } = defineProps<Props>()
 
 const isBlockOpen = ref(false)
+const emit = defineEmits<{
+  (e: "update:value", value: any): void
+  (e: "delete-block", index: number): void
+}>()
 
-function deleteBlock() {
-  console.log("deleting block")
+// Correctly calculate blockPath
+const blockPath = computed(() => [...path, "content"])
+
+// Corrected update function
+function updateNestedBlockField(fieldKey: string, value: any) {
+  if (!blockContent) return
+
+  const updatedContent = { ...blockContent.content, [fieldKey]: value }
+  const updatedBlock = { ...blockContent, content: updatedContent }
+
+  emit("update:value", updatedBlock)
 }
-
-const isRoot = computed(() => path.length === 0)
 </script>
+
 <template>
   <div>
     <div
@@ -55,21 +66,24 @@ const isRoot = computed(() => path.length === 0)
             variant="secondary"
             size="sm"
             :icon-left="Trash2Icon"
-            @click="deleteBlock"
+            @click="$emit('delete-block', index)"
           ></DButton>
         </div>
       </div>
       <div
         class="bg-neutral-subtle flex flex-col gap-2 p-2"
-        v-if="isBlockOpen"
+        v-show="isBlockOpen"
       >
         <template
           v-if="block.fields.length > 0"
           v-for="field in block.fields"
+          :key="field.id"
         >
           <DField
             :field="field"
             :path="blockPath"
+            :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
+            @update:value="updateNestedBlockField(field.fieldKey, $event)"
           />
         </template>
         <DEmpty
@@ -80,7 +94,7 @@ const isRoot = computed(() => path.length === 0)
           <DButton
             variant="secondary"
             size="sm"
-            :to="`/sites/${siteId}/components/${block.id}`"
+            :to="`/sites/${$route.params.siteId}/components/${block.id}`"
           >
             Edit component
           </DButton>
