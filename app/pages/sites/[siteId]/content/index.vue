@@ -47,6 +47,10 @@ function closeCreateModal() {
   contentType.value = ""
   isCreateModalOpen.value = false
 }
+
+function getSlugName(slug: string) {
+  return slug === "index" ? "/" : `/${slug}`
+}
 </script>
 <template>
   <DPageTitle title="Content">
@@ -62,11 +66,18 @@ function closeCreateModal() {
         >
           <div class="text-copy flex w-full items-center justify-between">
             <div class="flex items-center gap-2">
-              <div class="w-60">
-                {{ story?.title }}
+              <div class="flex w-60 items-baseline gap-2">
+                <span>
+                  {{ story?.title }}
+                </span>
+                <div
+                  class="text-copy-sm bg-neutral border-neutral inline-flex rounded-full border px-2 py-px"
+                >
+                  {{ story?.component?.displayName }}
+                </div>
               </div>
               <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
-                {{ story?.component?.displayName }}
+                {{ getSlugName(story?.slug) }}
               </div>
             </div>
             <DButton

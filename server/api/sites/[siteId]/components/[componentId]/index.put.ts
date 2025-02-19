@@ -3,8 +3,9 @@ import { components } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 
 const bodySchema = z.object({
+  name: z.string().min(1).max(255),
   displayName: z.string().min(1).max(255),
-  previewImage: z.string().nullable(),
+  previewImage: z.string().nullable().optional(),
   previewField: z.string().nullable()
 })
 
@@ -17,10 +18,12 @@ export default defineEventHandler(async (event) => {
   if (!siteId || !componentId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
+  console.log(data)
 
   const [updatedComponent] = await useDrizzle()
     .update(components)
     .set({
+      name: data.name,
       displayName: data.displayName,
       previewImage: data.previewImage,
       previewField: data.previewField

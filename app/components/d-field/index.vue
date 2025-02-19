@@ -11,8 +11,14 @@ type Props = {
 const { field, path = [], value } = defineProps<Props>()
 
 const emit = defineEmits<{
-  (e: "update:value", value: any): void // Define the emit
+  (e: "update:value", value: any): void
+  (e: "delete-block", path: string[], index: number): void
 }>()
+
+function deleteBlock(path: string[], index: number) {
+  console.log("d-field.vue", path, index)
+  emit("delete-block", path, index)
+}
 </script>
 
 <template>
@@ -44,7 +50,7 @@ const emit = defineEmits<{
     :blocks="components"
     :value="value"
     @update:value="emit('update:value', $event)"
-    @delete-block="(index) => $emit('delete-block', index)"
+    @delete-block="(path, index) => deleteBlock(path, index)"
   />
 
   <div

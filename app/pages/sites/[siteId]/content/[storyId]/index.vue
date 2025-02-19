@@ -71,25 +71,34 @@ function updateNestedField(originalPath: string[], value: any) {
 
 function deleteBlock(originalPath: string[], index: number) {
   if (!story.value) return
-  // Create a *copy* of the path
+
   const path = [...originalPath]
+  const arrayKey = path.pop()
+
+  if (!arrayKey) return
 
   let current: any = content.value
-
   for (const key of path) {
-    if (!current[key]) return // nothing to delete
+    if (!current[key]) return
     current = current[key]
   }
 
-  if (Array.isArray(current)) {
-    const newContent = { ...content.value }
-    let current2 = newContent
-    for (const key of path) {
-      current2[key] = { ...(current2[key] || {}) }
-      current2 = current2[key]
-    }
-    current2.splice(index, 1)
-    content.value = newContent
+  // Check and delete
+  if (
+    current &&
+    typeof current === "object" &&
+    current[arrayKey] &&
+    Array.isArray(current[arrayKey])
+  ) {
+    current[arrayKey].splice(index, 1) // Use splice directly on the array
+  } else {
+    console.error(
+      "Target is not an array or path is invalid",
+      current,
+      arrayKey,
+      index,
+      originalPath
+    )
   }
 }
 </script>
@@ -121,7 +130,7 @@ function deleteBlock(originalPath: string[], index: number) {
       <!-- Display the content from the ref -->
       <pre>{{ content }}</pre>
     </div>
-    <div class="border-neutral flex w-[500px] flex-col gap-2 border-l p-5">
+    <div class="border-neutral bg-neutral flex w-[500px] flex-col gap-2 border-l p-5">
       <template
         v-for="field in story.component.fields"
         :key="field.fieldKey"
@@ -130,6 +139,7 @@ function deleteBlock(originalPath: string[], index: number) {
           :field="field"
           :value="content[field.fieldKey]"
           @update:value="updateNestedField([field.fieldKey], $event)"
+          @delete-block="(path, index) => deleteBlock(path, index)"
         />
       </template>
     </div>

@@ -15,7 +15,7 @@ const component = computed(() => {
 <template>
   <component
     :is="component"
-    class="hover:bg-neutral-hover group border-neutral flex border-b bg-white last:border-transparent"
+    class="hover:bg-neutral-hover group border-neutral flex min-h-14 border-b bg-white last:border-transparent"
     :class="padding ? 'px-4 py-3' : ''"
     :to="to"
   >

@@ -12,7 +12,7 @@ const { field, path = [], value } = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
-  (e: "delete-block", index: number): void
+  (e: "delete-block", path: string[], index: number): void
 }>()
 
 const siteId = useRouteParams("siteId")
@@ -49,6 +49,11 @@ function updateNestedBlock(index: number, updatedBlock: any) {
   newBlocks[index] = updatedBlock
   emit("update:value", newBlocks)
 }
+
+function deleteBlock(path: string[], index: number) {
+  console.log("blocks.vue", path, index)
+  emit("delete-block", path, index)
+}
 </script>
 
 <template>
@@ -70,7 +75,7 @@ function updateNestedBlock(index: number, updatedBlock: any) {
           :path="path"
           class="border-neutral overflow-hidden border-b last:border-none"
           @update:value="updateNestedBlock(index, $event)"
-          @delete-block="$emit('delete-block', index)"
+          @delete-block="(path, index) => deleteBlock(path, index)"
         />
       </div>
 

@@ -16,7 +16,7 @@ const { block, index, path = [], blockContent } = defineProps<Props>()
 const isBlockOpen = ref(false)
 const emit = defineEmits<{
   (e: "update:value", value: any): void
-  (e: "delete-block", index: number): void
+  (e: "delete-block", path: string[], index: number): void
 }>()
 
 // Correctly calculate blockPath
@@ -30,6 +30,11 @@ function updateNestedBlockField(fieldKey: string, value: any) {
   const updatedBlock = { ...blockContent, content: updatedContent }
 
   emit("update:value", updatedBlock)
+}
+
+function deleteBlock() {
+  console.log(path, index)
+  emit("delete-block", path, index)
 }
 </script>
 
@@ -57,8 +62,11 @@ function updateNestedBlockField(fieldKey: string, value: any) {
               :class="[isBlockOpen ? 'rotate-180' : '']"
             />
           </div>
-          <div class="text-copy text-neutral flex-1">
-            {{ block.displayName }}
+          <div class="text-copy text-neutral flex flex-1 items-baseline gap-2">
+            <div>{{ block.displayName }}</div>
+            <div class="text-neutral-subtle line-clamp-1">
+              {{ blockContent.content[block.previewField] }}
+            </div>
           </div>
         </button>
         <div class="hidden group-hover:flex">
@@ -66,7 +74,7 @@ function updateNestedBlockField(fieldKey: string, value: any) {
             variant="secondary"
             size="sm"
             :icon-left="Trash2Icon"
-            @click="$emit('delete-block', index)"
+            @click="deleteBlock"
           ></DButton>
         </div>
       </div>
