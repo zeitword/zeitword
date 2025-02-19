@@ -3,7 +3,6 @@ definePageMeta({ layout: "story" })
 
 const storyStore = useStoryStore()
 
-const siteId = useRouteParams<string>("siteId")
 const storyId = useRouteParams<string>("storyId")
 
 const { currentStory: story } = storeToRefs(storyStore)

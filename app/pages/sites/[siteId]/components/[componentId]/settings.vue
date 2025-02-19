@@ -71,8 +71,5 @@ async function saveChanges() {
         </DButton>
       </div>
     </div>
-    <pre>
-    {{ component }}
-    </pre>
   </LayoutSidebarComponent>
 </template>

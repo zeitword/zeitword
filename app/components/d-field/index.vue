@@ -18,6 +18,7 @@ function updateValue(value: any) {
   storyStore.updateNestedField([...path, field.fieldKey], value)
 }
 </script>
+
 <template>
   <DFormGroup v-if="field.type === 'text'">
     <DFormLabel :required="field.required">

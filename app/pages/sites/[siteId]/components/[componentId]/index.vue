@@ -28,8 +28,8 @@ async function addField() {
       @submit.prevent="addField"
       class="mb-4 flex flex-col gap-4"
     >
-      <div class="grid grid-cols-3 gap-2">
-        <DFormGroup class="col-span-2">
+      <div class="flex items-end gap-2">
+        <DFormGroup class="flex-1">
           <DFormLabel>Field Name</DFormLabel>
           <DInput
             type="text"
@@ -37,7 +37,7 @@ async function addField() {
             placeholder="Field name"
           />
         </DFormGroup>
-        <DFormGroup>
+        <DFormGroup class="flex-1">
           <DFormLabel>Field Type</DFormLabel>
           <DSelect
             v-model="fieldType"
@@ -45,8 +45,8 @@ async function addField() {
             :options="fieldTypes.map((type) => ({ display: type, value: type }))"
           />
         </DFormGroup>
+        <DButton type="submit">Add Field</DButton>
       </div>
-      <DButton type="submit">Add Field</DButton>
     </form>
     <div
       v-if="component?.fields && component?.fields.length > 0"

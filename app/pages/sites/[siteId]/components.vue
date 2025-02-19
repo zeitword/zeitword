@@ -9,7 +9,7 @@ const route = useRoute()
 const router = useRouter()
 const siteId = route.params.siteId
 const { data: components, refresh } = await useFetch(`/api/sites/${siteId}/components`)
-import { Ellipsis, BlocksIcon } from "lucide-vue-next"
+import { BlocksIcon } from "lucide-vue-next"
 
 const isCreateModalOpen = ref(false)
 

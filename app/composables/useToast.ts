@@ -64,13 +64,11 @@ export function useToast() {
   function removeToast(id: string) {
     const toast = toasts.value.find((t) => t.id === id)
     if (toast && !toast.removing) {
-      // If not already removing, start removal animation
       toast.removing = true
       setTimeout(() => {
         toasts.value = toasts.value.filter((t) => t.id !== id)
       }, ANIMATION_DURATION)
     } else {
-      // If already removing or toast not found, remove immediately
       toasts.value = toasts.value.filter((t) => t.id !== id)
     }
   }
