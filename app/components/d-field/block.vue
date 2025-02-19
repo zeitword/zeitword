@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ChevronDownIcon, GripVertical, Trash2Icon } from "lucide-vue-next"
 import type { DComponent } from "~/types/models"
+import { computed, ref } from "vue"
 
 const siteId = useRouteParams("siteId")
 
 type Props = {
   block: DComponent | undefined
-  blockContent: { id: string; content: { [key: string]: any } } // the content of the block
+  blockContent: { id: string; content: { [key: string]: any } }
   index: number
   path?: string[]
 }
@@ -19,22 +20,20 @@ const emit = defineEmits<{
   (e: "delete-block", path: string[], index: number): void
 }>()
 
-// Correctly calculate blockPath
-const blockPath = computed(() => [...path, "content"])
-
-// Corrected update function
 function updateNestedBlockField(fieldKey: string, value: any) {
   if (!blockContent) return
 
-  const updatedContent = { ...blockContent.content, [fieldKey]: value }
-  const updatedBlock = { ...blockContent, content: updatedContent }
-
-  emit("update:value", updatedBlock)
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    blockContent.content[fieldKey] = { ...value }
+  } else {
+    blockContent.content[fieldKey] = value
+  }
+  emit("update:value", blockContent)
 }
 
 function deleteBlock() {
-  console.log(path, index)
-  emit("delete-block", path, index)
+  // **CORRECTED:** Emit the path *to the array*, not the block.
+  emit("delete-block", path.slice(0, -1), index) //  slice to remove the index
 }
 </script>
 
@@ -89,9 +88,10 @@ function deleteBlock() {
         >
           <DField
             :field="field"
-            :path="blockPath"
+            :path="[...path, 'content']"
             :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
             @update:value="updateNestedBlockField(field.fieldKey, $event)"
+            @delete-block="(path, index) => $emit('delete-block', path, index)"
           />
         </template>
         <DEmpty

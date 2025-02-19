@@ -16,7 +16,6 @@ const emit = defineEmits<{
 }>()
 
 function deleteBlock(path: string[], index: number) {
-  console.log("d-field.vue", path, index)
   emit("delete-block", path, index)
 }
 </script>
@@ -46,7 +45,7 @@ function deleteBlock(path: string[], index: number) {
   <DFieldBlocks
     v-else-if="field.type === 'blocks'"
     :field="field"
-    :path="path"
+    :path="[...path, field.fieldKey]"
     :blocks="components"
     :value="value"
     @update:value="emit('update:value', $event)"

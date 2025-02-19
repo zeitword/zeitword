@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PlusIcon } from "lucide-vue-next"
-import type { DField } from "~/types/models"
+import type { DField, DComponent } from "~/types/models"
 
 type Props = {
   field: DField
@@ -17,23 +17,41 @@ const emit = defineEmits<{
 
 const siteId = useRouteParams("siteId")
 
-const { data: availableComponents } = await useFetch<Component[]>(
+const { data: availableComponents } = await useFetch<DComponent[]>(
   `/api/sites/${siteId.value}/components`
 )
 
 const isAddModalOpen = ref(false)
 
-function addBlock(blockId: string) {
+function initializeBlockContent(component: DComponent): any {
+  const content: any = {}
+  for (const field of component.fields) {
+    if (field.type === "blocks") {
+      content[field.fieldKey] = []
+    } else {
+      content[field.fieldKey] = undefined
+    }
+  }
+  return content
+}
+
+function addBlock(componentId: string) {
   isAddModalOpen.value = false
 
-  const currentBlocks = Array.isArray(value) ? value : [] // Ensure it's an array
-
-  const newBlock = {
-    id: blockId,
-    content: {}
+  const component = availableComponents.value?.find((c) => c.id === componentId)
+  if (!component) {
+    console.error("Component not found:", componentId)
+    return
   }
 
-  emit("update:value", [...currentBlocks, newBlock])
+  const currentBlocks = Array.isArray(value) ? [...value] : []
+  const newBlock = {
+    id: componentId,
+    content: initializeBlockContent(component)
+  }
+
+  currentBlocks.push(newBlock)
+  emit("update:value", currentBlocks)
 }
 
 function getBlock(blockId: string) {
@@ -45,13 +63,10 @@ function updateNestedBlock(index: number, updatedBlock: any) {
     console.error("Value is not an array in updateNestedBlock", value)
     return
   }
-  const newBlocks = [...value]
-  newBlocks[index] = updatedBlock
-  emit("update:value", newBlocks)
+  value.splice(index, 1, updatedBlock)
 }
 
 function deleteBlock(path: string[], index: number) {
-  console.log("blocks.vue", path, index)
   emit("delete-block", path, index)
 }
 </script>
@@ -68,11 +83,11 @@ function deleteBlock(path: string[], index: number) {
       >
         <DFieldBlock
           v-for="(block, index) in value"
-          :key="index"
+          :key="block.id"
           :block="getBlock(block.id)"
           :block-content="block"
           :index="index"
-          :path="path"
+          :path="[...path, index]"
           class="border-neutral overflow-hidden border-b last:border-none"
           @update:value="updateNestedBlock(index, $event)"
           @delete-block="(path, index) => deleteBlock(path, index)"

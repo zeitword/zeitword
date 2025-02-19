@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, watch } from "vue"
+
 definePageMeta({ layout: "story" })
 
 const storyId = useRouteParams("storyId")
@@ -18,16 +20,19 @@ if (error.value) {
 
 const content = ref(story.value?.content || {})
 
-watch(story, (newStory) => {
-  if (newStory) {
-    content.value = newStory.content || {}
-  }
-})
+watch(
+  story,
+  (newStory) => {
+    if (newStory) {
+      content.value = newStory.content || {}
+    }
+  },
+  { deep: true }
+)
 
 async function save() {
   if (!story.value) return
 
-  console.log("saving", story.value)
   try {
     await $fetch(`/api/sites/${siteId.value}/stories/${story.value.id}`, {
       method: "PUT",
@@ -38,7 +43,6 @@ async function save() {
         componentId: story.value.component.id
       }
     })
-    console.log("saved", story.value.id)
     await refresh()
     toast.success({ description: "The story has been saved." })
   } catch (saveError) {
@@ -47,7 +51,6 @@ async function save() {
 }
 
 function publish() {
-  console.log("publish")
   toast.info({ description: "Publishing is not yet implemented" })
 }
 
@@ -58,47 +61,64 @@ function updateNestedField(originalPath: string[], value: any) {
   const lastKey = path.pop()
   if (!lastKey) return
 
-  const newContent = { ...content.value }
-  let current = newContent
+  let current = content.value
 
   for (const key of path) {
-    current[key] = { ...(current[key] || {}) }
+    if (typeof current[key] !== "object" || current[key] === null) {
+      current[key] = {} // Directly assign
+    }
     current = current[key]
   }
-  current[lastKey] = value
-  content.value = newContent
+
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    current[lastKey] = { ...value } // Use spread for objects
+  } else {
+    current[lastKey] = value
+  }
 }
 
 function deleteBlock(originalPath: string[], index: number) {
-  if (!story.value) return
+  console.log("deleteBlock called with originalPath:", originalPath, "and index:", index)
 
-  const path = [...originalPath]
-  const arrayKey = path.pop()
-
-  if (!arrayKey) return
-
-  let current: any = content.value
-  for (const key of path) {
-    if (!current[key]) return
-    current = current[key]
+  if (!story.value) {
+    console.log("story.value is null or undefined. Returning.")
+    return
   }
 
-  // Check and delete
-  if (
-    current &&
-    typeof current === "object" &&
-    current[arrayKey] &&
-    Array.isArray(current[arrayKey])
-  ) {
-    current[arrayKey].splice(index, 1) // Use splice directly on the array
+  const path = [...originalPath]
+  console.log("Copied path:", path)
+
+  const arrayKey = path.pop()
+  console.log("arrayKey (after pop):", arrayKey)
+  console.log("path (after pop):", path)
+
+  if (!arrayKey) {
+    console.log("arrayKey is null. returning")
+    return
+  }
+
+  let current: any = content.value
+  console.log("Initial current:", current)
+
+  for (const key of path) {
+    console.log("Traversing path segment:", key)
+    if (!current[key]) {
+      console.error("Path segment not found:", key, "in", current)
+      return
+    }
+    current = current[key]
+    console.log("Current after traversing segment:", current)
+  }
+
+  console.log("Final current:", current)
+  console.log("current[arrayKey]:", current ? current[arrayKey] : "current is null")
+
+  if (current && current[arrayKey] && Array.isArray(current[arrayKey])) {
+    console.log("Splicing array at index:", index)
+    current[arrayKey].splice(index, 1)
+    console.log("content.value after splice:", content.value)
   } else {
-    console.error(
-      "Target is not an array or path is invalid",
-      current,
-      arrayKey,
-      index,
-      originalPath
-    )
+    console.error("deleteBlock target is not an array:", current, arrayKey, path, index)
   }
 }
 </script>
@@ -127,7 +147,6 @@ function deleteBlock(originalPath: string[], index: number) {
     class="flex flex-1"
   >
     <div class="flex-1 overflow-auto p-5">
-      <!-- Display the content from the ref -->
       <pre>{{ content }}</pre>
     </div>
     <div class="border-neutral bg-neutral flex w-[500px] flex-col gap-2 border-l p-5">
