@@ -1,17 +1,14 @@
 <script setup lang="ts">
-const route = useRoute()
-const siteId = computed(() => route.params.siteId)
-const storyId = computed(() => route.params.storyId)
+const siteId = useRouteParams("siteId")
+const storyId = useRouteParams("storyId")
 
-const navigation = computed(() => {
-  return [
-    { name: "Content", to: `/sites/${siteId.value}/content/${storyId.value}` },
-    {
-      name: "Settings",
-      to: `/sites/${siteId.value}/content/${storyId.value}/settings`
-    }
-  ]
-})
+const navigation = ref([
+  { name: "Content", to: `/sites/${siteId.value}/content/${storyId.value}` },
+  {
+    name: "Settings",
+    to: `/sites/${siteId.value}/content/${storyId.value}/settings`
+  }
+])
 </script>
 
 <template>

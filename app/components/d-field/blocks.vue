@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { PlusIcon } from "lucide-vue-next"
-import { componentFields, components } from "~~/server/database/schema"
-
-type Field = typeof componentFields.$inferSelect
-type Component = typeof components.$inferSelect
+import type { DField } from "~/types/models"
 
 type Props = {
-  field: Field
+  field: DField
   path?: string[]
   value: any
 }
@@ -43,7 +40,6 @@ function getBlock(blockId: string) {
   return availableComponents.value?.find((block) => block.id === blockId)
 }
 
-// Corrected function
 function updateNestedBlock(index: number, updatedBlock: any) {
   if (!Array.isArray(value)) {
     console.error("Value is not an array in updateNestedBlock", value)

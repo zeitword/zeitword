@@ -2,9 +2,10 @@
 import { ArrowLeftIcon } from "lucide-vue-next"
 
 const route = useRoute()
-const siteId = route.params.siteId
-const componentId = route.params.componentId
-const fieldKey = route.params.fieldKey
+
+const siteId = useRouteParams("siteId")
+const componentId = useRouteParams("componentId")
+const fieldKey = useRouteParams("fieldKey")
 
 const formData = ref({
   fieldKey: "",
@@ -25,7 +26,7 @@ const fieldTypeOptions = computed(() => {
 })
 
 const { data: field, refresh } = await useFetch(
-  `/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`
+  `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`
 )
 
 watch(
@@ -54,10 +55,13 @@ const hasChanges = computed(() => {
 async function save() {
   if (hasChanges.value) {
     console.log("saving", formData.value)
-    await $fetch(`/api/sites/${siteId}/components/${componentId}/fields/${fieldKey}`, {
-      method: "PUT",
-      body: formData.value
-    })
+    await $fetch(
+      `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`,
+      {
+        method: "PUT",
+        body: formData.value
+      }
+    )
     console.log("saved")
     refresh()
   }

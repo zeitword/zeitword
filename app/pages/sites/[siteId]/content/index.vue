@@ -6,10 +6,12 @@ definePageMeta({
 })
 
 const route = useRoute()
-const siteId = route.params.siteId
+const siteId = useRouteParams("siteId")
 
-const { data: components } = await useFetch(`/api/sites/${siteId}/components`)
-const { data: stories, refresh: refreshStories } = await useFetch(`/api/sites/${siteId}/stories`)
+const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
+const { data: stories, refresh: refreshStories } = await useFetch(
+  `/api/sites/${siteId.value}/stories`
+)
 
 const isCreateModalOpen = ref(false)
 
@@ -26,7 +28,7 @@ const slug = ref("")
 const contentType = ref("")
 
 async function createStory() {
-  await useRequestFetch()(`/api/sites/${siteId}/stories`, {
+  await useRequestFetch()(`/api/sites/${siteId.value}/stories`, {
     method: "POST",
     body: {
       slug: slug.value.length > 0 ? slug.value : "index",

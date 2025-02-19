@@ -1,33 +1,26 @@
 <script setup lang="ts">
-import { stories, components, componentFields } from "~~/server/database/schema"
-
 definePageMeta({ layout: "story" })
 
-const route = useRoute()
-const storyId = computed(() => route.params.storyId as string)
-const siteId = computed(() => route.params.siteId as string)
+const storyId = useRouteParams("storyId")
+const siteId = useRouteParams("siteId")
+
+const { toast } = useToast()
 
 const {
   data: story,
-  pending: isLoading,
   error,
   refresh
 } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
 
 if (error.value) {
-  console.error("Failed to fetch site:", error.value)
-  // Consider showing a user-friendly error message here, perhaps using useToast()
+  toast.error({ description: "Failed to load story" })
 }
 
-const { toast } = useToast()
+const content = ref(story.value?.content || {})
 
-// Use a ref for the content, initialized from the fetched story
-const content = ref(story.value?.content || {}) // Initialize with empty object if content is null
-
-// Watch for changes in the fetched story and update the content ref
 watch(story, (newStory) => {
   if (newStory) {
-    content.value = newStory.content || {} // Update content when story changes
+    content.value = newStory.content || {}
   }
 })
 
@@ -55,27 +48,25 @@ async function save() {
 
 function publish() {
   console.log("publish")
+  toast.info({ description: "Publishing is not yet implemented" })
 }
 
-// --- Content Update Functions ---
 function updateNestedField(originalPath: string[], value: any) {
   if (!story.value) return
 
-  // Create a *copy* of the path to avoid mutation
   const path = [...originalPath]
   const lastKey = path.pop()
   if (!lastKey) return
 
-  // Use immer-like update for deep object modification
-  const newContent = { ...content.value } // Start with a shallow copy
+  const newContent = { ...content.value }
   let current = newContent
 
   for (const key of path) {
-    current[key] = { ...(current[key] || {}) } // Ensure nested objects exist
+    current[key] = { ...(current[key] || {}) }
     current = current[key]
   }
   current[lastKey] = value
-  content.value = newContent // Assign the *new* object to the ref
+  content.value = newContent
 }
 
 function deleteBlock(originalPath: string[], index: number) {
@@ -91,13 +82,13 @@ function deleteBlock(originalPath: string[], index: number) {
   }
 
   if (Array.isArray(current)) {
-    const newContent = { ...content.value } // Start with a shallow copy
+    const newContent = { ...content.value }
     let current2 = newContent
     for (const key of path) {
-      current2[key] = { ...(current2[key] || {}) } // Ensure nested objects exist
+      current2[key] = { ...(current2[key] || {}) }
       current2 = current2[key]
     }
-    current2.splice(index, 1) // Remove the block at the specified index
+    current2.splice(index, 1)
     content.value = newContent
   }
 }

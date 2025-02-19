@@ -5,16 +5,16 @@ definePageMeta({
   layout: "site"
 })
 
-const route = useRoute()
-const router = useRouter()
-const siteId = route.params.siteId
-const { data: components, refresh } = await useFetch(`/api/sites/${siteId}/components`)
+const siteId = useRouteParams("siteId")
+const componentId = useRouteParams("componentId")
+
+const { data: components, refresh } = await useFetch(`/api/sites/${siteId.value}/components`)
 import { BlocksIcon } from "lucide-vue-next"
 
 const isCreateModalOpen = ref(false)
 
 const isComponentSubRoute = computed(() => {
-  if (route.params.componentId) {
+  if (componentId.value) {
     return true
   }
   return false
@@ -35,7 +35,7 @@ onMounted(() => {
 })
 
 function navigateBack() {
-  router.push(`/sites/${siteId}/components`)
+  navigateTo(`/sites/${siteId.value}/components`)
 }
 
 const name = ref("")
@@ -43,7 +43,7 @@ const displayName = ref("")
 
 async function createComponent() {
   try {
-    await useRequestFetch()(`/api/sites/${siteId}/components`, {
+    await useRequestFetch()(`/api/sites/${siteId.value}/components`, {
       method: "POST",
       body: { name: name.value, displayName: displayName.value }
     })
@@ -65,7 +65,7 @@ function showDeleteModal(id: string) {
 async function deleteComponent() {
   if (!selectedComponentId.value) return
   try {
-    await useRequestFetch()(`/api/sites/${siteId}/components/${selectedComponentId.value}`, {
+    await useRequestFetch()(`/api/sites/${siteId.value}/components/${selectedComponentId.value}`, {
       method: "DELETE"
     })
   } finally {

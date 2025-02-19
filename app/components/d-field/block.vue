@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ChevronDownIcon, GripVertical, Trash2Icon } from "lucide-vue-next"
-import { componentFields, components } from "~~/server/database/schema"
+import type { DComponent } from "~/types/models"
 
-type Component = typeof components.$inferSelect
+const siteId = useRouteParams("siteId")
 
 type Props = {
-  block: Component | undefined
+  block: DComponent | undefined
   blockContent: { id: string; content: { [key: string]: any } } // the content of the block
   index: number
   path?: string[]
@@ -94,7 +94,7 @@ function updateNestedBlockField(fieldKey: string, value: any) {
           <DButton
             variant="secondary"
             size="sm"
-            :to="`/sites/${$route.params.siteId}/components/${block.id}`"
+            :to="`/sites/${siteId}/components/${block.id}`"
           >
             Edit component
           </DButton>

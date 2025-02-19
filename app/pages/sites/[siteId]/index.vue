@@ -1,8 +1,7 @@
 <script setup lang="ts">
-const route = useRoute()
-const id = route.params.siteId
+const siteId = useRouteParams("siteId")
 
-const { data: site, refresh } = await useFetch(`/api/sites/${id}`)
+const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
 </script>
 
 <template>
