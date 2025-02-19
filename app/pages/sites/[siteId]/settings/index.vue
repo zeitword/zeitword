@@ -24,14 +24,18 @@ function resetChanges() {
   formData.value = { name: site.value?.name || "", domain: site.value?.domain || "" }
 }
 
+const { toast } = useToast()
+
 const saveChanges = async () => {
   try {
     await $fetch(`/api/sites/${siteId.value}`, {
       method: "PUT",
       body: formData.value
     })
+    toast.success({ description: "Settings saved successfully" })
     refresh()
   } catch (error: any) {
+    toast.error({ description: "Error saving settings" })
     console.error(error)
   }
 }
@@ -61,7 +65,6 @@ async function deleteSite() {
           subtitle="Used to identify the site"
         >
           <DInput
-            :leading="`zeitword.com/${me?.organisationName.toLowerCase()}/`"
             v-model.sanitize="formData.name"
             class="w-full"
           />

@@ -1,8 +1,9 @@
 import { z } from "zod"
-import { componentFields, components, fieldTypeEnum } from "~~/server/database/schema"
+import { componentFields } from "~~/server/database/schema"
 
 const bodySchema = z.object({
   name: z.string().min(1).max(255),
+  displayName: z.string().min(1).max(255),
   // TODO: use fieldTypes from schema?
   fieldType: z.enum([
     "blocks",
@@ -45,7 +46,7 @@ export default defineEventHandler(async (event) => {
       componentId: componentId,
       fieldKey: data.name,
       type: data.fieldType,
-      displayName: data.name,
+      displayName: data.displayName,
       siteId: siteId,
       organisationId: secure.organisationId
     })

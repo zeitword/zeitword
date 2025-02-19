@@ -27,18 +27,29 @@ const name = ref("")
 const slug = ref("")
 const contentType = ref("")
 
+const { toast } = useToast()
+
 async function createStory() {
-  await useRequestFetch()(`/api/sites/${siteId.value}/stories`, {
-    method: "POST",
-    body: {
-      slug: slug.value.length > 0 ? slug.value : "index",
-      title: name.value,
-      content: {},
-      componentId: contentType.value
+  if (name.value === "") return toast.info({ description: "Please enter a name" })
+  if (contentType.value === "") return toast.info({ description: "Please select a content type" })
+  try {
+    await $fetch(`/api/sites/${siteId.value}/stories`, {
+      method: "POST",
+      body: {
+        slug: slug.value.length > 0 ? slug.value : "index",
+        title: name.value,
+        content: {},
+        componentId: contentType.value
+      }
+    })
+    closeCreateModal()
+    refreshStories()
+  } catch (error: any) {
+    console.error(error)
+    if (error.response && error.response.status === 409) {
+      toast.error({ description: error.response._data.statusMessage })
     }
-  })
-  closeCreateModal()
-  refreshStories()
+  }
 }
 
 function closeCreateModal() {

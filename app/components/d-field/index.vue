@@ -59,4 +59,8 @@ function deleteBlock(path: string[], index: number) {
     Image
     <pre>{{ value }}</pre>
   </div>
+
+  <p class="text-copy-sm text-neutral-subtle">
+    {{ field.description }}
+  </p>
 </template>

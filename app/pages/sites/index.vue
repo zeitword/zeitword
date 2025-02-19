@@ -71,7 +71,6 @@ async function createSite() {
           v-if="me"
           type="text"
           v-model.sanitize="name"
-          :leading="`zeitword.com/${me.organisationName.toLowerCase()}/`"
           placeholder="Name of the site"
         />
       </DFormGroup>

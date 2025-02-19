@@ -11,10 +11,14 @@ const { data: component, refresh } = await useFetch(
   `/api/sites/${siteId.value}/components/${componentId.value}`
 )
 
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
 async function addField() {
   await useRequestFetch()(`/api/sites/${siteId.value}/components/${componentId.value}/fields`, {
     method: "POST",
-    body: { name: name.value, fieldType: fieldType.value }
+    body: { displayName: capitalize(name.value), name: name.value, fieldType: fieldType.value }
   })
   name.value = ""
   fieldType.value = "text"
@@ -66,6 +70,9 @@ async function addField() {
               variant="transparent"
             />
             <div>
+              {{ field?.displayName }}
+            </div>
+            <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
               {{ field?.fieldKey }}
             </div>
           </div>

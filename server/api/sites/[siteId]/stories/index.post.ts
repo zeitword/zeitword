@@ -25,17 +25,39 @@ export default defineEventHandler(async (event) => {
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
-  const [story] = await useDrizzle()
-    .insert(stories)
-    .values({
-      slug: data.slug,
-      title: data.title,
-      content: data.content,
-      siteId: siteId,
-      componentId: data.componentId,
-      organisationId: secure.organisationId
-    })
-    .returning()
+  try {
+    const [story] = await useDrizzle()
+      .insert(stories)
+      .values({
+        slug: data.slug,
+        title: data.title,
+        content: data.content,
+        siteId: siteId,
+        componentId: data.componentId,
+        organisationId: secure.organisationId
+      })
+      .returning()
+    return story
+  } catch (error: any) {
+    if (error.code === "23505") {
+      throw createError({
+        statusCode: 409,
+        statusMessage: "Slug already exists",
+        data: {
+          field: "slug"
+        }
+      })
+    }
 
-  return story
+    if (error.message) {
+      console.error("Drizzle ORM Error:", error.message)
+    } else {
+      console.error("An unexpected error occurred:", error)
+    }
+
+    throw createError({
+      statusCode: 500,
+      statusMessage: "An error occurred while creating the story."
+    })
+  }
 })

@@ -7,7 +7,8 @@ import {
   timestamp,
   boolean,
   primaryKey,
-  jsonb
+  jsonb,
+  uniqueIndex
 } from "drizzle-orm/pg-core"
 import { uuidv7 } from "uuidv7"
 
@@ -121,20 +122,24 @@ export const fieldOptions = pgTable("field_options", {
   ...organisationId
 })
 
-export const stories = pgTable("stories", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  slug: text().notNull().unique(),
-  title: text().notNull(),
-  content: jsonb().notNull(),
-  componentId: uuid()
-    .notNull()
-    .references(() => components.id),
-  siteId: uuid()
-    .notNull()
-    .references(() => sites.id),
-  ...organisationId,
-  ...timestamps
-})
+export const stories = pgTable(
+  "stories",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    slug: text().notNull(),
+    title: text().notNull(),
+    content: jsonb().notNull(),
+    componentId: uuid()
+      .notNull()
+      .references(() => components.id),
+    siteId: uuid()
+      .notNull()
+      .references(() => sites.id),
+    ...organisationId,
+    ...timestamps
+  },
+  (t) => [uniqueIndex("slug_idx").on(t.slug, t.siteId)]
+)
 
 export const sites = pgTable("sites", {
   id: uuid().primaryKey().$defaultFn(uuidv7),

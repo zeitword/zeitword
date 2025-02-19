@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import { ArrowLeftIcon } from "lucide-vue-next"
 
-const route = useRoute()
-
 const siteId = useRouteParams("siteId")
 const componentId = useRouteParams("componentId")
 const fieldKey = useRouteParams("fieldKey")
 
-const formData = ref({
+type FormData = {
+  fieldKey: string
+  fieldType: string
+  required: boolean
+  description: string
+  displayName: string
+  defaultValue: string
+  minValue: number | null
+  maxValue: number | null
+}
+
+const formData = ref<FormData>({
   fieldKey: "",
   fieldType: "text",
   required: false,
@@ -52,9 +61,11 @@ const hasChanges = computed(() => {
   return JSON.stringify(field.value) !== JSON.stringify(formData.value)
 })
 
+const { toast } = useToast()
+
 async function save() {
-  if (hasChanges.value) {
-    console.log("saving", formData.value)
+  console.log("saving")
+  try {
     await $fetch(
       `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`,
       {
@@ -64,6 +75,10 @@ async function save() {
     )
     console.log("saved")
     refresh()
+    toast.success({ description: "Field saved successfully" })
+  } catch (error) {
+    console.error("Error saving field:", error)
+    toast.error({ description: "Error saving field" })
   }
 }
 </script>
@@ -133,35 +148,100 @@ async function save() {
             v-model="formData.displayName"
           />
         </DFormGroup>
-        <DFormGroup>
-          <DFormLabel name="default-value">Default Value</DFormLabel>
-          <DInput
-            id="default-value"
-            name="default-value"
-            v-model="formData.defaultValue"
-          />
-        </DFormGroup>
-        <DFormGroup>
-          <DFormLabel name="minimum-value">Minimum Value</DFormLabel>
-          <DInput
-            id="minimum-value"
-            name="minimum-value"
-            type="number"
-            v-model="formData.minValue"
-          />
-        </DFormGroup>
-        <DFormGroup>
-          <DFormLabel name="maximum-value">Maximum Value</DFormLabel>
-          <DInput
-            id="maximum-value"
-            name="maximum-value"
-            type="number"
-            v-model="formData.maxValue"
-          />
-        </DFormGroup>
+
+        <!-- specific fields for "string" -->
+        <template v-if="formData.fieldType === 'text'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DInput
+              id="default-value"
+              name="default-value"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+        </template>
+
+        <template v-if="formData.fieldType === 'textarea'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DTextarea
+              id="default-value"
+              name="default-value"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+        </template>
+
+        <!-- specific fields for "number" -->
+        <template v-if="formData.fieldType === 'number'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DInput
+              id="default-value"
+              name="default-value"
+              type="number"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+          <DFormGroup>
+            <DFormLabel name="minimum-value">Minimum Value</DFormLabel>
+            <DInput
+              id="minimum-value"
+              name="minimum-value"
+              type="number"
+              v-model="formData.minValue"
+            />
+          </DFormGroup>
+          <DFormGroup>
+            <DFormLabel name="maximum-value">Maximum Value</DFormLabel>
+            <DInput
+              id="maximum-value"
+              name="maximum-value"
+              type="number"
+              v-model="formData.maxValue"
+            />
+          </DFormGroup>
+        </template>
+
+        <!-- specific fields for "datetime" -->
+        <template v-if="formData.fieldType === 'datetime'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DInput
+              id="default-value"
+              name="default-value"
+              type="datetime-local"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+        </template>
+
+        <template v-if="formData.fieldType === 'option'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DInput
+              id="default-value"
+              name="default-value"
+              type="datetime-local"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+        </template>
+
+        <!-- specific fields for "boolean" -->
+        <template v-if="formData.fieldType === 'boolean'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DInputSwitch
+              id="default-value"
+              name="default-value"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+        </template>
+
         <div>
           <DButton
-            @click="save"
             type="submit"
             :disabled="!hasChanges"
           >
