@@ -1,1 +1,0 @@
-ALTER TABLE "components" ALTER COLUMN "preview_field" DROP NOT NULL;

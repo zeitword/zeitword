@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1739185356151,
-      "tag": "0000_aspiring_thor_girl",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1739185696871,
-      "tag": "0001_shiny_agent_zero",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1739190982695,
-      "tag": "0002_messy_white_queen",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1739193426317,
-      "tag": "0003_curly_natasha_romanoff",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1739821790290,
-      "tag": "0004_classy_vulcan",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1739874825875,
-      "tag": "0005_common_namora",
+      "when": 1739977154819,
+      "tag": "0000_redundant_sumo",
       "breakpoints": true
     }
   ]

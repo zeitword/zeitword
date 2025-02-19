@@ -1,5 +1,5 @@
 {
-  "id": "6664a4e6-2a2f-41cb-8940-9efee9bec995",
+  "id": "26493145-d735-4ac9-9d7e-0fbf208f4514",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -64,6 +64,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "organisation_id": {
           "name": "organisation_id",
           "type": "uuid",
@@ -79,6 +85,19 @@
           "tableTo": "components",
           "columnsFrom": [
             "component_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "component_fields_site_id_sites_id_fk": {
+          "name": "component_fields_site_id_sites_id_fk",
+          "tableFrom": "component_fields",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
           ],
           "columnsTo": [
             "id"
@@ -146,6 +165,12 @@
           "name": "preview_field",
           "type": "text",
           "primaryKey": false,
+          "notNull": false
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
           "notNull": true
         },
         "organisation_id": {
@@ -177,6 +202,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "components_site_id_sites_id_fk": {
+          "name": "components_site_id_sites_id_fk",
+          "tableFrom": "components",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "components_organisation_id_organisations_id_fk": {
           "name": "components_organisation_id_organisations_id_fk",
           "tableFrom": "components",
@@ -231,6 +269,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "organisation_id": {
           "name": "organisation_id",
           "type": "uuid",
@@ -246,6 +290,19 @@
           "tableTo": "components",
           "columnsFrom": [
             "component_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "field_options_site_id_sites_id_fk": {
+          "name": "field_options_site_id_sites_id_fk",
+          "tableFrom": "field_options",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
           ],
           "columnsTo": [
             "id"
@@ -393,6 +450,78 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.sites": {
+      "name": "sites",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "domain": {
+          "name": "domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "organisation_id": {
+          "name": "organisation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sites_organisation_id_organisations_id_fk": {
+          "name": "sites_organisation_id_organisations_id_fk",
+          "tableFrom": "sites",
+          "tableTo": "organisations",
+          "columnsFrom": [
+            "organisation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.stories": {
       "name": "stories",
       "schema": "",
@@ -423,6 +552,12 @@
         },
         "component_id": {
           "name": "component_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "site_id": {
+          "name": "site_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -469,6 +604,19 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
+        "stories_site_id_sites_id_fk": {
+          "name": "stories_site_id_sites_id_fk",
+          "tableFrom": "stories",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "stories_organisation_id_organisations_id_fk": {
           "name": "stories_organisation_id_organisations_id_fk",
           "tableFrom": "stories",
@@ -484,7 +632,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "stories_slug_unique": {
+          "name": "stories_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
