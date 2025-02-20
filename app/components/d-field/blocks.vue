@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { PlusIcon } from "lucide-vue-next"
 import type { DField, DComponent } from "~/types/models"
-import { computed, ref } from "vue"
+import { ref, watch, shallowRef } from "vue"
 import { LexoRank } from "lexorank"
+import { useSortable } from "@vueuse/integrations/useSortable"
 
 type Props = {
   field: DField
@@ -51,7 +52,7 @@ function addBlock(componentId: string) {
 
   let newRank: LexoRank
   if (currentBlocks.length === 0) {
-    newRank = LexoRank.middle() //Initial rank
+    newRank = LexoRank.middle() // Initial rank
   } else {
     const lastBlock = currentBlocks.at(-1)
     const lastRank = LexoRank.parse(lastBlock.order)
@@ -72,61 +73,51 @@ function getBlock(blockId: string) {
   return availableComponents.value?.find((block) => block.id === blockId)
 }
 
-const sortedBlocks = computed(() => {
-  if (!Array.isArray(value)) {
-    return []
+const blocksContainer = ref<HTMLElement | null>(null) // Ref for the *inner* container
+const sortedBlocks = ref<any[]>([]) // Use ref instead of computed.
+
+watch(
+  () => value,
+  (newValue) => {
+    if (Array.isArray(newValue)) {
+      sortedBlocks.value = [...newValue].sort((a, b) => a.order.localeCompare(b.order))
+    } else {
+      sortedBlocks.value = [] // Handle null/undefined case
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+useSortable(blocksContainer, sortedBlocks, {
+  handle: ".drag-handle",
+  animation: 200,
+  onUpdate: (evt) => {
+    // 1. Reorder sortedBlocks (as before, this handles the visual update)
+    const [movedBlock] = sortedBlocks.value.splice(evt.oldIndex, 1)
+    sortedBlocks.value.splice(evt.newIndex, 0, movedBlock)
+
+    // 2. Calculate the new LexoRank (as before)
+    let newRank: LexoRank
+    if (evt.newIndex === 0) {
+      newRank = LexoRank.parse(sortedBlocks.value[1].order).genPrev()
+    } else if (evt.newIndex === sortedBlocks.value.length - 1) {
+      newRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order).genNext()
+    } else {
+      const prevRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order)
+      const nextRank = LexoRank.parse(sortedBlocks.value[evt.newIndex + 1].order)
+      newRank = prevRank.between(nextRank)
+    }
+    movedBlock.order = newRank.toString()
+
+    // 3. **Crucially, update the *original* `value` array.**
+    const newValue = sortedBlocks.value.map((block) => {
+      const originalBlock = value.find((b: any) => b.id === block.id && b.order === block.order)
+      return originalBlock ? { ...originalBlock, order: block.order } : block
+    })
+
+    emit("update:value", newValue)
   }
-  return [...value].sort((a, b) => a.order.localeCompare(b.order))
 })
-
-function updateBlockOrder(blocks: any[], currentIndex: number, newIndex: number) {
-  if (
-    !Array.isArray(blocks) ||
-    currentIndex < 0 ||
-    currentIndex >= blocks.length ||
-    newIndex < 0 ||
-    newIndex >= blocks.length
-  ) {
-    console.error("Invalid indices or not an array in updateBlockOrder")
-    return
-  }
-
-  if (currentIndex === newIndex) return
-
-  const updatedBlocks = [...blocks]
-  const [movedBlock] = updatedBlocks.splice(currentIndex, 1)
-
-  let newRank: LexoRank
-
-  if (newIndex === 0) {
-    // Moving to the beginning
-    newRank = LexoRank.parse(updatedBlocks[0].order).genPrev()
-  } else if (newIndex === updatedBlocks.length) {
-    // Moving to the end
-    newRank = LexoRank.parse(updatedBlocks[updatedBlocks.length - 1].order).genNext()
-  } else {
-    // Moving between two blocks
-    const prevRank = LexoRank.parse(updatedBlocks[newIndex - 1].order)
-    const nextRank = LexoRank.parse(updatedBlocks[newIndex].order)
-    newRank = prevRank.between(nextRank)
-  }
-
-  movedBlock.order = newRank.toString()
-
-  // Insert the block back into the array at the new position
-  updatedBlocks.splice(newIndex, 0, movedBlock)
-
-  // Re-emit the updated blocks array
-  emit("update:value", updatedBlocks)
-}
-
-function moveBlockUp(index: number) {
-  updateBlockOrder(value, index, index - 1)
-}
-
-function moveBlockDown(index: number) {
-  updateBlockOrder(value, index, index + 1)
-}
 
 function updateNestedBlock(index: number, updatedBlock: any) {
   if (!Array.isArray(value)) {
@@ -154,6 +145,7 @@ function deleteBlock(path: string[], index: number) {
       <div
         v-if="value"
         class="overflow-hidden rounded-lg shadow-md"
+        ref="blocksContainer"
       >
         <DFieldBlock
           v-for="(block, index) in sortedBlocks"
@@ -167,21 +159,11 @@ function deleteBlock(path: string[], index: number) {
         >
           <template #controls>
             <DButton
-              v-if="index > 0"
+              class="drag-handle"
+              :icon-left="GripVertical"
+              size="sm"
               variant="transparent"
-              size="xs"
-              @click.stop="moveBlockUp(index)"
-            >
-              Up
-            </DButton>
-            <DButton
-              v-if="index < value.length - 1"
-              variant="transparent"
-              size="xs"
-              @click.stop="moveBlockDown(index)"
-            >
-              Down
-            </DButton>
+            />
           </template>
         </DFieldBlock>
       </div>

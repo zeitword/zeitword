@@ -27,8 +27,8 @@ function updateNestedBlockField(fieldKey: string, value: any) {
 }
 
 function deleteBlock() {
-  // Emit the path *to the array*.
-  emit("delete-block", path, -1) // Pass -1, as index is irrelevant now
+  // Emit the path *to the array*. No index needed!
+  emit("delete-block", path, -1) // Pass -1 for consistency
 }
 
 defineSlots<{
@@ -43,22 +43,15 @@ defineSlots<{
       class="bg-neutral flex w-full flex-col"
       v-if="block"
     >
-      <div class="group flex w-full items-center gap-2 px-2 py-2">
-        <!-- Added slot for controls -->
+      <div class="flex w-full items-center gap-2 px-2 py-2">
+        <!--  Controls Slot -->
         <slot name="controls" />
 
-        <DButton
-          :icon-left="GripVertical"
-          size="sm"
-          variant="transparent"
-        />
         <button
           class="flex flex-1 items-center gap-2 text-left"
           @click="isBlockOpen = !isBlockOpen"
         >
-          <div
-            class="group-hover:border-neutral grid size-7 place-items-center rounded-md group-hover:border"
-          >
+          <div class="grid size-7 place-items-center rounded-md">
             <ChevronDownIcon
               class="size-4"
               :class="[isBlockOpen ? 'rotate-180' : '']"
