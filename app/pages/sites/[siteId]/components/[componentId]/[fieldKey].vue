@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ArrowLeftIcon } from "lucide-vue-next"
+import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon } from "lucide-vue-next"
+import { useSortable } from "@vueuse/integrations/useSortable"
+import { uuidv7 } from "uuidv7"
 
 const siteId = useRouteParams("siteId")
 const componentId = useRouteParams("componentId")
@@ -14,6 +16,11 @@ type FormData = {
   defaultValue: string
   minValue: number | null
   maxValue: number | null
+  options?: {
+    id: string
+    optionName: string
+    optionValue: string
+  }[]
 }
 
 const formData = ref<FormData>({
@@ -24,8 +31,11 @@ const formData = ref<FormData>({
   displayName: "",
   defaultValue: "",
   minValue: 0,
-  maxValue: 0
+  maxValue: 0,
+  options: []
 })
+
+const optionsList = shallowRef<FormData["options"]>([])
 
 const fieldTypeOptions = computed(() => {
   return fieldTypes.map((fieldType) => ({
@@ -42,6 +52,12 @@ watch(
   field,
   (newField) => {
     if (newField) {
+      const newOptions = (newField.options || []).map((option) => ({
+        id: option.id || uuidv7(),
+        optionName: option.optionName,
+        optionValue: option.optionValue
+      }))
+
       formData.value = {
         fieldKey: newField.fieldKey,
         fieldType: newField.type || "text",
@@ -50,11 +66,21 @@ watch(
         displayName: newField.displayName || "",
         defaultValue: newField.defaultValue || "",
         minValue: newField.minValue,
-        maxValue: newField.maxValue
+        maxValue: newField.maxValue,
+        options: newOptions
       }
+      optionsList.value = [...newOptions]
     }
   },
   { immediate: true }
+)
+
+watch(
+  optionsList,
+  (newOptions) => {
+    formData.value.options = [...newOptions]
+  },
+  { deep: true }
 )
 
 const hasChanges = computed(() => {
@@ -63,8 +89,32 @@ const hasChanges = computed(() => {
 
 const { toast } = useToast()
 
+function addOption() {
+  optionsList.value = [
+    ...optionsList.value,
+    {
+      id: uuidv7(),
+      optionName: "",
+      optionValue: ""
+    }
+  ]
+}
+
+function removeOption(index: number) {
+  optionsList.value = [...optionsList.value.slice(0, index), ...optionsList.value.slice(index + 1)]
+}
+
+const optionsContainer = ref<HTMLElement | null>(null)
+
+const { option } = useSortable(optionsContainer, optionsList, {
+  handle: ".drag-handle",
+  animation: 150,
+  onEnd: () => {
+    nextTick(() => {})
+  }
+})
+
 async function save() {
-  console.log("saving")
   try {
     await $fetch(
       `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`,
@@ -73,7 +123,6 @@ async function save() {
         body: formData.value
       }
     )
-    console.log("saved")
     refresh()
     toast.success({ description: "Field saved successfully" })
   } catch (error) {
@@ -216,18 +265,6 @@ async function save() {
           </DFormGroup>
         </template>
 
-        <template v-if="formData.fieldType === 'option'">
-          <DFormGroup>
-            <DFormLabel name="default-value">Default Value</DFormLabel>
-            <DInput
-              id="default-value"
-              name="default-value"
-              type="datetime-local"
-              v-model="formData.defaultValue"
-            />
-          </DFormGroup>
-        </template>
-
         <!-- specific fields for "boolean" -->
         <template v-if="formData.fieldType === 'boolean'">
           <DFormGroup>
@@ -237,6 +274,61 @@ async function save() {
               name="default-value"
               v-model="formData.defaultValue"
             />
+          </DFormGroup>
+        </template>
+
+        <!-- Options and Options -->
+        <template v-if="formData.fieldType === 'option' || formData.fieldType === 'options'">
+          <DFormGroup>
+            <DFormLabel name="default-value">Default Value</DFormLabel>
+            <DInput
+              id="default-value"
+              name="default-value"
+              v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+
+          <DFormGroup>
+            <DFormLabel>Options</DFormLabel>
+            <!-- Container for useSortable -->
+            <div
+              ref="optionsContainer"
+              class="flex flex-col gap-2"
+            >
+              <div
+                v-for="(option, index) in optionsList"
+                :key="option.id"
+                class="border-neutral bg-neutral flex items-center gap-2 rounded-md border p-2"
+              >
+                <div class="drag-handle text-neutral cursor-grab active:cursor-grabbing">
+                  <GripVerticalIcon class="size-4" />
+                </div>
+                <DInput
+                  placeholder="Option Name"
+                  v-model="option.optionName"
+                  class="flex-1"
+                />
+                <DInput
+                  placeholder="Option Value"
+                  v-model="option.optionValue"
+                  class="flex-1"
+                />
+
+                <DButton
+                  variant="transparent"
+                  @click="removeOption(index)"
+                  :icon-left="Trash2Icon"
+                />
+              </div>
+            </div>
+
+            <DButton
+              variant="secondary"
+              @click="addOption"
+              :icon-left="PlusIcon"
+            >
+              Add Option
+            </DButton>
           </DFormGroup>
         </template>
 
@@ -252,3 +344,13 @@ async function save() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+</style>

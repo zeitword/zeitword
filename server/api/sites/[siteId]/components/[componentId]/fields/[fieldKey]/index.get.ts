@@ -1,4 +1,5 @@
-import { componentFields, components } from "~~/server/database/schema"
+import { and, eq } from "drizzle-orm"
+import { componentFields, fieldOptions } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -18,7 +19,9 @@ export default defineEventHandler(async (event) => {
       statusMessage: "No fieldKey provided"
     })
 
-  const [field] = await useDrizzle()
+  const db = useDrizzle()
+
+  const [field] = await db
     .select()
     .from(componentFields)
     .where(
@@ -28,5 +31,23 @@ export default defineEventHandler(async (event) => {
         eq(componentFields.organisationId, secure.organisationId)
       )
     )
+  if (!field) {
+    throw createError({ statusCode: 404, statusMessage: "Field not found" })
+  }
+
+  if (field.type === "option" || field.type === "options") {
+    const options = await db
+      .select()
+      .from(fieldOptions)
+      .where(
+        and(
+          eq(fieldOptions.componentId, componentId),
+          eq(fieldOptions.fieldKey, fieldKey),
+          eq(fieldOptions.organisationId, secure.organisationId)
+        )
+      )
+    return { ...field, options }
+  }
+
   return field
 })

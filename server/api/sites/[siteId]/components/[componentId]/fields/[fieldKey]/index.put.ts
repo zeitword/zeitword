@@ -1,5 +1,12 @@
 import { z } from "zod"
-import { componentFields } from "~~/server/database/schema"
+import { and, eq } from "drizzle-orm"
+import { componentFields, fieldOptions } from "~~/server/database/schema"
+
+const optionSchema = z.object({
+  id: z.string().uuid().optional(), // Optional because it might be new
+  optionName: z.string().min(1),
+  optionValue: z.string().min(1)
+})
 
 const bodySchema = z.object({
   fieldKey: z.string().min(1).max(255),
@@ -25,7 +32,8 @@ const bodySchema = z.object({
   displayName: z.string().max(255).nullable(),
   defaultValue: z.string().max(255).nullable(),
   minValue: z.number().min(0).nullable(),
-  maxValue: z.number().min(0).nullable()
+  maxValue: z.number().min(0).nullable(),
+  options: z.array(optionSchema).optional() // Only for option/options types
 })
 
 export default defineEventHandler(async (event) => {
@@ -51,29 +59,63 @@ export default defineEventHandler(async (event) => {
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
-  console.log(data)
+  const db = useDrizzle()
 
-  const [componentField] = await useDrizzle()
-    .update(componentFields)
-    .set({
-      fieldKey: data.fieldKey,
-      type: data.fieldType,
-      required: data.required,
-      description: data.description,
-      displayName: data.displayName,
-      defaultValue: data.defaultValue,
-      minValue: data.minValue,
-      maxValue: data.maxValue
-    })
-    .where(
-      and(
-        eq(componentFields.organisationId, secure.organisationId),
-        eq(componentFields.componentId, componentId),
-        eq(componentFields.fieldKey, fieldKey),
-        eq(componentFields.siteId, siteId)
+  const tx = await db.transaction(async (tx) => {
+    const [componentField] = await tx
+      .update(componentFields)
+      .set({
+        fieldKey: data.fieldKey,
+        type: data.fieldType,
+        required: data.required,
+        description: data.description,
+        displayName: data.displayName,
+        defaultValue: data.defaultValue,
+        minValue: data.minValue,
+        maxValue: data.maxValue
+      })
+      .where(
+        and(
+          eq(componentFields.organisationId, secure.organisationId),
+          eq(componentFields.componentId, componentId),
+          eq(componentFields.fieldKey, fieldKey),
+          eq(componentFields.siteId, siteId)
+        )
       )
-    )
-    .returning()
+      .returning()
 
-  return componentField
+    if (!componentField) {
+      throw createError({ statusCode: 404, statusMessage: "Component Field Not Found" })
+    }
+
+    if ((data.fieldType === "option" || data.fieldType === "options") && data.options) {
+      // Delete existing options.  Easier to delete and recreate than diff.
+      await tx
+        .delete(fieldOptions)
+        .where(
+          and(
+            eq(fieldOptions.componentId, componentId),
+            eq(fieldOptions.fieldKey, fieldKey),
+            eq(fieldOptions.organisationId, secure.organisationId),
+            eq(fieldOptions.siteId, siteId)
+          )
+        )
+
+      // Insert/Update options
+      for (const option of data.options) {
+        await tx.insert(fieldOptions).values({
+          componentId,
+          fieldKey,
+          optionName: option.optionName,
+          optionValue: option.optionValue,
+          siteId,
+          organisationId: secure.organisationId
+        })
+      }
+    }
+
+    return componentField
+  })
+
+  return tx
 })

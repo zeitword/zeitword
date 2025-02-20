@@ -3,7 +3,7 @@ import { sites } from "~~/server/database/schema"
 
 const bodySchema = z.object({
   name: z.string().min(1).max(255),
-  domain: z.string().min(1).max(255).optional()
+  domain: z.string().max(255).optional()
 })
 
 export default defineEventHandler(async (event) => {
