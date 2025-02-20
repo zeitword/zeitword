@@ -10,6 +10,7 @@
         "@nuxt/kit": "^3.15.4",
         "@pinia/nuxt": "^0.9.0",
         "@tailwindcss/vite": "^4.0.5",
+        "@types/sortablejs": "^1.15.8",
         "@vueuse/core": "^12.5.0",
         "@vueuse/integrations": "^12.7.0",
         "@vueuse/nuxt": "^12.5.0",
@@ -26,7 +27,7 @@
         "pg": "^8.13.1",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "reka-ui": "^1.0.0-alpha.10",
-        "sortablejs": "^1",
+        "sortablejs": "^1.15.6",
         "tailwindcss": "^4.0.5",
         "typescript": "^5.7.3",
         "uuidv7": "^1.0.2",
@@ -451,6 +452,8 @@
     "@types/pluralize": ["@types/pluralize@0.0.33", "", {}, "sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg=="],
 
     "@types/resolve": ["@types/resolve@1.20.2", "", {}, "sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q=="],
+
+    "@types/sortablejs": ["@types/sortablejs@1.15.8", "", {}, "sha512-b79830lW+RZfwaztgs1aVPgbasJ8e7AXtZYHTELNXZPsERt4ymJdjV4OccDbHQAvHrCcFpbF78jkm0R6h/pZVg=="],
 
     "@types/web-bluetooth": ["@types/web-bluetooth@0.0.20", "", {}, "sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow=="],
 

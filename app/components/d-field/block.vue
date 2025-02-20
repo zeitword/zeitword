@@ -26,8 +26,7 @@ function updateNestedBlockField(fieldKey: string, value: any) {
 }
 
 function deleteBlock() {
-  // Emit the path *to the array*. No index needed!
-  emit("delete-block", path, -1) // Pass -1 for consistency
+  emit("delete-block", path, -1)
 }
 
 defineSlots<{
@@ -43,9 +42,7 @@ defineSlots<{
       v-if="block"
     >
       <div class="group flex w-full items-center gap-2 px-2 py-2">
-        <!--  Controls Slot -->
         <slot name="controls" />
-
         <button
           class="flex flex-1 items-center gap-2 text-left"
           @click="isBlockOpen = !isBlockOpen"
