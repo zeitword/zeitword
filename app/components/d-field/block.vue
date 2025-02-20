@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ChevronDownIcon, GripVertical, Trash2Icon } from "lucide-vue-next"
+import { ChevronDownIcon, Trash2Icon } from "lucide-vue-next"
 import type { DComponent } from "~/types/models"
-import { computed, ref } from "vue"
 
 const siteId = useRouteParams("siteId")
 
@@ -43,7 +42,7 @@ defineSlots<{
       class="bg-neutral flex w-full flex-col"
       v-if="block"
     >
-      <div class="flex w-full items-center gap-2 px-2 py-2">
+      <div class="group flex w-full items-center gap-2 px-2 py-2">
         <!--  Controls Slot -->
         <slot name="controls" />
 

@@ -146,7 +146,7 @@ function deleteBlock(path: string[], index: number) {
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <DCheckbox
+    <DFormSwitch
       :model-value="value"
       @update:modelValue="emit('update:value', $event)"
     />

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { PlusIcon } from "lucide-vue-next"
+import { PlusIcon, GripVertical } from "lucide-vue-next"
 import type { DField, DComponent } from "~/types/models"
-import { ref, watch, shallowRef } from "vue"
 import { LexoRank } from "lexorank"
 import { useSortable } from "@vueuse/integrations/useSortable"
 
