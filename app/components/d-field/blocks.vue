@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { PlusIcon } from "lucide-vue-next"
 import type { DField, DComponent } from "~/types/models"
-import { computed } from "vue"
+import { computed, ref } from "vue"
+import { LexoRank } from "lexorank"
 
 type Props = {
   field: DField
@@ -36,75 +37,7 @@ function initializeBlockContent(component: DComponent): any {
   return content
 }
 
-// --- Lexical Order Functions ---
-
-function generateNextOrder(prevOrder: string | undefined, nextOrder: string | undefined): string {
-  if (!prevOrder && !nextOrder) {
-    return "A" // First element
-  }
-  if (!prevOrder) {
-    // Insert at the beginning. Prepend " "
-    return " " + nextOrder
-  }
-  if (!nextOrder) {
-    // Insert at the end. Append "A"
-    return prevOrder + "A"
-  }
-  // Insert in the middle.
-  return insertBetween(prevOrder, nextOrder)
-}
-
-function insertBetween(a: string, b: string): string {
-  // Pad the shorter string with spaces (smallest possible character)
-  let maxLength = Math.max(a.length, b.length)
-  a = a.padEnd(maxLength, " ")
-  b = b.padEnd(maxLength, " ")
-
-  let result = ""
-  for (let i = 0; i < maxLength; i++) {
-    if (a[i] === b[i]) {
-      result += a[i]
-    } else {
-      const charCodeA = a.charCodeAt(i)
-      const charCodeB = b.charCodeAt(i)
-
-      if (charCodeB - charCodeA === 1) {
-        // Adjacent characters
-        result += a[i] + "A" // Append 'A' to the first
-        return result
-      } else {
-        const newCharCode = Math.floor((charCodeA + charCodeB) / 2)
-        result += String.fromCharCode(newCharCode) // Middle character
-        return result
-      }
-    }
-  }
-  return result + "A" // Should not be reachable, but add as failsafe.
-}
-
 // --- Block Management Functions ---
-
-// Helper function to get the next letter in sequence (A, B, C, ... Z, AA, AB...)
-function getNextLetter(order: string | undefined): string {
-  if (!order) {
-    return "A"
-  }
-  if (order === "Z") {
-    return "AA"
-  }
-
-  let lastChar = order.slice(-1)
-  let prefix = order.slice(0, -1)
-
-  if (lastChar === "Z" && prefix.length > 0) {
-    return getNextLetter(prefix) + "A" // carry over to next char
-  } else if (lastChar === "Z") {
-    return "AA"
-  } else {
-    return prefix + String.fromCharCode(lastChar.charCodeAt(0) + 1)
-  }
-}
-
 function addBlock(componentId: string) {
   isAddModalOpen.value = false
 
@@ -116,13 +49,19 @@ function addBlock(componentId: string) {
 
   const currentBlocks = Array.isArray(value) ? [...value] : []
 
-  // Use getNextLetter for the initial sequence
-  let newOrder = getNextLetter(currentBlocks.at(-1)?.order)
+  let newRank: LexoRank
+  if (currentBlocks.length === 0) {
+    newRank = LexoRank.middle() //Initial rank
+  } else {
+    const lastBlock = currentBlocks.at(-1)
+    const lastRank = LexoRank.parse(lastBlock.order)
+    newRank = lastRank.genNext()
+  }
 
   const newBlock = {
     id: componentId,
     content: initializeBlockContent(component),
-    order: newOrder
+    order: newRank.toString()
   }
 
   currentBlocks.push(newBlock)
@@ -157,12 +96,22 @@ function updateBlockOrder(blocks: any[], currentIndex: number, newIndex: number)
   const updatedBlocks = [...blocks]
   const [movedBlock] = updatedBlocks.splice(currentIndex, 1)
 
-  // Determine the orders before and after the new position
-  const prevOrder = updatedBlocks[newIndex - 1]?.order
-  const nextOrder = updatedBlocks[newIndex]?.order
+  let newRank: LexoRank
 
-  // Generate the new order for the moved block
-  movedBlock.order = generateNextOrder(prevOrder, nextOrder)
+  if (newIndex === 0) {
+    // Moving to the beginning
+    newRank = LexoRank.parse(updatedBlocks[0].order).genPrev()
+  } else if (newIndex === updatedBlocks.length) {
+    // Moving to the end
+    newRank = LexoRank.parse(updatedBlocks[updatedBlocks.length - 1].order).genNext()
+  } else {
+    // Moving between two blocks
+    const prevRank = LexoRank.parse(updatedBlocks[newIndex - 1].order)
+    const nextRank = LexoRank.parse(updatedBlocks[newIndex].order)
+    newRank = prevRank.between(nextRank)
+  }
+
+  movedBlock.order = newRank.toString()
 
   // Insert the block back into the array at the new position
   updatedBlocks.splice(newIndex, 0, movedBlock)
