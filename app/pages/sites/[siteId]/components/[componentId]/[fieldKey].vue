@@ -48,6 +48,7 @@ const { data: field, refresh } = await useFetch(
   `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`
 )
 
+//TODO: don't use watch me no likey
 watch(
   field,
   (newField) => {
@@ -281,6 +282,18 @@ async function save() {
         <template v-if="formData.fieldType === 'option' || formData.fieldType === 'options'">
           <DFormGroup>
             <DFormLabel name="default-value">Default Value</DFormLabel>
+            <!-- TODO: Implement select here ? (reactivity broken) -->
+            <!-- <DSelect
+              v-model="formData.defaultValue"
+              :options="
+                optionsList
+                  .map((option) => ({
+                    display: option.optionName,
+                    value: option.optionValue
+                  }))
+                  .filter((option) => option.value !== '')
+              "
+            /> -->
             <DInput
               id="default-value"
               name="default-value"

@@ -1,4 +1,4 @@
-import { stories, components, componentFields } from "~~/server/database/schema"
+import { stories, components, componentFields, fieldOptions } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
@@ -57,11 +57,45 @@ export default defineEventHandler(async (event) => {
       )
     )
 
+  // Fetch options for fields of type 'option' or 'options'
+  const componentId = storyData.component.id
+  const options = await useDrizzle()
+    .select()
+    .from(fieldOptions)
+    .where(
+      and(
+        eq(fieldOptions.componentId, componentId),
+        eq(fieldOptions.organisationId, secure.organisationId)
+      )
+    )
+
+  // Create a map for quick option lookup
+  const optionsMap = new Map<string, { optionName: string; optionValue: string }[]>()
+  options.forEach((option) => {
+    const key = `${option.componentId}-${option.fieldKey}`
+    if (!optionsMap.has(key)) {
+      optionsMap.set(key, [])
+    }
+    optionsMap.get(key)!.push({ optionName: option.optionName, optionValue: option.optionValue })
+  })
+
+  // Add options to the relevant fields
+  const fieldsWithOptions = fields.map((field) => {
+    if (field.type === "option" || field.type === "options") {
+      const key = `${componentId}-${field.fieldKey}`
+      return {
+        ...field,
+        options: optionsMap.get(key) || [] // Return options if found, otherwise an empty array
+      }
+    }
+    return field
+  })
+
   return {
     ...storyData,
     component: {
       ...storyData.component,
-      fields
+      fields: fieldsWithOptions // Use the fields with options
     }
   }
 })

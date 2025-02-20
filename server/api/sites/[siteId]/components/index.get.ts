@@ -1,4 +1,5 @@
-import { components, componentFields } from "~~/server/database/schema"
+import { components, componentFields, fieldOptions } from "~~/server/database/schema"
+import { eq, and, inArray } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -14,6 +15,7 @@ export default defineEventHandler(async (event) => {
     .leftJoin(componentFields, eq(components.id, componentFields.componentId))
 
   const componentMap = new Map()
+  const componentIds: string[] = []
 
   componentsData.forEach((row) => {
     if (!componentMap.has(row.components.id)) {
@@ -21,11 +23,52 @@ export default defineEventHandler(async (event) => {
         ...row.components,
         fields: []
       })
+      componentIds.push(row.components.id)
     }
     if (row.component_fields) {
       componentMap.get(row.components.id).fields.push(row.component_fields)
     }
   })
 
-  return Array.from(componentMap.values())
+  let optionsMap = new Map<string, { optionName: string; optionValue: string }[]>()
+  if (componentIds.length > 0) {
+    const relevantOptions = await useDrizzle()
+      .select()
+      .from(fieldOptions)
+      .where(
+        and(
+          inArray(fieldOptions.componentId, componentIds), // Filter by component IDs
+          eq(fieldOptions.organisationId, secure.organisationId)
+        )
+      )
+
+    relevantOptions.forEach((option) => {
+      const key = `${option.componentId}-${option.fieldKey}`
+      if (!optionsMap.has(key)) {
+        optionsMap.set(key, [])
+      }
+      optionsMap.get(key)!.push({ optionName: option.optionName, optionValue: option.optionValue })
+    })
+  }
+
+  // Add options to fields
+  const componentsWithFieldsAndOptions = Array.from(componentMap.values()).map((component) => {
+    const fieldsWithOptions = component.fields.map((field: typeof componentFields.$inferSelect) => {
+      if (field.type === "option" || field.type === "options") {
+        const key = `${component.id}-${field.fieldKey}`
+        return {
+          ...field,
+          options: optionsMap.get(key) || []
+        }
+      }
+      return field
+    })
+
+    return {
+      ...component,
+      fields: fieldsWithOptions
+    }
+  })
+
+  return componentsWithFieldsAndOptions
 })

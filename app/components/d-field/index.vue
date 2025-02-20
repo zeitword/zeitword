@@ -52,13 +52,135 @@ function deleteBlock(path: string[], index: number) {
     @delete-block="(path, index) => deleteBlock(path, index)"
   />
 
-  <div
-    class="bg-warn text-copy text-warn-onsurface rounded-md p-4"
-    v-else-if="field.type === 'asset'"
-  >
-    Image
-    <pre>{{ value }}</pre>
-  </div>
+  <DFormGroup v-else-if="field.type === 'asset'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <!-- Basic single asset display (replace with your asset component) -->
+    <div v-if="value">
+      <img
+        v-if="typeof value === 'string'"
+        :src="value"
+        alt="Asset"
+        class="h-auto max-w-full"
+      />
+      <pre
+        v-else
+        class="text-code"
+        >{{ value }}</pre
+      >
+    </div>
+    <DButton @click="$emit('update:value', 'https://placehold.co/600x400/')">
+      Select Asset (Placeholder)
+    </DButton>
+  </DFormGroup>
+
+  <DFormGroup v-else-if="field.type === 'assets'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <!-- Basic multiple assets display (replace with your assets component) -->
+    <div v-if="Array.isArray(value) && value.length > 0">
+      <div
+        v-for="(asset, index) in value"
+        :key="index"
+        class="mb-2"
+      >
+        <img
+          v-if="typeof asset === 'string'"
+          :src="asset"
+          alt="Asset"
+          class="h-auto max-w-full"
+        />
+        <pre
+          v-else
+          class="text-code"
+          >{{ asset }}</pre
+        >
+      </div>
+    </div>
+    <DButton
+      @click="
+        $emit('update:value', ['https://placehold.co/600x400/', 'https://placehold.co/600x400/'])
+      "
+    >
+      Select Assets (Placeholder)
+    </DButton>
+  </DFormGroup>
+
+  <DFormGroup v-else-if="field.type === 'link'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <DInput
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
+      placeholder="Enter link URL"
+    />
+    <!-- You might want a more sophisticated link component here -->
+  </DFormGroup>
+
+  <DFormGroup v-else-if="field.type === 'number'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <DInput
+      type="number"
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
+    />
+  </DFormGroup>
+
+  <DFormGroup v-else-if="field.type === 'datetime'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <DInput
+      type="datetime-local"
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
+    />
+  </DFormGroup>
+
+  <DFormGroup v-else-if="field.type === 'boolean'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <DCheckbox
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
+    />
+  </DFormGroup>
+
+  <DFormGroup v-else-if="field.type === 'option' || field.type === 'options'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <DSelect
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
+      :options="
+        field.options
+          ? field.options.map((option) => ({
+              display: option.optionName,
+              value: option.optionValue
+            }))
+          : []
+      "
+    />
+  </DFormGroup>
+
+  <!--  Placeholder for other types -->
+  <template v-else-if="['section', 'custom'].includes(field.type)">
+    <DFormGroup>
+      <DFormLabel :required="field.required">
+        {{ field.displayName || field.fieldKey }} ({{ field.type }})
+      </DFormLabel>
+      <div class="bg-warn rounded-md p-2">Not implemented yet: {{ field.type }}</div>
+      <pre class="text-code">{{ value }}</pre>
+      <!--Show the value for debugging-->
+    </DFormGroup>
+  </template>
 
   <p class="text-copy-sm text-neutral-subtle">
     {{ field.description }}
