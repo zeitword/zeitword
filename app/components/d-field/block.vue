@@ -7,12 +7,11 @@ const siteId = useRouteParams("siteId")
 
 type Props = {
   block: DComponent | undefined
-  blockContent: { id: string; content: { [key: string]: any } }
-  index: number
+  blockContent: { id: string; content: { [key: string]: any }; order: string } // Include order
   path?: string[]
 }
 
-const { block, index, path = [], blockContent } = defineProps<Props>()
+const { block, path = [], blockContent } = defineProps<Props>()
 
 const isBlockOpen = ref(false)
 const emit = defineEmits<{
@@ -22,19 +21,20 @@ const emit = defineEmits<{
 
 function updateNestedBlockField(fieldKey: string, value: any) {
   if (!blockContent) return
+  blockContent.content[fieldKey] = value
 
-  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-    blockContent.content[fieldKey] = { ...value }
-  } else {
-    blockContent.content[fieldKey] = value
-  }
   emit("update:value", blockContent)
 }
 
 function deleteBlock() {
-  // **CORRECTED:** Emit the path *to the array*, not the block.
-  emit("delete-block", path.slice(0, -1), index) //  slice to remove the index
+  // Emit the path *to the array*.
+  emit("delete-block", path, -1) // Pass -1, as index is irrelevant now
 }
+
+defineSlots<{
+  default(props: {}): any
+  controls(props: {}): any
+}>()
 </script>
 
 <template>
@@ -44,6 +44,9 @@ function deleteBlock() {
       v-if="block"
     >
       <div class="group flex w-full items-center gap-2 px-2 py-2">
+        <!-- Added slot for controls -->
+        <slot name="controls" />
+
         <DButton
           :icon-left="GripVertical"
           size="sm"
@@ -88,7 +91,7 @@ function deleteBlock() {
         >
           <DField
             :field="field"
-            :path="[...path, 'content']"
+            :path="[...path, 'content', blockContent.id]"
             :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
             @update:value="updateNestedBlockField(field.fieldKey, $event)"
             @delete-block="(path, index) => $emit('delete-block', path, index)"
