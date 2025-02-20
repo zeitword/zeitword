@@ -58,6 +58,8 @@ async function createComponent() {
 const isDeleteModalOpen = ref(false)
 const selectedComponentId = ref<string | null>(null)
 
+const { toast } = useToast()
+
 function showDeleteModal(id: string) {
   isDeleteModalOpen.value = true
   selectedComponentId.value = id
@@ -65,9 +67,10 @@ function showDeleteModal(id: string) {
 async function deleteComponent() {
   if (!selectedComponentId.value) return
   try {
-    await useRequestFetch()(`/api/sites/${siteId.value}/components/${selectedComponentId.value}`, {
+    await $fetch(`/api/sites/${siteId.value}/components/${selectedComponentId.value}`, {
       method: "DELETE"
     })
+    toast.success({ description: "Component deleted successfully" })
   } finally {
     selectedComponentId.value = null
     isDeleteModalOpen.value = false

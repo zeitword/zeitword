@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ellipsis, LetterText } from "lucide-vue-next"
+import { LetterText, Trash2 } from "lucide-vue-next"
 
 definePageMeta({
   layout: "site"
@@ -26,6 +26,14 @@ const contentTypeOptions = computed(() => {
 const name = ref("")
 const slug = ref("")
 const contentType = ref("")
+
+const isDeleteModalOpen = ref(false)
+const selectedStoryId = ref<string | null>(null)
+
+function showDeleteModal(id: string) {
+  isDeleteModalOpen.value = true
+  selectedStoryId.value = id
+}
 
 const { toast } = useToast()
 
@@ -62,6 +70,27 @@ function closeCreateModal() {
 function getSlugName(slug: string) {
   return slug === "index" ? "/" : `/${slug}`
 }
+
+async function deleteStory() {
+  try {
+    if (!selectedStoryId.value) return
+    console.log("Deleting story:", selectedStoryId.value)
+    await $fetch(`/api/sites/${siteId.value}/stories/${selectedStoryId.value}`, {
+      method: "DELETE"
+    })
+
+    toast.success({ description: "Story deleted successfully" })
+    refreshStories()
+  } catch (error: any) {
+    console.error(error)
+    if (error.response && error.response.status === 409) {
+      toast.error({ description: error.response._data.statusMessage })
+    }
+  } finally {
+    selectedStoryId.value = null
+    isDeleteModalOpen.value = false
+  }
+}
 </script>
 <template>
   <DPageTitle title="Content">
@@ -73,7 +102,8 @@ function getSlugName(slug: string) {
         <DListItem
           v-for="story in stories"
           :key="story.id"
-          :to="`/sites/${siteId}/content/${story.id}`"
+          @click="navigateTo(`/sites/${siteId}/content/${story.id}`)"
+          class="group"
         >
           <div class="text-copy flex w-full items-center justify-between">
             <div class="flex items-center gap-2">
@@ -91,11 +121,14 @@ function getSlugName(slug: string) {
                 {{ getSlugName(story?.slug) }}
               </div>
             </div>
-            <DButton
-              :icon-left="Ellipsis"
-              size="sm"
-              variant="secondary"
-            />
+            <div class="hidden group-hover:block">
+              <DButton
+                :icon-left="Trash2"
+                size="sm"
+                variant="secondary"
+                @click.stop="showDeleteModal(story.id)"
+              />
+            </div>
           </div>
         </DListItem>
       </DList>
@@ -177,4 +210,14 @@ function getSlugName(slug: string) {
       </DFormGroup>
     </form>
   </DModal>
+
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Story"
+    description="All content of this story will be deleted"
+    confirm-text="Delete Story"
+    danger
+    @confirm="deleteStory"
+    @close="isDeleteModalOpen = false"
+  ></DModal>
 </template>
