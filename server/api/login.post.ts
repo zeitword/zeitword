@@ -68,7 +68,7 @@ async function enforceLoginRateLimit(event: H3Event, email: string) {
   // Check per-email rate limit
   const localLimit = await rateLimiter.checkLimit({
     key: `limit:login:${email}`,
-    limit: 3,
+    limit: 15,
     ttl: 3600
   })
 
