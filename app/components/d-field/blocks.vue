@@ -4,6 +4,7 @@ import type { DField, DComponent } from "~/types/models"
 import { LexoRank } from "lexorank"
 import { nextTick, ref, watch, onMounted, onBeforeUnmount } from "vue" // Corrected imports
 import Sortable from "sortablejs"
+import { uuidv7 } from "uuidv7"
 
 type Props = {
   field: DField
@@ -56,7 +57,8 @@ function addBlock(componentId: string) {
     newRank = LexoRank.parse(lastBlock!.order)
   }
   const newBlock = {
-    id: componentId,
+    id: uuidv7(),
+    componentId: componentId,
     content: initializeBlockContent(component),
     order: newRank.toString()
   }
@@ -174,7 +176,7 @@ onBeforeUnmount(() => {
         <DFieldBlock
           v-for="(block, index) in sortedBlocks"
           :key="block.id + '-' + block.order"
-          :block="getBlock(block.id)"
+          :block="getBlock(block.componentId)"
           :block-content="block"
           :path="[...path]"
           class="border-neutral overflow-hidden border-b last:border-none"
