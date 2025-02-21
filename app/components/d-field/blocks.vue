@@ -2,7 +2,6 @@
 import { PlusIcon, GripVertical } from "lucide-vue-next"
 import type { DField, DComponent } from "~/types/models"
 import { LexoRank } from "lexorank"
-import { useSortable } from "@vueuse/integrations/useSortable"
 import { nextTick, ref, watch, onMounted, onBeforeUnmount } from "vue" // Corrected imports
 import Sortable from "sortablejs"
 
@@ -166,7 +165,7 @@ onBeforeUnmount(() => {
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <!-- Removed v-if="value" -->
+
     <div class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border">
       <div
         class="overflow-hidden rounded-lg shadow-md"
@@ -231,3 +230,13 @@ onBeforeUnmount(() => {
     </DModal>
   </div>
 </template>
+<style>
+.sortable-drag {
+  border-radius: 8px;
+  opacity: 1;
+}
+
+.sortable-ghost {
+  opacity: 0;
+}
+</style>
