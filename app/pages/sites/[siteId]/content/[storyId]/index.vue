@@ -20,11 +20,16 @@ if (error.value) {
 
 const content = ref(story.value?.content || {})
 
+onMounted(() => {
+  console.log("Initial content.value (onMounted):", JSON.stringify(content.value, null, 2))
+})
+
 watch(
   story,
   (newStory) => {
     if (newStory) {
       content.value = newStory.content || {}
+      console.log("content.value updated (story watch):", JSON.stringify(content.value, null, 2))
     }
   },
   { deep: true }
@@ -55,6 +60,12 @@ function publish() {
 }
 
 function updateNestedField(originalPath: string[], value: any) {
+  console.log(
+    "updateNestedField called with originalPath:",
+    originalPath,
+    "value:",
+    JSON.stringify(value, null, 2)
+  )
   if (!story.value) {
     console.log("story.value is null. Returning.")
     return
@@ -96,58 +107,49 @@ function updateNestedField(originalPath: string[], value: any) {
   console.log("content.value after update:", JSON.stringify(content.value, null, 2))
 }
 
-function deleteBlock(originalPath: string[], index: number) {
-  console.log("deleteBlock called with originalPath:", originalPath, "and index:", index)
-
-  if (!story.value) {
-    console.log("story.value is null or undefined. Returning.")
-    return
-  }
-
-  const path = [...originalPath]
-  console.log("Copied path:", path)
-
-  const arrayKey = path.pop()
-  console.log("arrayKey (after pop):", arrayKey)
-  console.log("path (after pop):", path)
-
-  if (!arrayKey) {
-    console.log("arrayKey is null. returning")
-    return
-  }
-
-  let current: any = content.value
-  console.log("Initial current:", JSON.stringify(current, null, 2))
-
-  for (const key of path) {
-    console.log("Traversing path segment:", key)
-    if (!current[key]) {
-      console.error("Path segment not found:", key, "in", JSON.stringify(current, null, 2))
-      return
+// Corrected recursive search and delete
+function findAndDeleteById(data: any, idToDelete: string): boolean {
+  if (Array.isArray(data)) {
+    for (let i = 0; i < data.length; i++) {
+      if (data[i]?.id === idToDelete) {
+        data.splice(i, 1)
+        return true
+      }
+      if (typeof data[i] === "object" && data[i] !== null) {
+        if (findAndDeleteById(data[i], idToDelete)) return true
+      }
     }
-    current = current[key]
-    console.log("Current after traversing segment:", JSON.stringify(current, null, 2))
+  } else if (typeof data === "object" && data !== null) {
+    // Check the object itself for the ID *before* recursing
+    if (data.id === idToDelete) {
+      // We can't delete the root object here.  Caller must handle.
+      return false // Indicate we *found* it, but couldn't delete.
+    }
+    for (const key in data) {
+      if (findAndDeleteById(data[key], idToDelete)) return true
+    }
+  }
+  return false
+}
+
+function deleteBlock(idToDelete: string) {
+  console.log("deleteBlock called with idToDelete:", idToDelete)
+  if (!story.value) {
+    console.log("story.value is null. Returning.")
+    return
   }
 
-  console.log("Final current:", JSON.stringify(current, null, 2))
-  console.log(
-    "current[arrayKey]:",
-    current ? JSON.stringify(current[arrayKey], null, 2) : "current is null"
-  )
-
-  if (current && current[arrayKey] && Array.isArray(current[arrayKey])) {
-    console.log("Splicing array at index:", index)
-    current[arrayKey].splice(index, 1)
-    console.log("content.value after splice:", JSON.stringify(content.value, null, 2))
-  } else {
-    console.error(
-      "deleteBlock target is not an array:",
-      JSON.stringify(current, null, 2),
-      arrayKey,
-      path,
-      index
-    )
+  // Handle the case where the root object itself needs deleting
+  if (content.value.id === idToDelete) {
+    console.warn("Cannot delete the root content object.") // Or handle differently
+    return
   }
+
+  const deleted = findAndDeleteById(content.value, idToDelete)
+  if (!deleted) {
+    console.warn(`Block with id ${idToDelete} not found.`)
+  }
+  console.log("content.value after delete:", JSON.stringify(content.value, null, 2))
 }
 </script>
 
@@ -186,7 +188,7 @@ function deleteBlock(originalPath: string[], index: number) {
           :field="field"
           :value="content[field.fieldKey]"
           @update:value="updateNestedField([field.fieldKey], $event)"
-          @delete-block="(path, index) => deleteBlock(path, index)"
+          @delete-block="(idToDelete) => deleteBlock(idToDelete)"
         />
       </template>
     </div>

@@ -15,7 +15,7 @@ const { block, path = [], blockContent } = defineProps<Props>()
 const isBlockOpen = ref(false)
 const emit = defineEmits<{
   (e: "update:value", value: any): void
-  (e: "delete-block", path: string[], index: number): void
+  (e: "delete-block", path: string): void
 }>()
 
 function updateNestedBlockField(fieldKey: string, value: any) {
@@ -26,7 +26,7 @@ function updateNestedBlockField(fieldKey: string, value: any) {
 }
 
 function deleteBlock() {
-  emit("delete-block", path, -1)
+  emit("delete-block", blockContent.id)
 }
 
 defineSlots<{
@@ -80,10 +80,10 @@ defineSlots<{
         >
           <DField
             :field="field"
-            :path="[...path, 'content', blockContent.id]"
+            :path="[...path, 'content', field.fieldKey]"
             :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
             @update:value="updateNestedBlockField(field.fieldKey, $event)"
-            @delete-block="(path, index) => $emit('delete-block', path, index)"
+            @delete-block="(nestedPath) => $emit('delete-block', nestedPath)"
           />
         </template>
         <DEmpty

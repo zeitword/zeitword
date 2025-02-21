@@ -16,7 +16,7 @@ const { field, path = [], value } = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
-  (e: "delete-block", path: string[], index: number): void
+  (e: "delete-block", id: string): void
 }>()
 
 const siteId = useRouteParams("siteId")
@@ -77,9 +77,9 @@ const isMounted = ref(false)
 
 async function initSortable() {
   if (!blocksContainer.value || !Array.isArray(sortedBlocks.value)) {
-    return // Early return if container or array is not ready
+    return
   }
-  await nextTick() // Ensure DOM is updated
+  await nextTick()
 
   if (sortableInstance.value) {
     sortableInstance.value.destroy()
@@ -118,10 +118,9 @@ async function initSortable() {
 }
 // Watcher to update sortedBlocks and initialize/re-initialize Sortable
 watch(
-  [() => value, () => isMounted.value], // Watch both value and isMounted
+  [() => value, () => isMounted.value],
   ([newValue, mounted]) => {
     if (mounted) {
-      // Only proceed if mounted
       if (Array.isArray(newValue)) {
         sortedBlocks.value = [...newValue].sort((a: { order: string }, b: { order: string }) =>
           a.order.localeCompare(b.order)
@@ -135,13 +134,12 @@ watch(
   { deep: true, immediate: true } // Still use immediate: true
 )
 
-function updateNestedBlock(index: number, updatedBlock: any) {
+function updateNestedBlock(_index: number, updatedBlock: any) {
   if (!Array.isArray(value)) {
     console.error("Value is not an array in updateNestedBlock", value)
     return
   }
   const newBlocks = [...value]
-  // Find the index using id *and* order.
   const oldBlockIndex = newBlocks.findIndex(
     (b) => b.id === updatedBlock.id && b.order === updatedBlock.order
   )
@@ -154,9 +152,8 @@ function updateNestedBlock(index: number, updatedBlock: any) {
   emit("update:value", newBlocks)
 }
 
-function deleteBlock(path: string[], index: number) {
-  //The parent should handle this.
-  emit("delete-block", path, index)
+function deleteBlock(id: string) {
+  emit("delete-block", id)
 }
 
 onMounted(() => {
@@ -186,10 +183,10 @@ onBeforeUnmount(() => {
           :key="block.id + '-' + block.order"
           :block="getBlock(block.componentId)"
           :block-content="block"
-          :path="[...path]"
+          :path="[...path, block.id]"
           class="border-neutral overflow-hidden border-b last:border-none"
           @update:value="updateNestedBlock(index, $event)"
-          @delete-block="(path, index) => deleteBlock(path, index)"
+          @delete-block="(id) => deleteBlock(id)"
         >
           <template #controls>
             <DButton

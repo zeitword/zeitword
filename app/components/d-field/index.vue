@@ -12,11 +12,11 @@ const { field, path = [], value } = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
-  (e: "delete-block", path: string[], index: number): void
+  (e: "delete-block", id: string): void // Expect full path
 }>()
 
-function deleteBlock(path: string[], index: number) {
-  emit("delete-block", path, index)
+function deleteBlock(id: string) {
+  emit("delete-block", id)
 }
 
 const { files, open, reset, onCancel, onChange } = useFileDialog({
@@ -70,11 +70,11 @@ function openFileSelector() {
   <DFieldBlocks
     v-else-if="field.type === 'blocks'"
     :field="field"
-    :path="[...path, field.fieldKey]"
+    :path="path"
     :blocks="components"
     :value="value"
     @update:value="emit('update:value', $event)"
-    @delete-block="(path, index) => deleteBlock(path, index)"
+    @delete-block="(id) => deleteBlock(id)"
   />
 
   <DFormGroup v-else-if="field.type === 'asset'">
@@ -201,7 +201,6 @@ function openFileSelector() {
       </DFormLabel>
       <div class="bg-warn rounded-md p-2">Not implemented yet: {{ field.type }}</div>
       <pre class="text-code">{{ value }}</pre>
-      <!--Show the value for debugging-->
     </DFormGroup>
   </template>
 
