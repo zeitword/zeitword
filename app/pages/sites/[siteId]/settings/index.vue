@@ -65,7 +65,7 @@ async function deleteSite() {
           subtitle="Used to identify the site"
         >
           <DInput
-            v-model.sanitize="formData.name"
+            v-model="formData.name"
             class="w-full"
           />
         </d-settings-row>

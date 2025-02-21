@@ -70,7 +70,7 @@ async function createSite() {
         <DInput
           v-if="me"
           type="text"
-          v-model.sanitize="name"
+          v-model="name"
           placeholder="Name of the site"
         />
       </DFormGroup>
