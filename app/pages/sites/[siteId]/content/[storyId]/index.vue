@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, onMounted } from "vue"
 
 definePageMeta({ layout: "story" })
 
@@ -55,26 +55,45 @@ function publish() {
 }
 
 function updateNestedField(originalPath: string[], value: any) {
-  if (!story.value) return
-
-  const path = [...originalPath]
-  const lastKey = path.pop()
-  if (!lastKey) return
-
-  let current = content.value
-
-  for (const key of path) {
-    if (typeof current[key] !== "object" || current[key] === null) {
-      current[key] = {} // Directly assign
-    }
-    current = current[key]
+  if (!story.value) {
+    console.log("story.value is null. Returning.")
+    return
   }
 
+  const path = [...originalPath]
+  console.log("Copied path:", path)
+
+  const lastKey = path.pop()
+  console.log("lastKey (after pop):", lastKey)
+  console.log("path (after pop):", path)
+
+  if (!lastKey) {
+    console.log("lastKey is null. Returning.")
+    return
+  }
+
+  let current = content.value
+  console.log("Initial current:", JSON.stringify(current, null, 2))
+
+  for (const key of path) {
+    console.log("Traversing path segment:", key)
+    if (typeof current[key] !== "object" || current[key] === null) {
+      console.log("Creating missing path segment (object):", key)
+      current[key] = {} // or [] depending on what's expected
+    }
+
+    current = current[key]
+    console.log("Current after traversing segment:", JSON.stringify(current, null, 2))
+  }
+
+  console.log("Final current before update:", JSON.stringify(current, null, 2))
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
     current[lastKey] = { ...value } // Use spread for objects
   } else {
     current[lastKey] = value
   }
+
+  console.log("content.value after update:", JSON.stringify(content.value, null, 2))
 }
 
 function deleteBlock(originalPath: string[], index: number) {
@@ -98,27 +117,36 @@ function deleteBlock(originalPath: string[], index: number) {
   }
 
   let current: any = content.value
-  console.log("Initial current:", current)
+  console.log("Initial current:", JSON.stringify(current, null, 2))
 
   for (const key of path) {
     console.log("Traversing path segment:", key)
     if (!current[key]) {
-      console.error("Path segment not found:", key, "in", current)
+      console.error("Path segment not found:", key, "in", JSON.stringify(current, null, 2))
       return
     }
     current = current[key]
-    console.log("Current after traversing segment:", current)
+    console.log("Current after traversing segment:", JSON.stringify(current, null, 2))
   }
 
-  console.log("Final current:", current)
-  console.log("current[arrayKey]:", current ? current[arrayKey] : "current is null")
+  console.log("Final current:", JSON.stringify(current, null, 2))
+  console.log(
+    "current[arrayKey]:",
+    current ? JSON.stringify(current[arrayKey], null, 2) : "current is null"
+  )
 
   if (current && current[arrayKey] && Array.isArray(current[arrayKey])) {
     console.log("Splicing array at index:", index)
     current[arrayKey].splice(index, 1)
-    console.log("content.value after splice:", content.value)
+    console.log("content.value after splice:", JSON.stringify(content.value, null, 2))
   } else {
-    console.error("deleteBlock target is not an array:", current, arrayKey, path, index)
+    console.error(
+      "deleteBlock target is not an array:",
+      JSON.stringify(current, null, 2),
+      arrayKey,
+      path,
+      index
+    )
   }
 }
 </script>

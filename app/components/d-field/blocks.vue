@@ -54,7 +54,7 @@ function addBlock(componentId: string) {
     newRank = LexoRank.middle()
   } else {
     const lastBlock = currentBlocks.at(-1)
-    newRank = LexoRank.parse(lastBlock!.order)
+    newRank = LexoRank.parse(lastBlock!.order).genNext() // Use genNext for new blocks
   }
   const newBlock = {
     id: uuidv7(),
@@ -89,6 +89,7 @@ async function initSortable() {
     handle: ".drag-handle",
     animation: 200,
     onUpdate: (evt: any) => {
+      // Only handle reordering here
       const [movedBlock] = sortedBlocks.value.splice(evt.oldIndex, 1)
       sortedBlocks.value.splice(evt.newIndex, 0, movedBlock)
 
@@ -104,9 +105,12 @@ async function initSortable() {
       }
       movedBlock.order = newRank.toString()
 
-      const newValue = sortedBlocks.value.map((block) => {
-        const originalBlock = value.find((b: any) => b.id === block.id && b.order === block.order)
-        return originalBlock ? { ...originalBlock, order: block.order } : block
+      // Update *only* the order of the blocks
+      const newValue = value.map((b: any) => {
+        if (b.id === movedBlock.id) {
+          return { ...b, order: movedBlock.order }
+        }
+        return b
       })
       emit("update:value", newValue)
     }
@@ -137,17 +141,21 @@ function updateNestedBlock(index: number, updatedBlock: any) {
     return
   }
   const newBlocks = [...value]
-  const oldBlockIndex = newBlocks.findIndex((b) => b.order === updatedBlock.order)
+  // Find the index using id *and* order.
+  const oldBlockIndex = newBlocks.findIndex(
+    (b) => b.id === updatedBlock.id && b.order === updatedBlock.order
+  )
   if (oldBlockIndex === -1) {
     console.error("Could not find the block to update", updatedBlock, "in", newBlocks)
     return
   }
 
-  newBlocks[oldBlockIndex] = updatedBlock
+  newBlocks[oldBlockIndex] = updatedBlock // Replace the entire block.
   emit("update:value", newBlocks)
 }
 
 function deleteBlock(path: string[], index: number) {
+  //The parent should handle this.
   emit("delete-block", path, index)
 }
 
