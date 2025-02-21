@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
     const config = useRuntimeConfig()
 
-    return config.s3Endpoint + "/" + fileId
+    return config.s3Endpoint + "/" + config.s3Bucket + "/" + fileId
   } catch (error) {
     console.error(error)
     throw createError({ statusCode: 400, message: "Invalid request body" })
