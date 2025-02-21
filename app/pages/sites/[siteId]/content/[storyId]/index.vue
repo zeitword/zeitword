@@ -20,16 +20,11 @@ if (error.value) {
 
 const content = ref(story.value?.content || {})
 
-onMounted(() => {
-  console.log("Initial content.value (onMounted):", JSON.stringify(content.value, null, 2))
-})
-
 watch(
   story,
   (newStory) => {
     if (newStory) {
       content.value = newStory.content || {}
-      console.log("content.value updated (story watch):", JSON.stringify(content.value, null, 2))
     }
   },
   { deep: true }
@@ -60,54 +55,33 @@ function publish() {
 }
 
 function updateNestedField(originalPath: string[], value: any) {
-  console.log(
-    "updateNestedField called with originalPath:",
-    originalPath,
-    "value:",
-    JSON.stringify(value, null, 2)
-  )
   if (!story.value) {
-    console.log("story.value is null. Returning.")
     return
   }
 
   const path = [...originalPath]
-  console.log("Copied path:", path)
-
   const lastKey = path.pop()
-  console.log("lastKey (after pop):", lastKey)
-  console.log("path (after pop):", path)
 
   if (!lastKey) {
-    console.log("lastKey is null. Returning.")
     return
   }
 
   let current = content.value
-  console.log("Initial current:", JSON.stringify(current, null, 2))
 
   for (const key of path) {
-    console.log("Traversing path segment:", key)
     if (typeof current[key] !== "object" || current[key] === null) {
-      console.log("Creating missing path segment (object):", key)
-      current[key] = {} // or [] depending on what's expected
+      current[key] = {}
     }
-
     current = current[key]
-    console.log("Current after traversing segment:", JSON.stringify(current, null, 2))
   }
 
-  console.log("Final current before update:", JSON.stringify(current, null, 2))
   if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-    current[lastKey] = { ...value } // Use spread for objects
+    current[lastKey] = { ...value }
   } else {
     current[lastKey] = value
   }
-
-  console.log("content.value after update:", JSON.stringify(content.value, null, 2))
 }
 
-// Corrected recursive search and delete
 function findAndDeleteById(data: any, idToDelete: string): boolean {
   if (Array.isArray(data)) {
     for (let i = 0; i < data.length; i++) {
@@ -120,10 +94,8 @@ function findAndDeleteById(data: any, idToDelete: string): boolean {
       }
     }
   } else if (typeof data === "object" && data !== null) {
-    // Check the object itself for the ID *before* recursing
     if (data.id === idToDelete) {
-      // We can't delete the root object here.  Caller must handle.
-      return false // Indicate we *found* it, but couldn't delete.
+      return false
     }
     for (const key in data) {
       if (findAndDeleteById(data[key], idToDelete)) return true
@@ -133,15 +105,12 @@ function findAndDeleteById(data: any, idToDelete: string): boolean {
 }
 
 function deleteBlock(idToDelete: string) {
-  console.log("deleteBlock called with idToDelete:", idToDelete)
   if (!story.value) {
-    console.log("story.value is null. Returning.")
     return
   }
 
-  // Handle the case where the root object itself needs deleting
   if (content.value.id === idToDelete) {
-    console.warn("Cannot delete the root content object.") // Or handle differently
+    console.warn("Cannot delete the root content object.")
     return
   }
 
@@ -149,7 +118,6 @@ function deleteBlock(idToDelete: string) {
   if (!deleted) {
     console.warn(`Block with id ${idToDelete} not found.`)
   }
-  console.log("content.value after delete:", JSON.stringify(content.value, null, 2))
 }
 </script>
 
