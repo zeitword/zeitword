@@ -18,6 +18,31 @@ const emit = defineEmits<{
 function deleteBlock(path: string[], index: number) {
   emit("delete-block", path, index)
 }
+
+const { files, open, reset, onCancel, onChange } = useFileDialog({
+  // accept: 'image/*', // Set to accept only image files
+  directory: false // Select directories instead of files if set true
+})
+
+onChange(async (selectedFiles) => {
+  if (!selectedFiles) return
+
+  const file = selectedFiles[0]
+
+  if (file) {
+    const formData = new FormData()
+    formData.append("file", file)
+    const fileId = await $fetch("/api/assets", {
+      method: "POST",
+      body: formData
+    })
+    emit("update:value", fileId)
+  }
+})
+
+function openFileSelector() {
+  open()
+}
 </script>
 
 <template>
@@ -70,9 +95,7 @@ function deleteBlock(path: string[], index: number) {
         >{{ value }}</pre
       >
     </div>
-    <DButton @click="$emit('update:value', 'https://placehold.co/600x400/')">
-      Select Asset (Placeholder)
-    </DButton>
+    <DButton @click="openFileSelector">Select Asset</DButton>
   </DFormGroup>
 
   <DFormGroup v-else-if="field.type === 'assets'">
