@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
   }
 
-  // if (to.path === "/") {
-  //   return navigateTo("/")
-  // }
+  if (to.path === "/") {
+    return navigateTo("/sites")
+  }
 })
