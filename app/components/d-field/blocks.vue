@@ -3,6 +3,8 @@ import { PlusIcon, GripVertical } from "lucide-vue-next"
 import type { DField, DComponent } from "~/types/models"
 import { LexoRank } from "lexorank"
 import { useSortable } from "@vueuse/integrations/useSortable"
+import { nextTick, ref, watch, onMounted, onBeforeUnmount } from "vue" // Corrected imports
+import Sortable from "sortablejs"
 
 type Props = {
   field: DField
@@ -37,7 +39,6 @@ function initializeBlockContent(component: DComponent): any {
   return content
 }
 
-// --- Block Management Functions ---
 function addBlock(componentId: string) {
   isAddModalOpen.value = false
 
@@ -48,22 +49,18 @@ function addBlock(componentId: string) {
   }
 
   const currentBlocks = Array.isArray(value) ? [...value] : []
-
   let newRank: LexoRank
   if (currentBlocks.length === 0) {
-    newRank = LexoRank.middle() // Initial rank
+    newRank = LexoRank.middle()
   } else {
     const lastBlock = currentBlocks.at(-1)
-    const lastRank = LexoRank.parse(lastBlock.order)
-    newRank = lastRank.genNext()
+    newRank = LexoRank.parse(lastBlock!.order)
   }
-
   const newBlock = {
     id: componentId,
     content: initializeBlockContent(component),
     order: newRank.toString()
   }
-
   currentBlocks.push(newBlock)
   emit("update:value", currentBlocks)
 }
@@ -72,51 +69,66 @@ function getBlock(blockId: string) {
   return availableComponents.value?.find((block) => block.id === blockId)
 }
 
-const blocksContainer = ref<HTMLElement | null>(null) // Ref for the *inner* container
-const sortedBlocks = ref<any[]>([]) // Use ref instead of computed.
+const blocksContainer = ref<HTMLElement | null>(null)
+const sortedBlocks = ref<any[]>([])
+const sortableInstance = ref<Sortable | null>(null)
+const isMounted = ref(false)
 
+async function initSortable() {
+  if (!blocksContainer.value || !Array.isArray(sortedBlocks.value)) {
+    return // Early return if container or array is not ready
+  }
+  await nextTick() // Ensure DOM is updated
+
+  if (sortableInstance.value) {
+    sortableInstance.value.destroy()
+  }
+
+  sortableInstance.value = new Sortable(blocksContainer.value, {
+    handle: ".drag-handle",
+    animation: 200,
+    onUpdate: (evt: any) => {
+      const [movedBlock] = sortedBlocks.value.splice(evt.oldIndex, 1)
+      sortedBlocks.value.splice(evt.newIndex, 0, movedBlock)
+
+      let newRank: LexoRank
+      if (evt.newIndex === 0) {
+        newRank = LexoRank.parse(sortedBlocks.value[1].order).genPrev()
+      } else if (evt.newIndex === sortedBlocks.value.length - 1) {
+        newRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order).genNext()
+      } else {
+        const prevRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order)
+        const nextRank = LexoRank.parse(sortedBlocks.value[evt.newIndex + 1].order)
+        newRank = prevRank.between(nextRank)
+      }
+      movedBlock.order = newRank.toString()
+
+      const newValue = sortedBlocks.value.map((block) => {
+        const originalBlock = value.find((b: any) => b.id === block.id && b.order === block.order)
+        return originalBlock ? { ...originalBlock, order: block.order } : block
+      })
+      emit("update:value", newValue)
+    }
+  })
+}
+// Watcher to update sortedBlocks and initialize/re-initialize Sortable
 watch(
-  () => value,
-  (newValue) => {
-    if (Array.isArray(newValue)) {
-      sortedBlocks.value = [...newValue].sort((a, b) => a.order.localeCompare(b.order))
-    } else {
-      sortedBlocks.value = [] // Handle null/undefined case
+  [() => value, () => isMounted.value], // Watch both value and isMounted
+  ([newValue, mounted]) => {
+    if (mounted) {
+      // Only proceed if mounted
+      if (Array.isArray(newValue)) {
+        sortedBlocks.value = [...newValue].sort((a: { order: string }, b: { order: string }) =>
+          a.order.localeCompare(b.order)
+        )
+      } else {
+        sortedBlocks.value = []
+      }
+      initSortable()
     }
   },
-  { immediate: true, deep: true }
+  { deep: true, immediate: true } // Still use immediate: true
 )
-
-useSortable(blocksContainer, sortedBlocks, {
-  handle: ".drag-handle",
-  animation: 200,
-  onUpdate: (evt) => {
-    // 1. Reorder sortedBlocks (as before, this handles the visual update)
-    const [movedBlock] = sortedBlocks.value.splice(evt.oldIndex, 1)
-    sortedBlocks.value.splice(evt.newIndex, 0, movedBlock)
-
-    // 2. Calculate the new LexoRank (as before)
-    let newRank: LexoRank
-    if (evt.newIndex === 0) {
-      newRank = LexoRank.parse(sortedBlocks.value[1].order).genPrev()
-    } else if (evt.newIndex === sortedBlocks.value.length - 1) {
-      newRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order).genNext()
-    } else {
-      const prevRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order)
-      const nextRank = LexoRank.parse(sortedBlocks.value[evt.newIndex + 1].order)
-      newRank = prevRank.between(nextRank)
-    }
-    movedBlock.order = newRank.toString()
-
-    // 3. **Crucially, update the *original* `value` array.**
-    const newValue = sortedBlocks.value.map((block) => {
-      const originalBlock = value.find((b: any) => b.id === block.id && b.order === block.order)
-      return originalBlock ? { ...originalBlock, order: block.order } : block
-    })
-
-    emit("update:value", newValue)
-  }
-})
 
 function updateNestedBlock(index: number, updatedBlock: any) {
   if (!Array.isArray(value)) {
@@ -125,6 +137,10 @@ function updateNestedBlock(index: number, updatedBlock: any) {
   }
   const newBlocks = [...value]
   const oldBlockIndex = newBlocks.findIndex((b) => b.order === updatedBlock.order)
+  if (oldBlockIndex === -1) {
+    console.error("Could not find the block to update", updatedBlock, "in", newBlocks)
+    return
+  }
 
   newBlocks[oldBlockIndex] = updatedBlock
   emit("update:value", newBlocks)
@@ -133,6 +149,16 @@ function updateNestedBlock(index: number, updatedBlock: any) {
 function deleteBlock(path: string[], index: number) {
   emit("delete-block", path, index)
 }
+
+onMounted(() => {
+  isMounted.value = true
+})
+
+onBeforeUnmount(() => {
+  if (sortableInstance.value) {
+    sortableInstance.value.destroy()
+  }
+})
 </script>
 
 <template>
@@ -140,9 +166,9 @@ function deleteBlock(path: string[], index: number) {
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
+    <!-- Removed v-if="value" -->
     <div class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border">
       <div
-        v-if="value"
         class="overflow-hidden rounded-lg shadow-md"
         ref="blocksContainer"
       >
