@@ -9,6 +9,8 @@ const publicRoutes = [
 ]
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
+  if (to.path.startsWith("/api")) return
+
   if (to.path === "/logout") {
     await useUserSession().clear()
     return navigateTo("/login")
