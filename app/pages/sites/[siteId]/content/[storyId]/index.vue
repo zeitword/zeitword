@@ -105,15 +105,7 @@ function findAndDeleteById(data: any, idToDelete: string): boolean {
 }
 
 function deleteBlock(idToDelete: string) {
-  if (!story.value) {
-    return
-  }
-
-  if (content.value.id === idToDelete) {
-    console.warn("Cannot delete the root content object.")
-    return
-  }
-
+  if (!story.value) return
   const deleted = findAndDeleteById(content.value, idToDelete)
   if (!deleted) {
     console.warn(`Block with id ${idToDelete} not found.`)

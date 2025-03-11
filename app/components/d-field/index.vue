@@ -81,7 +81,6 @@ function openFileSelector() {
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <!-- Basic single asset display (replace with your asset component) -->
     <div v-if="value">
       <img
         v-if="typeof value === 'string'"

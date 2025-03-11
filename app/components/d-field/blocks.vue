@@ -25,6 +25,13 @@ const { data: availableComponents } = await useFetch<DComponent[]>(
   `/api/sites/${siteId.value}/components`
 )
 
+const filteredComponents = computed(() => {
+  if (!availableComponents.value) return []
+  return availableComponents.value.filter((component) =>
+    field.componentWhitelist.includes(component.id)
+  )
+})
+
 const isAddModalOpen = ref(false)
 
 function initializeBlockContent(component: DComponent): any {
@@ -220,7 +227,7 @@ onBeforeUnmount(() => {
       <div class="flex flex-col gap-2 p-5">
         <DList>
           <DListItem
-            v-for="block in availableComponents"
+            v-for="block in filteredComponents"
             :key="block.id"
             @click="addBlock(block.id)"
           >

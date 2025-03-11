@@ -100,6 +100,7 @@ export const componentFields = pgTable(
     defaultValue: text(),
     minValue: integer(),
     maxValue: integer(),
+		componentWhitelist: jsonb(),
     siteId: uuid()
       .notNull()
       .references(() => sites.id),

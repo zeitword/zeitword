@@ -33,7 +33,8 @@ const bodySchema = z.object({
   defaultValue: z.string().max(255).nullable(),
   minValue: z.number().min(0).nullable(),
   maxValue: z.number().min(0).nullable(),
-  options: z.array(optionSchema).optional() // Only for option/options types
+  componentWhitelist: z.array(z.string().uuid()).optional(),
+  options: z.array(optionSchema).optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -71,6 +72,7 @@ export default defineEventHandler(async (event) => {
         description: data.description,
         displayName: data.displayName,
         defaultValue: data.defaultValue,
+        componentWhitelist: data.componentWhitelist,
         minValue: data.minValue,
         maxValue: data.maxValue
       })

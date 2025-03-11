@@ -39,16 +39,7 @@ export default defineEventHandler(async (event) => {
   if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
   const fields = await useDrizzle()
-    .select({
-      fieldKey: componentFields.fieldKey,
-      type: componentFields.type,
-      required: componentFields.required,
-      description: componentFields.description,
-      displayName: componentFields.displayName,
-      defaultValue: componentFields.defaultValue,
-      minValue: componentFields.minValue,
-      maxValue: componentFields.maxValue
-    })
+    .select()
     .from(componentFields)
     .where(
       and(

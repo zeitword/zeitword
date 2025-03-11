@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon } from "lucide-vue-next"
+import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon, Component } from "lucide-vue-next"
 import { useSortable } from "@vueuse/integrations/useSortable"
 import { uuidv7 } from "uuidv7"
+import type { ShallowRef } from "vue"
 
 const siteId = useRouteParams("siteId")
 const componentId = useRouteParams("componentId")
@@ -21,6 +22,7 @@ type FormData = {
     optionName: string
     optionValue: string
   }[]
+  componentWhitelist?: string[]
 }
 
 const formData = ref<FormData>({
@@ -32,7 +34,8 @@ const formData = ref<FormData>({
   defaultValue: "",
   minValue: 0,
   maxValue: 0,
-  options: []
+  options: [],
+  componentWhitelist: []
 })
 
 const optionsList = shallowRef<FormData["options"]>([])
@@ -47,6 +50,8 @@ const fieldTypeOptions = computed(() => {
 const { data: field, refresh } = await useFetch(
   `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`
 )
+
+const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
 
 //TODO: don't use watch me no likey
 watch(
@@ -68,7 +73,8 @@ watch(
         defaultValue: newField.defaultValue || "",
         minValue: newField.minValue,
         maxValue: newField.maxValue,
-        options: newOptions
+        options: newOptions,
+        componentWhitelist: newField.componentWhitelist || []
       }
       optionsList.value = [...newOptions]
     }
@@ -115,13 +121,39 @@ const { option } = useSortable(optionsContainer, optionsList, {
   }
 })
 
+const selectedComponentIds = computed({
+  get: () => {
+    if (!components.value) return []
+    return components.value
+      .filter((component: any) => formData.value.componentWhitelist?.includes(component.id))
+      .map((component: any) => ({
+        value: component.id,
+        display: component.displayName
+      }))
+  },
+  set: (newVal) => {
+    formData.value.componentWhitelist = newVal.map((option: any) => option.value)
+  }
+})
+
+const componentOptions = computed(() => {
+  if (!components?.value) return []
+  return components.value.map((component: any) => ({
+    value: component.id,
+    display: component.displayName
+  }))
+})
+
 async function save() {
   try {
+    console.log(formData.value.componentWhitelist)
     await $fetch(
       `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`,
       {
         method: "PUT",
-        body: formData.value
+        body: {
+          ...formData.value
+        }
       }
     )
     refresh()
@@ -198,6 +230,19 @@ async function save() {
             v-model="formData.displayName"
           />
         </DFormGroup>
+
+        <!-- specific fields for "blocks" -->
+        <template v-if="formData.fieldType === 'blocks'">
+          <DFormGroup>
+            <DFormLabel name="display-name">Allowed Components</DFormLabel>
+            <DCombobox
+              v-model="selectedComponentIds"
+              :options="componentOptions"
+              multiple
+              placeholder="Select a component"
+            />
+          </DFormGroup>
+        </template>
 
         <!-- specific fields for "string" -->
         <template v-if="formData.fieldType === 'text'">
