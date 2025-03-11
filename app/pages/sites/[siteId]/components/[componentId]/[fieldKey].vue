@@ -125,9 +125,9 @@ const selectedComponentIds = computed({
   get: () => {
     if (!components.value) return []
     return components.value
-      .filter((component: any) => formData.value.componentWhitelist?.includes(component.id))
+      .filter((component: any) => formData.value.componentWhitelist?.includes(component.name))
       .map((component: any) => ({
-        value: component.id,
+        value: component.name,
         display: component.displayName
       }))
   },
@@ -139,7 +139,7 @@ const selectedComponentIds = computed({
 const componentOptions = computed(() => {
   if (!components?.value) return []
   return components.value.map((component: any) => ({
-    value: component.id,
+    value: component.name,
     display: component.displayName
   }))
 })
@@ -241,6 +241,7 @@ async function save() {
               multiple
               placeholder="Select a component"
             />
+            <!-- <pre>{{ selectedComponentIds }}</pre> -->
           </DFormGroup>
         </template>
 
