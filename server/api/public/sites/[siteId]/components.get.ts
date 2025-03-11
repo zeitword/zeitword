@@ -5,10 +5,16 @@ export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
-  const componentResults = await useDrizzle()
-    .select()
-    .from(components)
-    .where(eq(components.siteId, siteId))
+  const componentResults = await useDrizzle().query.components.findMany({
+    with: {
+      fields: {
+        with: {
+          options: {}
+        }
+      }
+    },
+    where: eq(components.siteId, siteId)
+  })
 
   // set cors header
   setHeader(event, "Access-Control-Allow-Origin", "*")

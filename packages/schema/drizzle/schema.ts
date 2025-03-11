@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm"
 import {
   integer,
   pgTable,
@@ -10,15 +9,15 @@ import {
   primaryKey,
   jsonb,
   uniqueIndex,
-  unique
-} from "drizzle-orm/pg-core"
-import { uuidv7 } from "uuidv7"
+  unique,
+} from "drizzle-orm/pg-core";
+import { uuidv7 } from "uuidv7";
 
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  deletedAt: timestamp({ withTimezone: true })
-}
+  deletedAt: timestamp({ withTimezone: true }),
+};
 
 // Create an enum type for the allowed field types (as listed in our CMS zod schema)
 export const fieldTypeEnum = pgEnum("field_type", [
@@ -36,21 +35,21 @@ export const fieldTypeEnum = pgEnum("field_type", [
   "assets",
   "link",
   "section",
-  "custom"
-])
+  "custom",
+]);
 
 const organisationId = {
   organisationId: uuid()
     .notNull()
-    .references(() => organisations.id)
-}
+    .references(() => organisations.id),
+};
 
 // Tables
 export const organisations = pgTable("organisations", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
-  ...timestamps
-})
+  ...timestamps,
+});
 
 export const users = pgTable("users", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
@@ -60,8 +59,8 @@ export const users = pgTable("users", {
   resetPasswordToken: text(),
   resetPasswordExpiresAt: timestamp({ withTimezone: true }),
   ...organisationId,
-  ...timestamps
-})
+  ...timestamps,
+});
 
 export const sessions = pgTable(
   "sessions",
@@ -70,10 +69,10 @@ export const sessions = pgTable(
     userId: uuid()
       .notNull()
       .references(() => users.id),
-    ...timestamps
+    ...timestamps,
   },
   (t) => [primaryKey({ columns: [t.token, t.userId] })]
-)
+);
 
 export const components = pgTable(
   "components",
@@ -87,10 +86,10 @@ export const components = pgTable(
       .notNull()
       .references(() => sites.id),
     ...organisationId,
-    ...timestamps
+    ...timestamps,
   },
   (t) => [unique().on(t.siteId, t.name)]
-)
+);
 
 export const componentFields = pgTable(
   "component_fields",
@@ -110,10 +109,10 @@ export const componentFields = pgTable(
     siteId: uuid()
       .notNull()
       .references(() => sites.id),
-    ...organisationId
+    ...organisationId,
   },
   (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })]
-)
+);
 
 export const fieldOptions = pgTable(
   "field_options",
@@ -128,10 +127,10 @@ export const fieldOptions = pgTable(
     siteId: uuid()
       .notNull()
       .references(() => sites.id),
-    ...organisationId
+    ...organisationId,
   },
   (t) => [unique().on(t.componentId, t.fieldKey, t.optionValue)]
-)
+);
 
 export const stories = pgTable(
   "stories",
@@ -147,23 +146,15 @@ export const stories = pgTable(
       .notNull()
       .references(() => sites.id),
     ...organisationId,
-    ...timestamps
+    ...timestamps,
   },
   (t) => [uniqueIndex("slug_idx").on(t.slug, t.siteId)]
-)
+);
 
 export const sites = pgTable("sites", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   domain: text().notNull().default(""),
   ...organisationId,
-  ...timestamps
-})
-
-export const componentsRelations = relations(components, ({ one, many }) => ({
-  fields: many(componentFields)
-}))
-
-export const componentFieldsRelations = relations(componentFields, ({ one, many }) => ({
-  options: many(fieldOptions)
-}))
+  ...timestamps,
+});
