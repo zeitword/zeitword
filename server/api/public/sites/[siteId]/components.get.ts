@@ -10,5 +10,9 @@ export default defineEventHandler(async (event) => {
     .from(components)
     .where(eq(components.siteId, siteId))
 
+  // set cors header
+  setHeader(event, "Access-Control-Allow-Origin", "*")
+  setHeader(event, "Access-Control-Allow-Methods", "GET")
+
   return componentResults
 })
