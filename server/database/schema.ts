@@ -160,10 +160,98 @@ export const sites = pgTable("sites", {
   ...timestamps
 })
 
-export const componentsRelations = relations(components, ({ one, many }) => ({
-  fields: many(componentFields)
+// RELATIONS
+
+export const componentFieldsRelations = relations(componentFields, ({ one }) => ({
+  component: one(components, {
+    fields: [componentFields.componentId],
+    references: [components.id]
+  }),
+  site: one(sites, {
+    fields: [componentFields.siteId],
+    references: [sites.id]
+  }),
+  organisation: one(organisations, {
+    fields: [componentFields.organisationId],
+    references: [organisations.id]
+  })
 }))
 
-export const componentFieldsRelations = relations(componentFields, ({ one, many }) => ({
-  options: many(fieldOptions)
+export const componentsRelations = relations(components, ({ one, many }) => ({
+  componentFields: many(componentFields),
+  site: one(sites, {
+    fields: [components.siteId],
+    references: [sites.id]
+  }),
+  organisation: one(organisations, {
+    fields: [components.organisationId],
+    references: [organisations.id]
+  }),
+  fieldOptions: many(fieldOptions),
+  stories: many(stories)
+}))
+
+export const sitesRelations = relations(sites, ({ one, many }) => ({
+  componentFields: many(componentFields),
+  components: many(components),
+  fieldOptions: many(fieldOptions),
+  organisation: one(organisations, {
+    fields: [sites.organisationId],
+    references: [organisations.id]
+  }),
+  stories: many(stories)
+}))
+
+export const organisationsRelations = relations(organisations, ({ many }) => ({
+  componentFields: many(componentFields),
+  components: many(components),
+  fieldOptions: many(fieldOptions),
+  sites: many(sites),
+  stories: many(stories),
+  users: many(users)
+}))
+
+export const fieldOptionsRelations = relations(fieldOptions, ({ one }) => ({
+  component: one(components, {
+    fields: [fieldOptions.componentId],
+    references: [components.id]
+  }),
+  site: one(sites, {
+    fields: [fieldOptions.siteId],
+    references: [sites.id]
+  }),
+  organisation: one(organisations, {
+    fields: [fieldOptions.organisationId],
+    references: [organisations.id]
+  })
+}))
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id]
+  })
+}))
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  sessions: many(sessions),
+  organisation: one(organisations, {
+    fields: [users.organisationId],
+    references: [organisations.id]
+  })
+}))
+
+export const storiesRelations = relations(stories, ({ one }) => ({
+  component: one(components, {
+    fields: [stories.componentId],
+    references: [components.id]
+  }),
+  site: one(sites, {
+    fields: [stories.siteId],
+    references: [sites.id]
+  }),
+  organisation: one(organisations, {
+    fields: [stories.organisationId],
+    references: [organisations.id]
+  })
 }))

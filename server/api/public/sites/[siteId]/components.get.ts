@@ -7,11 +7,8 @@ export default defineEventHandler(async (event) => {
 
   const componentResults = await useDrizzle().query.components.findMany({
     with: {
-      fields: {
-        with: {
-          options: {}
-        }
-      }
+      componentFields: {},
+      fieldOptions: {}
     },
     where: eq(components.siteId, siteId)
   })
@@ -19,6 +16,8 @@ export default defineEventHandler(async (event) => {
   // set cors header
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
+  setHeader(event, "Access-Control-Allow-Headers", "Content-Type")
+  setResponseHeader(event, "Content-Type", "application/json")
 
   return componentResults
 })
