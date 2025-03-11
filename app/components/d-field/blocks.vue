@@ -66,6 +66,7 @@ function addBlock(componentId: string) {
   const newBlock = {
     id: uuidv7(),
     componentId: componentId,
+    componentFieldKey: component.fieldKey,
     content: initializeBlockContent(component),
     order: newRank.toString()
   }
