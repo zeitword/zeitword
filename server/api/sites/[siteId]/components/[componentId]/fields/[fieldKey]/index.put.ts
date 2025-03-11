@@ -33,7 +33,7 @@ const bodySchema = z.object({
   defaultValue: z.string().max(255).nullable(),
   minValue: z.number().min(0).nullable(),
   maxValue: z.number().min(0).nullable(),
-  componentWhitelist: z.array(z.string().uuid()).optional(),
+  componentWhitelist: z.array(z.string()).optional(),
   options: z.array(optionSchema).optional()
 })
 

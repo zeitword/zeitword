@@ -27,9 +27,14 @@ const { data: availableComponents } = await useFetch<DComponent[]>(
 
 const filteredComponents = computed(() => {
   if (!availableComponents.value) return []
-  return availableComponents.value.filter((component) =>
-    field.componentWhitelist.includes(component.id)
-  )
+  console.log(field.componentWhitelist)
+  if (field.componentWhitelist && field.componentWhitelist.length > 0) {
+    return availableComponents.value.filter((component) =>
+      field.componentWhitelist.includes(component.name)
+    )
+  } else {
+    return availableComponents.value
+  }
 })
 
 const isAddModalOpen = ref(false)
