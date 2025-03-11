@@ -21,5 +21,9 @@ export default defineEventHandler(async (event) => {
 
   if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
+  // set cors header
+  setHeader(event, "Access-Control-Allow-Origin", "*")
+  setHeader(event, "Access-Control-Allow-Methods", "GET")
+
   return storyData
 })
