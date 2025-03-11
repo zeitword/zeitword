@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   const componentResults = await useDrizzle().query.components.findMany({
     with: {
-      componentFields: {},
+      fields: {},
       fieldOptions: {}
     },
     where: eq(components.siteId, siteId)

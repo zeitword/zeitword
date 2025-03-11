@@ -178,7 +178,7 @@ export const componentFieldsRelations = relations(componentFields, ({ one }) => 
 }))
 
 export const componentsRelations = relations(components, ({ one, many }) => ({
-  componentFields: many(componentFields),
+  fields: many(componentFields),
   site: one(sites, {
     fields: [components.siteId],
     references: [sites.id]
@@ -203,7 +203,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
 }))
 
 export const organisationsRelations = relations(organisations, ({ many }) => ({
-  componentFields: many(componentFields),
+  fields: many(componentFields),
   components: many(components),
   fieldOptions: many(fieldOptions),
   sites: many(sites),
