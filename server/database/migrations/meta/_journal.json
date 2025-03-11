@@ -15,6 +15,13 @@
       "when": 1741697567630,
       "tag": "0001_yummy_puck",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1741705642123,
+      "tag": "0002_faithful_shinobi_shaw",
+      "breakpoints": true
     }
   ]
 }

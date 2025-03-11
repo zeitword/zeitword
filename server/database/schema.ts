@@ -8,7 +8,8 @@ import {
   boolean,
   primaryKey,
   jsonb,
-  uniqueIndex
+  uniqueIndex,
+  unique
 } from "drizzle-orm/pg-core"
 import { uuidv7 } from "uuidv7"
 
@@ -73,18 +74,22 @@ export const sessions = pgTable(
   (t) => [primaryKey({ columns: [t.token, t.userId] })]
 )
 
-export const components = pgTable("components", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  name: text().notNull(),
-  displayName: text().notNull(),
-  previewImage: text(),
-  previewField: text(),
-  siteId: uuid()
-    .notNull()
-    .references(() => sites.id),
-  ...organisationId,
-  ...timestamps
-})
+export const components = pgTable(
+  "components",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    name: text().notNull(),
+    displayName: text().notNull(),
+    previewImage: text(),
+    previewField: text(),
+    siteId: uuid()
+      .notNull()
+      .references(() => sites.id),
+    ...organisationId,
+    ...timestamps
+  },
+  (t) => [unique().on(t.siteId, t.name)]
+)
 
 export const componentFields = pgTable(
   "component_fields",
@@ -109,19 +114,23 @@ export const componentFields = pgTable(
   (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })]
 )
 
-export const fieldOptions = pgTable("field_options", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  componentId: uuid()
-    .notNull()
-    .references(() => components.id),
-  fieldKey: text().notNull(), // which field this option belongs to.
-  optionName: text().notNull(),
-  optionValue: text().notNull(),
-  siteId: uuid()
-    .notNull()
-    .references(() => sites.id),
-  ...organisationId
-})
+export const fieldOptions = pgTable(
+  "field_options",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    componentId: uuid()
+      .notNull()
+      .references(() => components.id),
+    fieldKey: text().notNull(), // which field this option belongs to.
+    optionName: text().notNull(),
+    optionValue: text().notNull(),
+    siteId: uuid()
+      .notNull()
+      .references(() => sites.id),
+    ...organisationId
+  },
+  (t) => [unique().on(t.componentId, t.fieldKey, t.optionValue)]
+)
 
 export const stories = pgTable(
   "stories",

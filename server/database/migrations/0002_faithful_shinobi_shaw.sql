@@ -1,0 +1,2 @@
+ALTER TABLE "components" ADD CONSTRAINT "components_siteId_name_unique" UNIQUE("site_id","name");--> statement-breakpoint
+ALTER TABLE "field_options" ADD CONSTRAINT "field_options_componentId_fieldKey_optionValue_unique" UNIQUE("component_id","field_key","option_value");
