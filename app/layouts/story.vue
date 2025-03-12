@@ -1,21 +1,23 @@
 <script setup lang="ts">
-const siteId = useRouteParams("siteId")
-const storyId = useRouteParams("storyId")
+const route = useRoute()
 
-const navigation = ref([
-  { name: "Content", to: `/sites/${siteId.value}/content/${storyId.value}` },
-  {
-    name: "Settings",
-    to: `/sites/${siteId.value}/content/${storyId.value}/settings`
-  }
-])
+const navigation = computed(() => {
+  const siteId = route.params.siteId as string
+  const storyId = route.params.storyId as string
+
+  return [
+    { name: "Children", to: `/sites/${siteId}/content/${storyId}` },
+    { name: "Content", to: `/sites/${siteId}/content/${storyId}/content` },
+    { name: "Settings", to: `/sites/${siteId}/content/${storyId}/settings` }
+  ]
+})
 </script>
 
 <template>
   <div class="flex h-full max-h-screen flex-col">
     <DPageHeader :navigation="navigation" />
     <main class="flex flex-1 flex-col overflow-scroll">
-      <slot></slot>
+      <slot />
     </main>
   </div>
 </template>

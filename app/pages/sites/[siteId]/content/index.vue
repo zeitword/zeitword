@@ -1,11 +1,11 @@
+// zeitword/app/pages/sites/[siteId]/content/index.vue
 <script setup lang="ts">
-import { LetterText, Trash2 } from "lucide-vue-next"
+import DStoryList from "~/components/d-story-list/index.vue" // Import the component
 
 definePageMeta({
   layout: "site"
 })
 
-const route = useRoute()
 const siteId = useRouteParams("siteId")
 
 const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
@@ -29,11 +29,6 @@ const contentType = ref("")
 
 const isDeleteModalOpen = ref(false)
 const selectedStoryId = ref<string | null>(null)
-
-function showDeleteModal(id: string) {
-  isDeleteModalOpen.value = true
-  selectedStoryId.value = id
-}
 
 const { toast } = useToast()
 
@@ -67,14 +62,9 @@ function closeCreateModal() {
   isCreateModalOpen.value = false
 }
 
-function getSlugName(slug: string) {
-  return slug === "index" ? "/" : `/${slug}`
-}
-
 async function deleteStory() {
   try {
     if (!selectedStoryId.value) return
-    console.log("Deleting story:", selectedStoryId.value)
     await $fetch(`/api/sites/${siteId.value}/stories/${selectedStoryId.value}`, {
       method: "DELETE"
     })
@@ -83,73 +73,35 @@ async function deleteStory() {
     refreshStories()
   } catch (error: any) {
     console.error(error)
-    if (error.response && error.response.status === 409) {
-      toast.error({ description: error.response._data.statusMessage })
-    }
   } finally {
     selectedStoryId.value = null
     isDeleteModalOpen.value = false
   }
 }
+
+const topLevelStories = computed(() => {
+  return stories.value?.filter((story) => !story.slug.includes("/")) || []
+})
 </script>
+
 <template>
   <DPageTitle title="Content">
     <DButton @click="isCreateModalOpen = true">Add Story</DButton>
   </DPageTitle>
   <DPageWrapper>
     <div class="py-5">
-      <DList v-if="stories && stories.length > 0">
-        <DListItem
-          v-for="story in stories"
-          :key="story.id"
-          @click="navigateTo(`/sites/${siteId}/content/${story.id}`)"
-          class="group"
-        >
-          <div class="text-copy flex w-full items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="flex w-60 items-baseline gap-2">
-                <span>
-                  {{ story?.title }}
-                </span>
-                <div
-                  class="text-copy-sm bg-neutral border-neutral inline-flex rounded-full border px-2 py-px"
-                >
-                  {{ story?.component?.displayName }}
-                </div>
-              </div>
-              <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
-                {{ getSlugName(story?.slug) }}
-              </div>
-            </div>
-            <div class="hidden group-hover:block">
-              <DButton
-                :icon-left="Trash2"
-                size="sm"
-                variant="secondary"
-                @click.stop="showDeleteModal(story.id)"
-              />
-            </div>
-          </div>
-        </DListItem>
-      </DList>
-
-      <div v-else>
-        <DEmpty
-          title="No stories yet"
-          description="Create your first story to get started"
-          :icon="LetterText"
-          size="lg"
-        >
-          <DButton
-            @click="isCreateModalOpen = true"
-            variant="secondary"
-          >
-            Create Story
-          </DButton>
-        </DEmpty>
-      </div>
+      <!-- Use the DStoryList component -->
+      <DStoryList
+        v-if="topLevelStories"
+        :stories="topLevelStories"
+        :site-id="siteId"
+        @delete-story="deleteStory"
+        @create-story="isCreateModalOpen = true"
+      />
     </div>
   </DPageWrapper>
+
+  <!-- Modals remain the same -->
   <DModal
     :open="isCreateModalOpen"
     title=" New Content Story "

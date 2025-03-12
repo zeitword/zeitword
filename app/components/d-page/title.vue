@@ -7,9 +7,9 @@ type Props = {
 const { title, wide = false } = defineProps<Props>()
 </script>
 <template>
-  <div class="border-neutral border-b py-10">
+  <div class="border-neutral border-b">
     <DPageWrapper :wide>
-      <div class="flex items-center justify-between">
+      <div class="flex h-30 items-center justify-between">
         <div>
           <div class="text-neutral-strong text-title">
             <span>

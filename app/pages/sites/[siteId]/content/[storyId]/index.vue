@@ -1,163 +1,187 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue"
+import { computed } from "vue"
+import DStoryList from "~/components/d-story-list/index.vue" // Import the component
 
 definePageMeta({ layout: "story" })
 
-const storyId = useRouteParams("storyId")
 const siteId = useRouteParams("siteId")
+const storyId = useRouteParams("storyId")
+
+// Fetch the children of the current story.
+const {
+  data: children,
+  error,
+  refresh: refreshChildren
+} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}/children`)
+
+// Fetch all components (needed for the "Add Story" modal).
+const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
+
+// Fetch the current story to display its title and slug.
+const { data: currentStory } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
+
+const isCreateModalOpen = ref(false)
+
+const contentTypeOptions = computed(() => {
+  return (
+    components.value?.map((component) => ({
+      display: component.displayName,
+      value: component.id
+    })) || []
+  )
+})
+
+const name = ref("")
+const slug = ref("")
+const contentType = ref("")
+
+const isDeleteModalOpen = ref(false)
+const selectedStoryId = ref<string | null>(null)
 
 const { toast } = useToast()
 
-const {
-  data: story,
-  error,
-  refresh
-} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
-
-if (error.value) {
-  toast.error({ description: "Failed to load story" })
-}
-
-const content = ref(story.value?.content || {})
-
-watch(
-  story,
-  (newStory) => {
-    if (newStory) {
-      content.value = newStory.content || {}
-    }
-  },
-  { deep: true }
-)
-
-async function save() {
-  if (!story.value) return
+async function createStory() {
+  if (name.value === "") return toast.info({ description: "Please enter a name" })
+  if (contentType.value === "") return toast.info({ description: "Please select a content type" })
 
   try {
-    await $fetch(`/api/sites/${siteId.value}/stories/${story.value.id}`, {
-      method: "PUT",
+    // Construct the full slug, including the parent's slug.
+    const fullSlug = currentStory.value ? `${currentStory.value.slug}/${slug.value}` : slug.value
+
+    await $fetch(`/api/sites/${siteId.value}/stories`, {
+      method: "POST",
       body: {
-        slug: story.value.slug,
-        title: story.value.title,
-        content: content.value,
-        componentId: story.value.component.id
+        slug: fullSlug, // Use the full slug.
+        title: name.value,
+        content: {},
+        componentId: contentType.value
       }
     })
-    await refresh()
-    toast.success({ description: "The story has been saved." })
-  } catch (saveError) {
-    toast.error({ description: "Failed to save story" })
-  }
-}
-
-function publish() {
-  toast.info({ description: "Publishing is not yet implemented" })
-}
-
-function updateNestedField(originalPath: string[], value: any) {
-  if (!story.value) {
-    return
-  }
-
-  const path = [...originalPath]
-  const lastKey = path.pop()
-
-  if (!lastKey) {
-    return
-  }
-
-  let current = content.value
-
-  for (const key of path) {
-    if (typeof current[key] !== "object" || current[key] === null) {
-      current[key] = {}
-    }
-    current = current[key]
-  }
-
-  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-    current[lastKey] = { ...value }
-  } else {
-    current[lastKey] = value
-  }
-}
-
-function findAndDeleteById(data: any, idToDelete: string): boolean {
-  if (Array.isArray(data)) {
-    for (let i = 0; i < data.length; i++) {
-      if (data[i]?.id === idToDelete) {
-        data.splice(i, 1)
-        return true
-      }
-      if (typeof data[i] === "object" && data[i] !== null) {
-        if (findAndDeleteById(data[i], idToDelete)) return true
-      }
-    }
-  } else if (typeof data === "object" && data !== null) {
-    if (data.id === idToDelete) {
-      return false
-    }
-    for (const key in data) {
-      if (findAndDeleteById(data[key], idToDelete)) return true
+    closeCreateModal()
+    refreshChildren() // Refresh the *children* list, not the top-level stories.
+  } catch (error: any) {
+    console.error(error)
+    if (error.response && error.response.status === 409) {
+      toast.error({ description: error.response._data.statusMessage })
     }
   }
-  return false
 }
 
-function deleteBlock(idToDelete: string) {
-  if (!story.value) return
-  const deleted = findAndDeleteById(content.value, idToDelete)
-  if (!deleted) {
-    console.warn(`Block with id ${idToDelete} not found.`)
-  }
+function closeCreateModal() {
+  name.value = ""
+  slug.value = ""
+  contentType.value = ""
+  isCreateModalOpen.value = false
 }
 
-const sortedFields = computed(() => {
-  if (story.value && story.value.component && story.value.component.fields) {
-    return [...story.value.component.fields].sort((a, b) => a.order.localeCompare(b.order))
+async function deleteStory() {
+  try {
+    if (!selectedStoryId.value) return
+    await $fetch(`/api/sites/${siteId.value}/stories/${selectedStoryId.value}`, {
+      method: "DELETE"
+    })
+
+    toast.success({ description: "Story deleted successfully" })
+    refreshChildren() // Refresh the *children* list.
+  } catch (error: any) {
+    console.error(error)
+    // Handle errors appropriately.
+  } finally {
+    selectedStoryId.value = null
+    isDeleteModalOpen.value = false
   }
-  return []
-})
+}
 </script>
 
 <template>
-  <DPageTitle
-    v-if="story"
-    :title="story.title"
-    wide
-  >
+  <DPageTitle :title="currentStory?.title || 'Content'">
     <template #subtitle>
-      <p class="text-copy-sm text-neutral-subtle">/{{ story.slug }}</p>
+      <p class="text-copy-sm text-neutral-subtle">
+        {{ currentStory?.slug }}
+      </p>
     </template>
-    <div class="flex gap-2">
-      <DButton
-        variant="secondary"
-        @click="save"
-      >
-        Save
-      </DButton>
-      <DButton @click="publish">Publish</DButton>
-    </div>
+    <DButton @click="isCreateModalOpen = true">Add Story</DButton>
   </DPageTitle>
-  <div
-    v-if="story"
-    class="flex flex-1"
+  <DPageWrapper>
+    <div class="py-5">
+      <DStoryList
+        :stories="children"
+        :site-id="siteId"
+        :parent-slug="currentStory?.slug"
+        @delete-story="deleteStory"
+        @create-story="isCreateModalOpen = true"
+      />
+    </div>
+  </DPageWrapper>
+
+  <DModal
+    :open="isCreateModalOpen"
+    title=" New Content Story "
+    confirm-text="Create Story"
+    @close="closeCreateModal"
+    @confirm="createStory"
   >
-    <div class="flex-1 overflow-auto p-5">
-      <pre>{{ content }}</pre>
-    </div>
-    <div class="border-neutral bg-neutral flex w-[500px] flex-col gap-2 border-l p-5">
-      <template
-        v-for="field in sortedFields"
-        :key="field.fieldKey"
-      >
-        <DField
-          :field="field"
-          :value="content[field.fieldKey]"
-          @update:value="updateNestedField([field.fieldKey], $event)"
-          @delete-block="(idToDelete) => deleteBlock(idToDelete)"
+    <form
+      @submit.prevent="createStory"
+      class="flex w-full flex-col gap-4 p-5"
+    >
+      <DFormGroup>
+        <DFormLabel
+          name="domain"
+          required
+        >
+          Name
+        </DFormLabel>
+        <DInput
+          id="name"
+          name="name"
+          v-model="name"
+          required
+          placeholder="e.g. Article 1"
         />
-      </template>
-    </div>
-  </div>
+      </DFormGroup>
+      <DFormGroup>
+        <DFormLabel
+          name="slug"
+          required
+        >
+          Slug
+        </DFormLabel>
+        <DInput
+          id="slug"
+          name="slug"
+          v-model.slug="slug"
+          required
+          leading="/"
+          placeholder="article-1"
+        />
+      </DFormGroup>
+      <DFormGroup>
+        <DFormLabel
+          name="contentType"
+          required
+        >
+          Content Type
+        </DFormLabel>
+        <DSelect
+          id="contentType"
+          name="contentType"
+          v-model="contentType"
+          required
+          placeholder="Select Type"
+          :options="contentTypeOptions"
+        ></DSelect>
+      </DFormGroup>
+    </form>
+  </DModal>
+
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Story"
+    description="All content of this story will be deleted"
+    confirm-text="Delete Story"
+    danger
+    @confirm="deleteStory"
+    @close="isDeleteModalOpen = false"
+  ></DModal>
 </template>
