@@ -12,8 +12,8 @@ const jsonSchema: z.ZodType<Json> = z.lazy(() =>
 const bodySchema = z.object({
   slug: z.string().min(1).max(255),
   title: z.string().min(1).max(255),
-  content: jsonSchema,
-  componentId: z.string().uuid()
+  content: jsonSchema.optional(),
+  componentId: z.string().uuid().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -34,9 +34,16 @@ export default defineEventHandler(async (event) => {
       slug: data.slug,
       title: data.title,
       content: data.content,
-      componentId: data.componentId
+      componentId: data.componentId,
+      updatedAt: new Date()
     })
-    .where(eq(stories.id, storyId))
+    .where(
+      and(
+        eq(stories.id, storyId),
+        eq(stories.siteId, siteId),
+        eq(stories.organisationId, secure.organisationId)
+      )
+    )
     .returning()
 
   return story

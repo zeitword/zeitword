@@ -128,11 +128,11 @@ const sortedFields = computed(() => {
   return []
 })
 
-const goDeep = () => {
-  if (story.value) {
-    router.push(`/sites/${siteId.value}/content/${story.value.id}`)
-  }
-}
+const iframeUrl = computed(() => {
+  if (!site.value?.domain || !story.value?.slug) return null
+  const slug = story.value.slug.replace("index", "")
+  return `${site.value.domain}/${slug}`
+})
 </script>
 
 <template>
@@ -167,7 +167,7 @@ const goDeep = () => {
       <iframe
         class="h-full w-full"
         v-if="!showJson"
-        :src="`${site?.domain}/${story.slug}`"
+        :src="iframeUrl"
       />
       <pre
         class="p-4"
