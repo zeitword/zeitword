@@ -167,7 +167,7 @@ const goDeep = () => {
       <iframe
         class="h-full w-full"
         v-if="!showJson"
-        :src="site?.domain"
+        :src="`${site?.domain}/${story.slug}`"
       />
       <pre
         class="p-4"
