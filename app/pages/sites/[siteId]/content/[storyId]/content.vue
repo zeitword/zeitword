@@ -163,7 +163,7 @@ const goDeep = () => {
     v-if="story"
     class="flex h-full flex-1"
   >
-    <div class="flex-1 overflow-auto">
+    <div class="flex-1 overflow-auto bg-white">
       <iframe
         class="h-full w-full"
         v-if="!showJson"
