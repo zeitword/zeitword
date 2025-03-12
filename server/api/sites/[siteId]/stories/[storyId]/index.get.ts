@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
         eq(componentFields.organisationId, secure.organisationId)
       )
     )
+    .orderBy(componentFields.order)
 
   // Fetch options for fields of type 'option' or 'options'
   const componentId = storyData.component.id

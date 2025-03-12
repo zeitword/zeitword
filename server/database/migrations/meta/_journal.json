@@ -22,6 +22,13 @@
       "when": 1741705642123,
       "tag": "0002_faithful_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1741770682080,
+      "tag": "0003_remarkable_kate_bishop",
+      "breakpoints": true
     }
   ]
 }

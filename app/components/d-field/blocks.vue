@@ -27,10 +27,10 @@ const { data: availableComponents } = await useFetch<DComponent[]>(
 
 const filteredComponents = computed(() => {
   if (!availableComponents.value) return []
-  console.log(field.componentWhitelist)
-  if (field.componentWhitelist && field.componentWhitelist.length > 0) {
+  if (Array.isArray(field.componentWhitelist) && field.componentWhitelist.length > 0) {
+    const componentWhitelist: string[] = field.componentWhitelist
     return availableComponents.value.filter((component) =>
-      field.componentWhitelist.includes(component.name)
+      componentWhitelist.includes(component.name)
     )
   } else {
     return availableComponents.value
@@ -88,6 +88,25 @@ const sortedBlocks = ref<any[]>([])
 const sortableInstance = ref<Sortable | null>(null)
 const isMounted = ref(false)
 
+// --- NEW FUNCTION ---
+function recalculateBlockOrders() {
+  const blocks = [...sortedBlocks.value]
+  let currentRank = LexoRank.middle()
+
+  for (const block of blocks) {
+    block.order = currentRank.toString() // Modify directly, no API call needed
+    currentRank = currentRank.genNext()
+  }
+
+  // IMPORTANT: Emit the updated blocks *after* recalculation.
+  const newValue = value.map((block: any) => {
+    const updatedBlock = blocks.find((b) => b.id === block.id)
+    return updatedBlock ? { ...block, order: updatedBlock.order } : block // Return updated block, keep the other props.
+  })
+
+  emit("update:value", newValue)
+}
+
 async function initSortable() {
   if (!blocksContainer.value || !Array.isArray(sortedBlocks.value)) {
     return
@@ -102,7 +121,6 @@ async function initSortable() {
     handle: ".drag-handle",
     animation: 200,
     onUpdate: (evt: any) => {
-      // Only handle reordering here
       const [movedBlock] = sortedBlocks.value.splice(evt.oldIndex, 1)
       sortedBlocks.value.splice(evt.newIndex, 0, movedBlock)
 
@@ -114,21 +132,29 @@ async function initSortable() {
       } else {
         const prevRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order)
         const nextRank = LexoRank.parse(sortedBlocks.value[evt.newIndex + 1].order)
+
+        // --- COLLISION CHECK ---
+        if (prevRank.toString() === nextRank.toString()) {
+          console.error("Ranks are equal, regenerating order (blocks.vue)")
+          recalculateBlockOrders()
+          return // Stop further processing
+        }
+
         newRank = prevRank.between(nextRank)
       }
       movedBlock.order = newRank.toString()
 
-      // Update *only* the order of the blocks
-      const newValue = value.map((b: any) => {
-        if (b.id === movedBlock.id) {
-          return { ...b, order: movedBlock.order }
+      const newValue = value.map((block: any) => {
+        if (block.id === movedBlock.id) {
+          return { ...block, order: movedBlock.order }
         }
-        return b
+        return block
       })
       emit("update:value", newValue)
     }
   })
 }
+
 // Watcher to update sortedBlocks and initialize/re-initialize Sortable
 watch(
   [() => value, () => isMounted.value],
@@ -144,7 +170,7 @@ watch(
       initSortable()
     }
   },
-  { deep: true, immediate: true } // Still use immediate: true
+  { deep: true, immediate: true }
 )
 
 function updateNestedBlock(_index: number, updatedBlock: any) {

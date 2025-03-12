@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue"
+import { ref, watch, onMounted, computed } from "vue"
 
 definePageMeta({ layout: "story" })
 
@@ -111,6 +111,13 @@ function deleteBlock(idToDelete: string) {
     console.warn(`Block with id ${idToDelete} not found.`)
   }
 }
+
+const sortedFields = computed(() => {
+  if (story.value && story.value.component && story.value.component.fields) {
+    return [...story.value.component.fields].sort((a, b) => a.order.localeCompare(b.order))
+  }
+  return []
+})
 </script>
 
 <template>
@@ -141,7 +148,7 @@ function deleteBlock(idToDelete: string) {
     </div>
     <div class="border-neutral bg-neutral flex w-[500px] flex-col gap-2 border-l p-5">
       <template
-        v-for="field in story.component.fields"
+        v-for="field in sortedFields"
         :key="field.fieldKey"
       >
         <DField

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ChevronDownIcon, Trash2Icon } from "lucide-vue-next"
 import type { DComponent } from "~/types/models"
+import { computed } from "vue" // Import computed
 
 const siteId = useRouteParams("siteId")
 
@@ -28,6 +29,13 @@ function updateNestedBlockField(fieldKey: string, value: any) {
 function deleteBlock() {
   emit("delete-block", blockContent.id)
 }
+
+const sortedNestedFields = computed(() => {
+  if (block && block.fields) {
+    return [...block.fields].sort((a, b) => a.order.localeCompare(b.order))
+  }
+  return []
+})
 
 defineSlots<{
   default(props: {}): any
@@ -75,7 +83,7 @@ defineSlots<{
       >
         <template
           v-if="block.fields.length > 0"
-          v-for="field in block.fields"
+          v-for="field in sortedNestedFields"
           :key="field.id"
         >
           <DField
