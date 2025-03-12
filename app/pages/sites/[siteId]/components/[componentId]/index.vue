@@ -177,24 +177,27 @@ onBeforeUnmount(() => {
       <div
         v-for="(field, index) in sortedFields"
         :key="field.fieldKey"
-        class="hover:bg-neutral-hover group border-neutral flex border-b bg-white px-4 py-3 last:border-transparent"
+        class="hover:bg-neutral-hover group border-neutral flex border-b bg-white px-4 last:border-transparent"
       >
-        <div class="text-copy flex w-full items-center justify-between">
-          <div class="flex items-center gap-3">
-            <DButton
-              class="drag-handle"
-              :icon-left="GripVertical"
-              size="sm"
-              variant="transparent"
-            />
-            <div>
-              {{ field?.displayName }}
+        <div class="text-copy flex flex-1 items-center gap-3">
+          <DButton
+            class="drag-handle"
+            :icon-left="GripVertical"
+            size="sm"
+            variant="transparent"
+          />
+          <NuxtLink
+            :to="`/sites/${siteId}/components/${component.id}/${field?.fieldKey}`"
+            class="flex flex-1 items-center gap-2 py-3"
+          >
+            <div class="flex flex-1 items-center gap-2">
+              <div>
+                {{ field?.displayName }}
+              </div>
+              <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
+                {{ field?.fieldKey }}
+              </div>
             </div>
-            <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
-              {{ field?.fieldKey }}
-            </div>
-          </div>
-          <NuxtLink :to="`/sites/${siteId}/components/${component.id}/${field?.fieldKey}`">
             <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
               {{ field?.type }}
             </div>
