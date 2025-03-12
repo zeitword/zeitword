@@ -12,12 +12,16 @@ export default defineEventHandler(async (event) => {
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
+  const siteId = getRouterParam(event, "siteId")
+  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
+
   const [site] = await useDrizzle()
     .update(sites)
     .set({
       name: data.name,
       domain: data.domain
     })
+    .where(and(eq(sites.id, siteId), eq(sites.organisationId, secure.organisationId)))
     .returning()
   return site
 })
