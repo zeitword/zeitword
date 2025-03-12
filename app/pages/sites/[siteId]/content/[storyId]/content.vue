@@ -161,7 +161,7 @@ const goDeep = () => {
   </DPageTitle>
   <div
     v-if="story"
-    class="flex flex-1"
+    class="flex h-full flex-1"
   >
     <div class="flex-1 overflow-auto">
       <iframe
@@ -175,7 +175,9 @@ const goDeep = () => {
         >{{ content }}</pre
       >
     </div>
-    <div class="border-neutral bg-neutral flex w-[500px] flex-col gap-2 border-l p-5">
+    <div
+      class="border-neutral bg-neutral flex w-[720px] flex-col gap-2 overflow-scroll border-l p-5"
+    >
       <template
         v-for="field in sortedFields"
         :key="field.fieldKey"
