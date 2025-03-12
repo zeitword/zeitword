@@ -21,7 +21,8 @@ const bodySchema = z.object({
     "link",
     "section",
     "custom"
-  ])
+  ]),
+  order: z.string()
 })
 
 export default defineEventHandler(async (event) => {
@@ -46,6 +47,7 @@ export default defineEventHandler(async (event) => {
       componentId: componentId,
       fieldKey: data.name,
       type: data.fieldType,
+      order: data.order,
       displayName: data.displayName,
       siteId: siteId,
       organisationId: secure.organisationId
