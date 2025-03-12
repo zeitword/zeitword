@@ -2,6 +2,9 @@
 import { ref, watch, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
 
+import { FileJsonIcon } from "lucide-vue-next"
+import { vShow } from "vue"
+
 definePageMeta({ layout: "story" })
 
 const storyId = useRouteParams("storyId")
@@ -9,6 +12,10 @@ const siteId = useRouteParams("siteId")
 
 const { toast } = useToast()
 const router = useRouter()
+
+const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
+
+const showJson = ref(false)
 
 const {
   data: story,
@@ -137,7 +144,12 @@ const goDeep = () => {
     <template #subtitle>
       <p class="text-copy-sm text-neutral-subtle">/{{ story.slug }}</p>
     </template>
-    <div class="flex gap-2">
+    <div class="flex items-center gap-2">
+      <DButton
+        :icon-left="FileJsonIcon"
+        @click="showJson = !showJson"
+        :variant="showJson ? 'primary' : 'secondary'"
+      />
       <DButton
         variant="secondary"
         @click="save"
@@ -151,8 +163,17 @@ const goDeep = () => {
     v-if="story"
     class="flex flex-1"
   >
-    <div class="flex-1 overflow-auto p-5">
-      <pre>{{ content }}</pre>
+    <div class="flex-1 overflow-auto">
+      <iframe
+        class="h-full w-full"
+        v-if="!showJson"
+        :src="site?.domain"
+      />
+      <pre
+        class="p-4"
+        v-else
+        >{{ content }}</pre
+      >
     </div>
     <div class="border-neutral bg-neutral flex w-[500px] flex-col gap-2 border-l p-5">
       <template
