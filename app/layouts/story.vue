@@ -16,8 +16,10 @@ const navigation = computed(() => {
 <template>
   <div class="flex h-screen flex-col">
     <DPageHeader :navigation="navigation" />
-    <main class="flex flex-1 overflow-auto">
-      <slot />
+    <main class="flex w-full flex-1 overflow-auto">
+      <div class="flex flex-1 flex-col">
+        <slot />
+      </div>
     </main>
   </div>
 </template>
