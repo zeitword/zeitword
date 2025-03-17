@@ -135,6 +135,7 @@ const iframeUrl = computed(() => {
     v-if="story"
     :title="story.title"
     wide
+    size="sm"
   >
     <template #subtitle>
       <p class="text-copy-sm text-neutral-subtle">{{ story.slug }}</p>
@@ -158,7 +159,6 @@ const iframeUrl = computed(() => {
     v-if="story"
     class="flex min-h-0 flex-1"
   >
-    <!-- min-h-0 is crucial here -->
     <div class="flex-1 overflow-auto bg-white">
       <iframe
         class="h-full w-full"

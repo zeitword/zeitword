@@ -2,16 +2,34 @@
 type Props = {
   title: string
   wide?: boolean
+  size?: "sm" | "md"
 }
 
-const { title, wide = false } = defineProps<Props>()
+const { title, wide = false, size = "md" } = defineProps<Props>()
+
+const height = computed(() => {
+  switch (size) {
+    case "sm":
+      return "h-20"
+    case "md":
+      return "h-30"
+    default:
+      return "h-30"
+  }
+})
 </script>
 <template>
   <div class="border-neutral border-b">
     <DPageWrapper :wide>
-      <div class="flex h-30 items-center justify-between gap-10">
-        <div class="">
-          <div class="text-neutral-strong text-title line-clamp-1">
+      <div
+        class="flex items-center justify-between gap-10"
+        :class="[height]"
+      >
+        <div>
+          <div
+            class="text-neutral-strong line-clamp-1"
+            :class="[size === 'sm' ? 'text-title-sm' : 'text-title']"
+          >
             {{ title }}
           </div>
           <slot name="subtitle" />
