@@ -1,17 +1,26 @@
 // zeitword/app/components/d-story-list/index.vue
 <script setup lang="ts">
-import { Trash2, CornerRightDown, LetterText } from "lucide-vue-next"
+import {
+  Trash2,
+  CornerRightDown,
+  LetterText,
+  FileIcon,
+  FolderIcon,
+  LetterTextIcon
+} from "lucide-vue-next"
+
+const siteId = useRouteParams("siteId")
 
 type Story = {
   id: string
   title: string
   slug: string
   component?: { displayName: string }
+  content?: Record<string, any>
 }
 
 type Props = {
   stories: Story[]
-  siteId: string
   parentSlug?: string
 }
 
@@ -27,25 +36,57 @@ function getSlugName(slug: string) {
   return relativeSlug === "index" ? "/" : `/${relativeSlug}`
 }
 
+const sortedStories = computed(() => {
+  return props.stories.sort((a, b) => {
+    let slugA = getSlugName(a.slug)
+    let slugB = getSlugName(b.slug)
+    return slugA.localeCompare(slugB)
+  })
+})
+
 function showDeleteModal(id: string) {
   emit("delete-story", id)
 }
+
 function createStory() {
-  emit("create-story")
+  emit("create-story", props.parentSlug)
+}
+
+function hasContent(story: Story) {
+  if (!story.content) return false
+  return Object.keys(story.content).length > 0
+}
+
+function nav(story: Story) {
+  if (hasContent(story)) {
+    navigateTo(`/sites/${siteId.value}/content/${story.id}/content`)
+  } else {
+    navigateTo(`/sites/${siteId.value}/content/${story.id}`)
+  }
 }
 </script>
 
 <template>
   <DList v-if="stories && stories.length > 0">
     <DListItem
-      v-for="story in stories"
+      v-for="story in sortedStories"
       :key="story.id"
-      @click="navigateTo(`/sites/${siteId}/content/${story.id}/content`)"
-      class="group"
+      @click="nav(story)"
+      class="group cursor-pointer"
     >
       <div class="text-copy flex w-full items-center justify-between">
         <div class="flex flex-1 items-center gap-2">
-          <div class="flex flex-1 items-baseline gap-2">
+          <div class="flex flex-1 items-center gap-2">
+            <div class="border-neutral grid size-8 place-items-center rounded-md border">
+              <LetterTextIcon
+                v-if="hasContent(story)"
+                class="text-neutral-subtle size-4"
+              />
+              <FolderIcon
+                v-else
+                class="text-neutral-subtle size-4 fill-neutral-500"
+              />
+            </div>
             <span class="truncate">
               {{ story.title }}
             </span>

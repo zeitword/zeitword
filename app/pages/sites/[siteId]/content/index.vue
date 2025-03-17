@@ -26,6 +26,7 @@ const contentTypeOptions = computed(() => {
 const name = ref("")
 const slug = ref("")
 const contentType = ref("")
+const parentSlug = ref("/")
 
 const isDeleteModalOpen = ref(false)
 const selectedStoryId = ref<string | null>(null)
@@ -55,11 +56,21 @@ async function createStory() {
   }
 }
 
+function openCreateModal(storyId: string) {
+  selectedStoryId.value = storyId
+  isCreateModalOpen.value = true
+}
+
 function closeCreateModal() {
   name.value = ""
   slug.value = ""
   contentType.value = ""
   isCreateModalOpen.value = false
+}
+
+function openDeleteModal(storyId: string) {
+  selectedStoryId.value = storyId
+  isDeleteModalOpen.value = true
 }
 
 async function deleteStory() {
@@ -90,18 +101,15 @@ const topLevelStories = computed(() => {
   </DPageTitle>
   <DPageWrapper>
     <div class="py-5">
-      <!-- Use the DStoryList component -->
       <DStoryList
         v-if="topLevelStories"
         :stories="topLevelStories"
-        :site-id="siteId"
-        @delete-story="deleteStory"
-        @create-story="isCreateModalOpen = true"
+        @delete-story="openDeleteModal($event)"
+        @create-story="openCreateModal($event)"
       />
     </div>
   </DPageWrapper>
 
-  <!-- Modals remain the same -->
   <DModal
     :open="isCreateModalOpen"
     title=" New Content Story "
@@ -140,7 +148,7 @@ const topLevelStories = computed(() => {
           name="slug"
           v-model.slug="slug"
           required
-          leading="/"
+          :leading="parentSlug"
           placeholder="landing"
         />
       </DFormGroup>

@@ -131,65 +131,62 @@ const iframeUrl = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col">
-    <DPageTitle
-      v-if="story"
-      :title="story.title"
-      wide
-    >
-      <template #subtitle>
-        <p class="text-copy-sm text-neutral-subtle">{{ story.slug }}</p>
-      </template>
-      <div class="flex items-center gap-2">
-        <DButton
-          :icon-left="FileJsonIcon"
-          @click="showJson = !showJson"
-          :variant="showJson ? 'primary' : 'secondary'"
-        />
-        <DButton
-          variant="secondary"
-          @click="save"
-        >
-          Save
-        </DButton>
-        <DButton @click="publish">Publish</DButton>
-      </div>
-    </DPageTitle>
-    <div
-      v-if="story"
-      class="flex min-h-0 flex-1"
-    >
-      <!-- min-h-0 is crucial here -->
-      <div class="flex-1 overflow-auto bg-white">
-        <iframe
-          class="h-full w-full"
-          v-if="!showJson && iframeUrl"
-          :src="iframeUrl"
-        />
-        <pre
-          class="p-4"
-          v-else-if="showJson"
-          >{{ content }}</pre
-        >
-        <div v-else-if="!iframeUrl">
-          <p class="text-copy-sm text-neutral-subtle">No preview available</p>
-        </div>
-      </div>
-      <div
-        class="border-neutral bg-neutral flex w-[720px] flex-col gap-2 overflow-scroll border-l p-5"
+  <DPageTitle
+    v-if="story"
+    :title="story.title"
+    wide
+  >
+    <template #subtitle>
+      <p class="text-copy-sm text-neutral-subtle">/{{ story.slug }}</p>
+    </template>
+    <div class="flex items-center gap-2">
+      <DButton
+        :icon-left="FileJsonIcon"
+        @click="showJson = !showJson"
+        :variant="showJson ? 'primary' : 'secondary'"
+      />
+      <DButton
+        variant="secondary"
+        @click="save"
       >
-        <template
-          v-for="field in sortedFields"
-          :key="field.fieldKey"
-        >
-          <DField
-            :field="field"
-            :value="content[field.fieldKey]"
-            @update:value="updateNestedField([field.fieldKey], $event)"
-            @delete-block="(idToDelete) => deleteBlock(idToDelete)"
-          />
-        </template>
+        Save
+      </DButton>
+      <DButton @click="publish">Publish</DButton>
+    </div>
+  </DPageTitle>
+  <div
+    v-if="story"
+    class="flex flex-1"
+  >
+    <div class="flex-1 overflow-auto bg-white">
+      <iframe
+        class=""
+        v-if="!showJson && iframeUrl"
+        :src="iframeUrl"
+      />
+      <pre
+        class="p-4"
+        v-else-if="showJson"
+        >{{ content }}</pre
+      >
+      <div v-else-if="!iframeUrl">
+        <p class="text-copy-sm text-neutral-subtle">No preview available</p>
       </div>
+    </div>
+    <div
+      class="border-neutral bg-neutral flex max-h-full w-[720px] flex-col gap-2 overflow-scroll border-l p-5"
+    >
+      <template
+        v-for="field in sortedFields"
+        :key="field.fieldKey"
+      >
+        <DField
+          :field="field"
+          :value="content[field.fieldKey]"
+          @update:value="updateNestedField([field.fieldKey], $event)"
+          @delete-block="(idToDelete) => deleteBlock(idToDelete)"
+        />
+      </template>
     </div>
   </div>
 </template>

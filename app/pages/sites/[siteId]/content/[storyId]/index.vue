@@ -1,23 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import DStoryList from "~/components/d-story-list/index.vue" // Import the component
 
 definePageMeta({ layout: "story" })
 
 const siteId = useRouteParams("siteId")
 const storyId = useRouteParams("storyId")
 
-// Fetch the children of the current story.
-const {
-  data: children,
-  error,
-  refresh: refreshChildren
-} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}/children`)
-
-// Fetch all components (needed for the "Add Story" modal).
+const { data: children, refresh: refreshChildren } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}/children`)
 const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
-
-// Fetch the current story to display its title and slug.
 const { data: currentStory } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
 
 const isCreateModalOpen = ref(false)
@@ -45,20 +35,19 @@ async function createStory() {
   if (contentType.value === "") return toast.info({ description: "Please select a content type" })
 
   try {
-    // Construct the full slug, including the parent's slug.
     const fullSlug = currentStory.value ? `${currentStory.value.slug}/${slug.value}` : slug.value
 
     await $fetch(`/api/sites/${siteId.value}/stories`, {
       method: "POST",
       body: {
-        slug: fullSlug, // Use the full slug.
+        slug: fullSlug,
         title: name.value,
         content: {},
         componentId: contentType.value
       }
     })
     closeCreateModal()
-    refreshChildren() // Refresh the *children* list, not the top-level stories.
+    refreshChildren()
   } catch (error: any) {
     console.error(error)
     if (error.response && error.response.status === 409) {
@@ -82,10 +71,9 @@ async function deleteStory() {
     })
 
     toast.success({ description: "Story deleted successfully" })
-    refreshChildren() // Refresh the *children* list.
+    refreshChildren()
   } catch (error: any) {
     console.error(error)
-    // Handle errors appropriately.
   } finally {
     selectedStoryId.value = null
     isDeleteModalOpen.value = false
@@ -152,7 +140,7 @@ async function deleteStory() {
           name="slug"
           v-model.slug="slug"
           required
-          leading="/"
+          :leading="currentStory?.slug ? currentStory.slug + '/' : '/'"
           placeholder="article-1"
         />
       </DFormGroup>
@@ -183,5 +171,5 @@ async function deleteStory() {
     danger
     @confirm="deleteStory"
     @close="isDeleteModalOpen = false"
-  ></DModal>
+  </DModal>
 </template>
