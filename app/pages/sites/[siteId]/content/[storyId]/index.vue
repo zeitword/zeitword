@@ -30,6 +30,11 @@ const selectedStoryId = ref<string | null>(null)
 
 const { toast } = useToast()
 
+function openDeleteModal(storyId: string) {
+  selectedStoryId.value = storyId
+  isDeleteModalOpen.value = true
+}
+
 async function createStory() {
   if (name.value === "") return toast.info({ description: "Please enter a name" })
   if (contentType.value === "") return toast.info({ description: "Please select a content type" })
@@ -96,7 +101,7 @@ async function deleteStory() {
         :stories="children"
         :site-id="siteId"
         :parent-slug="currentStory?.slug"
-        @delete-story="deleteStory"
+        @delete-story="openDeleteModal"
         @create-story="isCreateModalOpen = true"
       />
     </div>

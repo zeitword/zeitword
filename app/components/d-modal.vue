@@ -92,7 +92,10 @@ function confirm() {
           </div>
 
           <!-- Footer -->
-          <div class="border-neutral border-t p-4">
+          <div
+            class="border-neutral p-4"
+            :class="[$slots.default ? 'border-t' : '']"
+          >
             <div class="flex justify-end space-x-2">
               <DButton
                 variant="secondary"
