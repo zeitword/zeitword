@@ -148,7 +148,7 @@ async function deleteComponent() {
   >
     <form
       @submit.prevent="createComponent"
-      class="flex w-full flex-col gap-4 p-5"
+      class="flex w-full flex-col gap-4"
     >
       <DFormGroup>
         <DFormLabel

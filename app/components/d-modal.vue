@@ -8,7 +8,6 @@ import {
   DialogRoot,
   DialogTitle
 } from "reka-ui"
-
 import { X } from "lucide-vue-next"
 
 type Props = {
@@ -50,18 +49,20 @@ function confirm() {
     @update:open="close"
   >
     <DialogPortal>
-      <DialogOverlay
-        class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 pointer-events-none fixed inset-0 z-50 backdrop-blur-xs"
-      />
-      <DialogContent
-        class="data-[state=open]:animate-contentShow fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white shadow-lg outline-none"
-        :class="sizeClasses[size]"
+      <!-- Conditionally render the overlay and content -->
+      <div
+        v-if="open"
+        class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto"
       >
-        <div>
-          <div
-            class="border-neutral flex items-start justify-between border-b p-5"
-            :class="[$slots.default ? 'border-b' : 'border-b-0']"
-          >
+        <DialogOverlay
+          class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 fixed inset-0 z-10 backdrop-blur-xs"
+        />
+        <DialogContent
+          class="data-[state=open]:animate-contentShow relative z-20 flex w-full flex-col rounded-lg bg-white shadow-lg outline-none"
+          :class="[sizeClasses[size], 'max-h-[80vh]']"
+        >
+          <!-- Header -->
+          <div class="border-neutral flex items-center justify-between border-b p-5">
             <div>
               <DialogTitle class="text-lg font-semibold text-neutral-900">
                 {{ title }}
@@ -73,7 +74,7 @@ function confirm() {
                 {{ description }}
               </DialogDescription>
             </div>
-            <DialogClose asChild>
+            <DialogClose as-child>
               <DButton
                 variant="transparent"
                 size="sm"
@@ -82,13 +83,18 @@ function confirm() {
             </DialogClose>
           </div>
 
-          <div v-if="$slots.default">
+          <!-- Scrollable Content Area -->
+          <div
+            v-if="$slots.default"
+            class="flex-1 overflow-y-auto p-5"
+          >
             <slot />
           </div>
-          <div>
-            <div class="flex justify-end space-x-2 rounded-b border-t border-neutral-200 p-4">
+
+          <!-- Footer -->
+          <div class="border-neutral border-t p-4">
+            <div class="flex justify-end space-x-2">
               <DButton
-                id="cancel"
                 variant="secondary"
                 @click="close"
               >
@@ -103,8 +109,8 @@ function confirm() {
               </DButton>
             </div>
           </div>
-        </div>
-      </DialogContent>
+        </DialogContent>
+      </div>
     </DialogPortal>
   </DialogRoot>
 </template>

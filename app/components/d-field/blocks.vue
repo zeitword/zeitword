@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
       title="Add Block"
       @close="isAddModalOpen = false"
     >
-      <div class="flex flex-col gap-2 p-5">
+      <div class="flex flex-col gap-2">
         <DList>
           <DListItem
             v-for="block in filteredComponents"

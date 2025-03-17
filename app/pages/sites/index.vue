@@ -62,7 +62,7 @@ async function createSite() {
     @confirm="createSite"
   >
     <form
-      class="flex flex-col p-5"
+      class="flex flex-col"
       @submit.prevent="createSite"
     >
       <DFormGroup>
