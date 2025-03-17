@@ -9,12 +9,10 @@ const { title, wide = false } = defineProps<Props>()
 <template>
   <div class="border-neutral border-b">
     <DPageWrapper :wide>
-      <div class="flex h-30 items-center justify-between">
-        <div>
-          <div class="text-neutral-strong text-title">
-            <span>
-              {{ title }}
-            </span>
+      <div class="flex h-30 items-center justify-between gap-10">
+        <div class="">
+          <div class="text-neutral-strong text-title line-clamp-1">
+            {{ title }}
           </div>
           <slot name="subtitle" />
         </div>
