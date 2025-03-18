@@ -26,11 +26,10 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"])
 
-const isEditorReady = ref(false)
 const selectedHeading = ref(null)
+const initialContent = ref(null) // Store initial content here
 
 const editor = useEditor({
-  content: props.modelValue,
   extensions: [
     StarterKit.configure({
       heading: {
@@ -43,15 +42,24 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: "prose prose-sm  p-5 focus:outline-none"
+      class: "prose prose-sm p-5 focus:outline-none"
     }
+  },
+  onBeforeCreate: ({ editor }) => {
+    // Store the initial modelValue.  Don't call setContent yet.
+    initialContent.value = props.modelValue
   },
   onUpdate: ({ editor }) => {
     emit("update:modelValue", editor.getHTML())
-  },
-  onTransaction: ({ editor }) => {
-    isEditorReady.value = true
     const { level } = editor.getAttributes("heading")
+    selectedHeading.value = level ? `h${level}` : null
+  }
+})
+
+onMounted(() => {
+  if (editor.value && initialContent.value) {
+    editor.value.commands.setContent(initialContent.value, true) // Now it's safe!
+    const { level } = editor.value.getAttributes("heading")
     selectedHeading.value = level ? `h${level}` : null
   }
 })
@@ -62,20 +70,19 @@ watch(
     if (!editor.value) return
     const isSame = editor.value.getHTML() === newValue
     if (isSame) return
+
     nextTick(() => {
-      editor.value.commands.setContent(newValue, false)
+      editor.value.commands.setContent(newValue, true)
     })
   },
   { immediate: false }
 )
 
 onBeforeUnmount(() => {
-  if (editor.value) {
-    editor.value.destroy()
-  }
+  editor.value?.destroy()
 })
 
-// --- Helper Functions ---
+// --- Helper Functions (no changes needed here) ---
 const setHeading = (level) => {
   if (!editor.value) return
   const numericLevel = parseInt(level.slice(1), 10)
@@ -83,10 +90,12 @@ const setHeading = (level) => {
 }
 
 watch(selectedHeading, (newHeading) => {
+  if (!editor.value) return
+
   if (newHeading) {
     setHeading(newHeading)
   } else {
-    editor.value?.chain().focus().setParagraph().run()
+    editor.value.chain().focus().setParagraph().run()
   }
 })
 
@@ -97,27 +106,20 @@ const headingOptions = computed(() => [
   { display: "Paragraph", value: null, icon: TextIcon }
 ])
 
-const getActiveHeadingValue = () => {
-  if (!editor.value) return null
-  const activeHeading = [1, 2, 3].find((level) => editor.value.isActive("heading", { level }))
-  return activeHeading ? `h${activeHeading}` : null
-}
-
 const getButtonIcon = (type) => {
-  if (!editor.value) return null
   switch (type) {
     case "bold":
-      return editor.value.isActive("bold") ? BoldIcon : BoldIcon
+      return BoldIcon
     case "italic":
-      return editor.value.isActive("italic") ? ItalicIcon : ItalicIcon
+      return ItalicIcon
     case "underline":
-      return editor.value.isActive("underline") ? UnderlineIcon : UnderlineIcon
+      return UnderlineIcon
     case "bulletList":
-      return editor.value.isActive("bulletList") ? ListIcon : ListIcon
+      return ListIcon
     case "orderedList":
-      return editor.value.isActive("orderedList") ? ListOrderedIcon : ListOrderedIcon
+      return ListOrderedIcon
     case "blockquote":
-      return editor.value.isActive("blockquote") ? QuoteIcon : QuoteIcon
+      return QuoteIcon
     case "horizontalRule":
       return MinusIcon
     case "clearFormatting":
@@ -129,10 +131,7 @@ const getButtonIcon = (type) => {
 </script>
 
 <template>
-  <div
-    class="tiptap-editor border-neutral rounded-md border bg-white"
-    v-if="isEditorReady"
-  >
+  <div class="tiptap-editor border-neutral rounded-md border bg-white">
     <div class="tiptap-toolbar flex gap-2 border-b border-gray-200 p-2">
       <DButton
         :icon-left="getButtonIcon('bold')"
@@ -140,6 +139,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleBold().run()"
         :title="'Bold'"
+        :class="{ 'bg-gray-200': editor?.isActive('bold') }"
       />
 
       <DButton
@@ -148,6 +148,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleItalic().run()"
         :title="'Italic'"
+        :class="{ 'bg-gray-200': editor?.isActive('italic') }"
       />
 
       <DButton
@@ -156,6 +157,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleUnderline().run()"
         :title="'Underline'"
+        :class="{ 'bg-gray-200': editor?.isActive('underline') }"
       />
 
       <!-- Headings Dropdown (using d-select) -->
@@ -163,7 +165,7 @@ const getButtonIcon = (type) => {
         :options="headingOptions"
         v-model="selectedHeading"
         placeholder="Heading"
-        :get-option-value="getActiveHeadingValue"
+        :get-option-value="(option) => option.value"
         size="sm"
       />
 
@@ -173,6 +175,7 @@ const getButtonIcon = (type) => {
         @click="editor.chain().focus().toggleBulletList().run()"
         size="sm"
         :title="'Bullet List'"
+        :class="{ 'bg-gray-200': editor?.isActive('bulletList') }"
       />
 
       <DButton
@@ -181,6 +184,7 @@ const getButtonIcon = (type) => {
         @click="editor.chain().focus().toggleOrderedList().run()"
         size="sm"
         :title="'Ordered List'"
+        :class="{ 'bg-gray-200': editor?.isActive('orderedList') }"
       />
 
       <DButton
@@ -189,6 +193,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleBlockquote().run()"
         :title="'Blockquote'"
+        :class="{ 'bg-gray-200': editor?.isActive('blockquote') }"
       />
 
       <DButton
@@ -197,6 +202,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().setHorizontalRule().run()"
         :title="'Horizontal Rule'"
+        :class="{ 'bg-gray-200': editor?.isActive('horizontalRule') }"
       />
       <DButton
         :icon-left="getButtonIcon('clearFormatting')"
@@ -211,10 +217,9 @@ const getButtonIcon = (type) => {
       <EditorContent :editor="editor" />
     </div>
   </div>
-  <div v-else>Loading Editor...</div>
 </template>
 
-<style scoped>
+<style>
 .tiptap-content blockquote {
   border-left: 3px solid #ccc;
   margin-left: 1em;

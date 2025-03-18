@@ -159,6 +159,7 @@ const iframeUrl = computed(() => {
     v-if="story"
     class="flex min-h-0 flex-1"
   >
+    <!-- Left Side: Preview/JSON -->
     <div class="flex-1 overflow-auto bg-white">
       <iframe
         class="h-full w-full"
@@ -166,14 +167,16 @@ const iframeUrl = computed(() => {
         :src="iframeUrl"
       />
       <pre
-        class="p-4"
         v-else-if="showJson"
+        class="overflow-x-auto p-4 break-all whitespace-pre-wrap"
         >{{ content }}</pre
       >
       <div v-else-if="!iframeUrl">
         <d-empty title="No preview available" />
       </div>
     </div>
+
+    <!-- Right Side: Editor -->
     <div
       class="border-neutral bg-neutral flex min-w-[720px] flex-1 flex-col gap-2 overflow-scroll border-l p-5"
     >
