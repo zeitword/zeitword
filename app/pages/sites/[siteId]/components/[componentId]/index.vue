@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GripVertical } from "lucide-vue-next"
+import { GripVertical, TextCursorInput } from "lucide-vue-next"
 import { LexoRank } from "lexorank"
 import Sortable from "sortablejs"
 import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from "vue"
@@ -205,7 +205,13 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
-    <div v-else>No fields yet.</div>
+    <div v-else>
+      <d-empty
+        title="This component has no fields yet."
+        description="Add a field to get started."
+        :icon="TextCursorInput"
+      />
+    </div>
   </LayoutSidebarComponent>
 </template>
 <style>

@@ -76,8 +76,8 @@ function nav(story: Story) {
     >
       <div class="text-copy flex w-full items-center justify-between">
         <div class="flex flex-1 items-center gap-2">
-          <div class="flex flex-1 items-center gap-2">
-            <div class="border-neutral grid size-8 place-items-center rounded-md border">
+          <div class="flex flex-1 items-center gap-2 truncate">
+            <div class="border-neutral grid size-8 min-w-8 place-items-center rounded-md border">
               <LetterTextIcon
                 v-if="hasContent(story)"
                 class="text-neutral-subtle size-4"
@@ -87,7 +87,7 @@ function nav(story: Story) {
                 class="text-neutral-subtle size-4 fill-neutral-500"
               />
             </div>
-            <span class="truncate">
+            <span class="min-w-0 truncate">
               {{ story.title }}
             </span>
             <div
