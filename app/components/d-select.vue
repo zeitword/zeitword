@@ -16,9 +16,10 @@ interface Props {
   options: { value: string | number | boolean | null; display: string }[]
   placeholder?: string
   disabled?: boolean
+  size?: "sm" | "md"
 }
 
-const { options, placeholder, disabled } = defineProps<Props>()
+const { options, placeholder, disabled, size = "md" } = defineProps<Props>()
 const model = defineModel<string | null>()
 const open = ref(false)
 </script>
@@ -31,9 +32,12 @@ const open = ref(false)
   >
     <SelectTrigger
       :disabled="disabled"
-      class="bg-neutral border-neutral hover: flex h-9 w-full cursor-default items-center justify-between rounded-lg border px-2.5 text-sm outline-none select-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
+      class="bg-neutral border-neutral hover: flex cursor-default items-center justify-between rounded-lg border px-2.5 text-sm outline-none select-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
       :class="[
-        disabled ? 'cursor-not-allowed bg-neutral-100 opacity-50' : 'hover:border-neutral-strong/30'
+        disabled
+          ? 'cursor-not-allowed bg-neutral-100 opacity-50'
+          : 'hover:border-neutral-strong/30',
+        size === 'sm' ? 'h-7' : 'h-9'
       ]"
     >
       <SelectValue :placeholder="placeholder" />

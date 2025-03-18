@@ -171,11 +171,11 @@ const iframeUrl = computed(() => {
         >{{ content }}</pre
       >
       <div v-else-if="!iframeUrl">
-        <p class="text-copy-sm text-neutral-subtle">No preview available</p>
+        <d-empty title="No preview available" />
       </div>
     </div>
     <div
-      class="border-neutral bg-neutral flex w-[720px] flex-col gap-2 overflow-scroll border-l p-5"
+      class="border-neutral bg-neutral flex min-w-[720px] flex-1 flex-col gap-2 overflow-scroll border-l p-5"
     >
       <template
         v-for="field in sortedFields"

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@plugin "@tailwindcss/typography";
+
 @theme {
   --font-family-sans: "Inter", sans-serif;
 
@@ -171,10 +173,12 @@
 
   --shadow-lg: 0 1px 1px 0 rgba(0, 0, 0, 0.02), 0 4px 8px 0 rgba(0, 0, 0, 0.04);
 
-  --shadow-xl: 0 1px 1px 0 rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04),
+  --shadow-xl:
+    0 1px 1px 0 rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04),
     0 16px 24px -8px rgba(0, 0, 0, 0.06);
 
-  --shadow-2xl: 0 1px 1px 0 rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
+  --shadow-2xl:
+    0 1px 1px 0 rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
     0 24px 32px -8px rgba(0, 0, 0, 0.06);
 
   @keyframes overlayShow {
