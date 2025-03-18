@@ -20,6 +20,7 @@ export const fieldTypes = [
   "blocks",
   "text",
   "textarea",
+  "richtext",
   "number",
   "datetime",
   "boolean",

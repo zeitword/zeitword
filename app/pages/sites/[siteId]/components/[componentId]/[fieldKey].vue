@@ -2,7 +2,6 @@
 import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon, Component } from "lucide-vue-next"
 import { useSortable } from "@vueuse/integrations/useSortable"
 import { uuidv7 } from "uuidv7"
-import type { ShallowRef } from "vue"
 
 const siteId = useRouteParams("siteId")
 const componentId = useRouteParams("componentId")

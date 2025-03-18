@@ -67,6 +67,16 @@ function openFileSelector() {
     />
   </DFormGroup>
 
+  <DFormGroup v-else-if="field.type === 'richtext'">
+    <DFormLabel :required="field.required">
+      {{ field.displayName || field.fieldKey }}
+    </DFormLabel>
+    <DRichText
+      :model-value="value"
+      @update:modelValue="emit('update:value', $event)"
+    />
+  </DFormGroup>
+
   <DFieldBlocks
     v-else-if="field.type === 'blocks'"
     :field="field"
