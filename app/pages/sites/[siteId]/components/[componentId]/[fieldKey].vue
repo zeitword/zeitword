@@ -242,6 +242,25 @@ async function save() {
             />
             <!-- <pre>{{ selectedComponentIds }}</pre> -->
           </DFormGroup>
+
+          <DFormGroup>
+            <DFormLabel name="minimum-value">Minimum Value</DFormLabel>
+            <DInput
+              id="minimum-value"
+              name="minimum-value"
+              type="number"
+              v-model="formData.minValue"
+            />
+          </DFormGroup>
+          <DFormGroup>
+            <DFormLabel name="maximum-value">Maximum Value</DFormLabel>
+            <DInput
+              id="maximum-value"
+              name="maximum-value"
+              type="number"
+              v-model="formData.maxValue"
+            />
+          </DFormGroup>
         </template>
 
         <!-- specific fields for "string" -->
@@ -254,6 +273,25 @@ async function save() {
               v-model="formData.defaultValue"
             />
           </DFormGroup>
+
+          <DFormGroup>
+            <DFormLabel name="minimum-value">Minimum Value</DFormLabel>
+            <DInput
+              id="minimum-value"
+              name="minimum-value"
+              type="number"
+              v-model="formData.minValue"
+            />
+          </DFormGroup>
+          <DFormGroup>
+            <DFormLabel name="maximum-value">Maximum Value</DFormLabel>
+            <DInput
+              id="maximum-value"
+              name="maximum-value"
+              type="number"
+              v-model="formData.maxValue"
+            />
+          </DFormGroup>
         </template>
 
         <template v-if="formData.fieldType === 'textarea'">
@@ -263,6 +301,25 @@ async function save() {
               id="default-value"
               name="default-value"
               v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+
+          <DFormGroup>
+            <DFormLabel name="minimum-value">Minimum Value</DFormLabel>
+            <DInput
+              id="minimum-value"
+              name="minimum-value"
+              type="number"
+              v-model="formData.minValue"
+            />
+          </DFormGroup>
+          <DFormGroup>
+            <DFormLabel name="maximum-value">Maximum Value</DFormLabel>
+            <DInput
+              id="maximum-value"
+              name="maximum-value"
+              type="number"
+              v-model="formData.maxValue"
             />
           </DFormGroup>
         </template>

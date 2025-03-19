@@ -157,7 +157,7 @@ const iframeUrl = computed(() => {
   </DPageTitle>
   <div
     v-if="story"
-    class="flex min-h-0 flex-1"
+    class="flex min-h-0 flex-grow basis-2/3"
   >
     <!-- Left Side: Preview/JSON -->
     <div class="flex-1 overflow-auto bg-white">
@@ -178,7 +178,7 @@ const iframeUrl = computed(() => {
 
     <!-- Right Side: Editor -->
     <div
-      class="border-neutral bg-neutral flex min-w-[720px] flex-1 flex-col gap-2 overflow-scroll border-l p-5"
+      class="border-neutral bg-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-scroll border-l p-5"
     >
       <template
         v-for="field in sortedFields"

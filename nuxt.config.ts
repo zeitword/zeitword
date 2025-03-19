@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
 
   css: ["@/app.css"],
-  modules: ["@vueuse/nuxt", "nuxt-auth-utils", "@nuxt/fonts", "@pinia/nuxt"],
+  modules: ["@vueuse/nuxt", "nuxt-auth-utils", "@nuxt/fonts"],
 
   fonts: { experimental: { processCSSVariables: true } },
 

@@ -38,6 +38,8 @@ const filteredComponents = computed(() => {
 })
 
 const isAddModalOpen = ref(false)
+const isDeleteModalOpen = ref(false)
+const selectedBlockId = ref<string | null>(null)
 
 function initializeBlockContent(component: DComponent): any {
   const content: any = {}
@@ -88,20 +90,18 @@ const sortedBlocks = ref<any[]>([])
 const sortableInstance = ref<Sortable | null>(null)
 const isMounted = ref(false)
 
-// --- NEW FUNCTION ---
 function recalculateBlockOrders() {
   const blocks = [...sortedBlocks.value]
   let currentRank = LexoRank.middle()
 
   for (const block of blocks) {
-    block.order = currentRank.toString() // Modify directly, no API call needed
+    block.order = currentRank.toString()
     currentRank = currentRank.genNext()
   }
 
-  // IMPORTANT: Emit the updated blocks *after* recalculation.
   const newValue = value.map((block: any) => {
     const updatedBlock = blocks.find((b) => b.id === block.id)
-    return updatedBlock ? { ...block, order: updatedBlock.order } : block // Return updated block, keep the other props.
+    return updatedBlock ? { ...block, order: updatedBlock.order } : block
   })
 
   emit("update:value", newValue)
@@ -137,7 +137,7 @@ async function initSortable() {
         if (prevRank.toString() === nextRank.toString()) {
           console.error("Ranks are equal, regenerating order (blocks.vue)")
           recalculateBlockOrders()
-          return // Stop further processing
+          return
         }
 
         newRank = prevRank.between(nextRank)
@@ -191,8 +191,16 @@ function updateNestedBlock(_index: number, updatedBlock: any) {
   emit("update:value", newBlocks)
 }
 
-function deleteBlock(id: string) {
-  emit("delete-block", id)
+function deleteBlock() {
+  if (!selectedBlockId.value) return
+  emit("delete-block", selectedBlockId.value)
+  isDeleteModalOpen.value = false
+  selectedBlockId.value = null
+}
+
+function openDeleteModal(id: string) {
+  selectedBlockId.value = id
+  isDeleteModalOpen.value = true
 }
 
 onMounted(() => {
@@ -204,6 +212,11 @@ onBeforeUnmount(() => {
     sortableInstance.value.destroy()
   }
 })
+
+const isMaxReached = computed(() => {
+  if (!field.maxValue) return false
+  return sortedBlocks.value.length >= field.maxValue
+})
 </script>
 
 <template>
@@ -212,42 +225,71 @@ onBeforeUnmount(() => {
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
 
-    <div class="border-neutral bg-neutral-subtle overflow-hidden rounded-lg border">
+    <div
+      class="bg-neutral border-neutral blocks-container overflow-hidden rounded-[10px] border p-0.5"
+    >
       <div
-        class="overflow-hidden rounded-lg shadow-md"
+        class="border-neutral overflow-hidden rounded-lg border shadow-md"
         ref="blocksContainer"
+        v-if="sortedBlocks.length > 0"
       >
-        <DFieldBlock
+        <template
           v-for="(block, index) in sortedBlocks"
           :key="block.id + '-' + block.order"
-          :block="getBlock(block.componentId)"
-          :block-content="block"
-          :path="[...path, block.id]"
-          class="border-neutral overflow-hidden border-b last:border-none"
-          @update:value="updateNestedBlock(index, $event)"
-          @delete-block="(id) => deleteBlock(id)"
         >
-          <template #controls>
-            <DButton
-              class="drag-handle"
-              :icon-left="GripVertical"
-              size="sm"
-              variant="transparent"
-            />
-          </template>
-        </DFieldBlock>
+          <DFieldBlock
+            :block="getBlock(block.componentId)"
+            :block-content="block"
+            :path="[...path, block.id]"
+            class="border-neutral overflow-hidden border-b last:border-none"
+            @update:value="updateNestedBlock(index, $event)"
+            @delete-block="(id) => openDeleteModal(id)"
+          >
+            <template #controls>
+              <DButton
+                class="drag-handle opacity-50 transition-all group-hover:opacity-100"
+                :icon-left="GripVertical"
+                size="sm"
+                variant="transparent"
+              />
+            </template>
+          </DFieldBlock>
+        </template>
       </div>
 
-      <div class="p-1">
-        <DButton
-          variant="transparent"
-          size="sm"
-          :icon-left="PlusIcon"
+      <div class="flex items-center justify-between p-1">
+        <button
           @click="isAddModalOpen = true"
-          class="w-full"
+          class="text-neutral-subtle text-copy group/button relative inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 ring-blue-500 transition-all outline-none focus-visible:ring-2"
+          :class="[isMaxReached ? 'scale-50 opacity-0' : '']"
         >
-          Add Block
-        </DButton>
+          <div
+            class="bg-neutral-strong absolute inset-0 scale-50 rounded-md opacity-0 transition-all group-hover/button:scale-100 group-hover/button:opacity-100"
+          ></div>
+          <div class="relative z-10 flex items-center gap-2">
+            <PlusIcon class="size-4" />
+            <span>Add Block</span>
+          </div>
+        </button>
+        <p
+          v-if="field.maxValue"
+          class="text-copy-sm text-neutral-subtle flex gap-0.5 rounded-md px-2 py-0.5"
+          :class="[isMaxReached ? 'bg-neutral-strong' : '']"
+        >
+          <span
+            class="mr-1"
+            v-if="isMaxReached"
+          >
+            Block limit reached
+          </span>
+          <span :class="[isMaxReached ? 'text-warn-onsurface' : 'text-neutral']">
+            {{ sortedBlocks.length }}
+          </span>
+          <span>/</span>
+          <span>
+            {{ field.maxValue }}
+          </span>
+        </p>
       </div>
     </div>
 
@@ -274,15 +316,45 @@ onBeforeUnmount(() => {
         </DList>
       </div>
     </DModal>
+
+    <DModal
+      :open="isDeleteModalOpen"
+      title="Delete Block"
+      description="Do you really want to delete this block?"
+      confirm-text="Delete"
+      danger
+      @close="isDeleteModalOpen = false"
+      @confirm="deleteBlock"
+    ></DModal>
   </div>
 </template>
 <style>
+@reference "../../app.css";
+
+.blocks-container {
+  background: var(--background-color-neutral-weak) url("/stripes.svg");
+  background-blend-mode: overlay;
+}
+
 .sortable-drag {
   border-radius: 8px;
   opacity: 1;
 }
 
 .sortable-ghost {
+  position: relative;
+  border-color: transparent;
+}
+.sortable-ghost > div {
   opacity: 0;
 }
+
+/* .sortable-ghost::after {
+  position: absolute;
+  content: "";
+  inset: 0;
+  display: block;
+  background: var(--background-color-neutral-subtle) url("/stripes.svg");
+  background-blend-mode: overlay;
+} */
 </style>

@@ -61,14 +61,16 @@ defineSlots<{
               :class="[isBlockOpen ? 'rotate-180' : '']"
             />
           </div>
-          <div class="text-copy text-neutral flex flex-1 items-baseline gap-2">
+          <div class="text-copy text-neutral flex flex-1 items-baseline gap-2 select-none">
             <div>{{ block.displayName }}</div>
             <div class="text-neutral-subtle line-clamp-1">
               {{ blockContent.content[block.previewField] }}
             </div>
           </div>
         </button>
-        <div class="hidden group-hover:flex">
+        <div
+          class="scale-50 opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100"
+        >
           <DButton
             variant="secondary"
             size="sm"
@@ -78,7 +80,7 @@ defineSlots<{
         </div>
       </div>
       <div
-        class="bg-neutral-subtle flex flex-col gap-2 p-2"
+        class="bg-neutral border-neutral flex flex-col gap-2 border-t p-2"
         v-show="isBlockOpen"
       >
         <template

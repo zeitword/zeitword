@@ -63,6 +63,7 @@ function openFileSelector() {
     </DFormLabel>
     <DTextarea
       :model-value="value"
+      :required="field.required"
       @update:modelValue="emit('update:value', $event)"
     />
   </DFormGroup>
