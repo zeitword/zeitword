@@ -108,12 +108,24 @@ function findAndDeleteById(data: any, idToDelete: string): boolean {
   return false
 }
 
-function deleteBlock(idToDelete: string) {
+const isDeleteModalOpen = ref(false)
+const selectedBlockId = ref<string | null>(null)
+
+function openDeleteModal(id: string) {
+  isDeleteModalOpen.value = true
+  selectedBlockId.value = id
+}
+
+function deleteBlock() {
+  const idToDelete = selectedBlockId.value
+  if (!idToDelete) return
   if (!story.value) return
   const deleted = findAndDeleteById(content.value, idToDelete)
   if (!deleted) {
     console.warn(`Block with id ${idToDelete} not found.`)
   }
+  isDeleteModalOpen.value = false
+  selectedBlockId.value = null
 }
 
 const sortedFields = computed(() => {
@@ -188,9 +200,18 @@ const iframeUrl = computed(() => {
           :field="field"
           :value="content[field.fieldKey]"
           @update:value="updateNestedField([field.fieldKey], $event)"
-          @delete-block="(idToDelete) => deleteBlock(idToDelete)"
+          @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
         />
       </template>
     </div>
   </div>
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Block"
+    description="Do you really want to delete this block?"
+    confirm-text="Delete"
+    danger
+    @close="isDeleteModalOpen = false"
+    @confirm="deleteBlock"
+  ></DModal>
 </template>

@@ -191,11 +191,9 @@ function updateNestedBlock(_index: number, updatedBlock: any) {
   emit("update:value", newBlocks)
 }
 
-function deleteBlock() {
-  if (!selectedBlockId.value) return
-  emit("delete-block", selectedBlockId.value)
-  isDeleteModalOpen.value = false
-  selectedBlockId.value = null
+function deleteBlock(id: string) {
+  console.log(id)
+  emit("delete-block", id)
 }
 
 function openDeleteModal(id: string) {
@@ -243,7 +241,7 @@ const isMaxReached = computed(() => {
             :path="[...path, block.id]"
             class="border-neutral overflow-hidden border-b last:border-none"
             @update:value="updateNestedBlock(index, $event)"
-            @delete-block="(id) => openDeleteModal(id)"
+            @delete-block="(id) => deleteBlock(id)"
           >
             <template #controls>
               <DButton
@@ -316,16 +314,6 @@ const isMaxReached = computed(() => {
         </DList>
       </div>
     </DModal>
-
-    <DModal
-      :open="isDeleteModalOpen"
-      title="Delete Block"
-      description="Do you really want to delete this block?"
-      confirm-text="Delete"
-      danger
-      @close="isDeleteModalOpen = false"
-      @confirm="deleteBlock"
-    ></DModal>
   </div>
 </template>
 <style>
@@ -348,13 +336,4 @@ const isMaxReached = computed(() => {
 .sortable-ghost > div {
   opacity: 0;
 }
-
-/* .sortable-ghost::after {
-  position: absolute;
-  content: "";
-  inset: 0;
-  display: block;
-  background: var(--background-color-neutral-subtle) url("/stripes.svg");
-  background-blend-mode: overlay;
-} */
 </style>

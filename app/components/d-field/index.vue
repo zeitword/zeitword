@@ -16,6 +16,8 @@ const emit = defineEmits<{
 }>()
 
 function deleteBlock(id: string) {
+  console.log("index.vue")
+  console.log(id)
   emit("delete-block", id)
 }
 
