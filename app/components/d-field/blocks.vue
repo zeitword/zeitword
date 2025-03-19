@@ -158,16 +158,17 @@ async function initSortable() {
 // Watcher to update sortedBlocks and initialize/re-initialize Sortable
 watch(
   [() => value, () => isMounted.value],
-  ([newValue, mounted]) => {
+  async ([newValue, mounted]) => {
     if (mounted) {
       if (Array.isArray(newValue)) {
         sortedBlocks.value = [...newValue].sort((a: { order: string }, b: { order: string }) =>
           a.order.localeCompare(b.order)
         )
+        await nextTick()
+        initSortable()
       } else {
         sortedBlocks.value = []
       }
-      initSortable()
     }
   },
   { deep: true, immediate: true }

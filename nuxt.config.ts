@@ -35,7 +35,20 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: "Zeitword",
-      link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.png" }]
+      link: [
+        {
+          rel: "icon",
+          type: "image/x-icon",
+          href: "/favicon.png",
+          media: "(prefers-color-scheme: dark)"
+        },
+        {
+          rel: "icon",
+          type: "image/x-icon",
+          href: "/favicon-light.png",
+          media: "(prefers-color-scheme: light)"
+        }
+      ]
     }
   }
 })

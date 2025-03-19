@@ -137,9 +137,13 @@ const sortedFields = computed(() => {
 
 const iframeUrl = computed(() => {
   if (!site.value?.domain || !story.value?.slug) return null
-  const slug = story.value.slug.replace("index", "")
-  return `${site.value.domain}/${slug}`
+  let slug = story.value.slug.replace("index", "")
+  let domain = site.value.domain
+  if (domain.endsWith("/")) domain = domain.slice(0, -1)
+  return `${domain}/${slug}`
 })
+
+const isPreviewReady = ref(false) // Add a ref for ready state
 </script>
 
 <template>
@@ -173,10 +177,17 @@ const iframeUrl = computed(() => {
   >
     <!-- Left Side: Preview/JSON -->
     <div class="flex-1 overflow-auto bg-white">
-      <iframe
+      <!-- <iframe
         class="h-full w-full"
         v-if="!showJson && iframeUrl"
         :src="iframeUrl"
+      /> -->
+      <DPreview
+        v-if="!showJson && site && story"
+        :site-domain="site.domain"
+        :story-slug="story.slug"
+        :content="content"
+        @ready="isPreviewReady = true"
       />
       <pre
         v-else-if="showJson"
