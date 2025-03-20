@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDebounceFn } from "@vueuse/core"
+
 const props = defineProps({
   siteDomain: {
     type: String,
@@ -16,7 +18,10 @@ const props = defineProps({
 
 const emit = defineEmits(["ready"])
 
-const { content } = toRefs(props) // Create a reactive reference to the content prop
+const { content } = toRefs(props)
+const isIframeReady = ref(false)
+const maxRetries = 5
+const retryDelay = 1000
 
 const domain = computed(() => {
   let d = props.siteDomain
@@ -36,58 +41,95 @@ const sendPreviewUpdate = useDebounceFn((updatedContent) => {
     previewFrame.contentWindow.postMessage(
       {
         type: "updatePreview",
-        data: JSON.parse(JSON.stringify(updatedContent)) // Still need to clone
+        data: JSON.parse(JSON.stringify(updatedContent))
       },
       domain.value
     )
   }
 }, 200)
 
-// Watch the *reactive* content reference, deeply
+// Function to send content and retry if needed
+const sendInitialContent = async (retries = 0) => {
+  const previewFrame = document.getElementById("previewFrame")
+  if (!previewFrame || !previewFrame.contentWindow) {
+    if (retries < maxRetries) {
+      setTimeout(() => sendInitialContent(retries + 1), retryDelay)
+    }
+    return
+  }
+
+  try {
+    previewFrame.contentWindow.postMessage(
+      {
+        type: "updatePreview",
+        data: JSON.parse(JSON.stringify(content.value))
+      },
+      domain.value
+    )
+    isIframeReady.value = true
+  } catch (error) {
+    console.error("Failed to send initial content:", error)
+    if (retries < maxRetries) {
+      setTimeout(() => sendInitialContent(retries + 1), retryDelay)
+    }
+  }
+}
+
+// Handle iframe load event
+const handleIframeLoad = () => {
+  sendInitialContent()
+}
+
+// Handle incoming messages
+const handleMessage = (event) => {
+  const allowedOrigins = ["https://app.zeitword.com", "http://localhost:"]
+  if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
+    return
+  }
+
+  if (event.data.type === "requestInitialData") {
+    sendPreviewUpdate(content.value)
+    emit("ready")
+  }
+}
+
+// Watch for content changes
 watch(
-  content, // Watch the reactive ref
+  content,
   (newContent) => {
     sendPreviewUpdate(newContent)
   },
-  { deep: true } // Watch for changes *within* the content object
+  { deep: true }
 )
 
 onMounted(() => {
-  window.addEventListener("message", (event) => {
-    const allowedOrigins = ["https://app.zeitword.com", "http://localhost:"]
-    if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
-      return
-    }
-
-    if (event.data.type === "requestInitialData") {
-      // Send the *current value* of the reactive content ref
-      sendPreviewUpdate(content.value)
-      emit("ready")
-    }
-  })
+  window.addEventListener("message", handleMessage)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener("message", (event) => {
-    const allowedOrigins = ["https://app.zeitword.com", "http://localhost:"]
-    if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
-      return
-    }
-    if (event.data.type === "requestInitialData") {
-      sendPreviewUpdate(JSON.parse(JSON.stringify(props.content)))
-    }
-  })
+  window.removeEventListener("message", handleMessage)
 })
 </script>
 
 <template>
-  <iframe
-    id="previewFrame"
-    class="h-full w-full"
-    :src="iframeUrl"
+  <div
     v-if="iframeUrl"
-    sandbox="allow-scripts allow-same-origin allow-popups"
-  />
+    class="relative h-full w-full"
+  >
+    <div
+      v-if="!isIframeReady"
+      class="absolute inset-0 flex items-center justify-center bg-gray-50"
+    >
+      <div class="text-gray-500">Loading preview...</div>
+    </div>
+    <iframe
+      id="previewFrame"
+      class="h-full w-full"
+      :src="iframeUrl"
+      sandbox="allow-scripts allow-same-origin allow-popups"
+      @load="handleIframeLoad"
+    />
+  </div>
   <div v-else>
     <d-empty title="No preview available" />
   </div>
