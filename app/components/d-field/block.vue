@@ -55,14 +55,14 @@ defineSlots<{
           class="flex flex-1 items-center gap-2 text-left"
           @click="isBlockOpen = !isBlockOpen"
         >
-          <div class="grid size-7 place-items-center rounded-md">
+          <div class="grid size-7 place-items-center rounded-md transition">
             <ChevronDownIcon
-              class="size-4"
+              class="size-4 transition"
               :class="[isBlockOpen ? 'rotate-180' : '']"
             />
           </div>
           <div class="text-copy text-neutral flex flex-1 items-baseline gap-2 select-none">
-            <div>{{ block.displayName }}</div>
+            <div class="text-nowrap">{{ block.displayName }}</div>
             <div class="text-neutral-subtle line-clamp-1">
               {{ blockContent.content[block.previewField] }}
             </div>
