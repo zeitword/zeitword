@@ -82,7 +82,7 @@ const handleIframeLoad = () => {
 
 // Handle incoming messages
 const handleMessage = (event) => {
-  const allowedOrigins = ["https://app.zeitword.com", "http://localhost:", props.siteDomain]
+  const allowedOrigins = ["https://app.zeitword.com", "http://localhost:", domain.value]
   if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
     console.warn("CMS: Message rejected - Invalid origin", event.origin)
     return
