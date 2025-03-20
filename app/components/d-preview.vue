@@ -82,8 +82,9 @@ const handleIframeLoad = () => {
 
 // Handle incoming messages
 const handleMessage = (event) => {
-  const allowedOrigins = ["https://app.zeitword.com", "http://localhost:"]
+  const allowedOrigins = ["https://app.zeitword.com", "http://localhost:", props.siteDomain]
   if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
+    console.warn("CMS: Message rejected - Invalid origin", event.origin)
     return
   }
 
@@ -91,11 +92,11 @@ const handleMessage = (event) => {
     sendPreviewUpdate(content.value)
     emit("ready")
   } else if (event.data.type === "componentClick") {
+    console.log(event.data.data)
     emit("componentClick", event.data.data)
   }
 }
 
-// Watch for content changes
 watch(
   content,
   (newContent) => {
