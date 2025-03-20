@@ -16,7 +16,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(["ready"])
+const emit = defineEmits(["ready", "componentClick"])
 
 const { content } = toRefs(props)
 const isIframeReady = ref(false)
@@ -90,6 +90,8 @@ const handleMessage = (event) => {
   if (event.data.type === "requestInitialData") {
     sendPreviewUpdate(content.value)
     emit("ready")
+  } else if (event.data.type === "componentClick") {
+    emit("componentClick", event.data.data)
   }
 }
 

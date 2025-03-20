@@ -5,6 +5,7 @@ type Props = {
   field: DField
   path?: string[]
   components?: DComponent[]
+  targetBlockId?: string | undefined
   value: any
 }
 
@@ -86,6 +87,7 @@ function openFileSelector() {
     :path="path"
     :blocks="components"
     :value="value"
+    :target-block-id="targetBlockId"
     @update:value="emit('update:value', $event)"
     @delete-block="(id) => deleteBlock(id)"
   />

@@ -143,7 +143,41 @@ const iframeUrl = computed(() => {
   return `${domain}/${slug}`
 })
 
-const isPreviewReady = ref(false) // Add a ref for ready state
+type ComponentPayload = {
+  blockId: string
+  componentId: string
+  componentName: string
+}
+
+const targetBlockId = ref<string | null>(null)
+
+const openBlock = (blockId: string) => {
+  const findAndOpenBlock = (blocks: any[]) => {
+    for (const block of blocks) {
+      if (block.id === blockId) {
+        return true
+      }
+
+      if (block.content && Array.isArray(block.content.blocks)) {
+        if (findAndOpenBlock(block.content.blocks)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  if (content.value.blocks) {
+    findAndOpenBlock(content.value.blocks)
+  }
+}
+
+function handleComponentClick(component: ComponentPayload) {
+  targetBlockId.value = component.blockId
+  openBlock(component.blockId)
+}
+
+const isPreviewReady = ref(false)
 </script>
 
 <template>
@@ -177,17 +211,13 @@ const isPreviewReady = ref(false) // Add a ref for ready state
   >
     <!-- Left Side: Preview/JSON -->
     <div class="flex-1 overflow-auto bg-white">
-      <!-- <iframe
-        class="h-full w-full"
-        v-if="!showJson && iframeUrl"
-        :src="iframeUrl"
-      /> -->
       <DPreview
         v-if="!showJson && site && story"
         :site-domain="site.domain"
         :story-slug="story.slug"
         :content="content"
         @ready="isPreviewReady = true"
+        @componentClick="handleComponentClick"
       />
       <pre
         v-else-if="showJson"
@@ -210,6 +240,7 @@ const isPreviewReady = ref(false) // Add a ref for ready state
         <DField
           :field="field"
           :value="content[field.fieldKey]"
+          :target-block-id="targetBlockId"
           @update:value="updateNestedField([field.fieldKey], $event)"
           @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
         />

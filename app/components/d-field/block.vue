@@ -9,9 +9,10 @@ type Props = {
   block: DComponent | undefined
   blockContent: { id: string; content: { [key: string]: any }; order: string } // Include order
   path?: string[]
+  isTargeted: boolean
 }
 
-const { block, path = [], blockContent } = defineProps<Props>()
+const { block, path = [], blockContent, isTargeted = false } = defineProps<Props>()
 
 const isBlockOpen = ref(false)
 const emit = defineEmits<{
@@ -41,6 +42,20 @@ defineSlots<{
   default(props: {}): any
   controls(props: {}): any
 }>()
+
+const blockRef = ref<HTMLElement | null>(null)
+
+watch(
+  () => isTargeted,
+  (newValue) => {
+    if (newValue && blockRef.value) {
+      isBlockOpen.value = true
+      nextTick(() => {
+        blockRef.value?.scrollIntoView({ behavior: "smooth", block: "center" })
+      })
+    }
+  }
+)
 </script>
 
 <template>
@@ -48,6 +63,8 @@ defineSlots<{
     <div
       class="bg-neutral flex w-full flex-col"
       v-if="block"
+      ref="blockRef"
+      :class="{ 'ring-primary ring-2': isTargeted }"
     >
       <div class="group flex w-full items-center gap-2 px-2 py-2">
         <slot name="controls" />

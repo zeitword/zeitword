@@ -10,9 +10,10 @@ type Props = {
   field: DField
   path?: string[]
   value: any
+  targetBlockId: string | undefined
 }
 
-const { field, path = [], value } = defineProps<Props>()
+const { field, path = [], value, targetBlockId } = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
@@ -239,6 +240,7 @@ const isMaxReached = computed(() => {
           <DFieldBlock
             :block="getBlock(block.componentId)"
             :block-content="block"
+            :is-targeted="targetBlockId === block.id"
             :path="[...path, block.id]"
             class="border-neutral overflow-hidden border-b last:border-none"
             @update:value="updateNestedBlock(index, $event)"
