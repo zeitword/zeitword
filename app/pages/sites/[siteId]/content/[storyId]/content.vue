@@ -10,7 +10,7 @@ const { toast } = useToast()
 
 const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
 
-const showJson = ref(false)
+const showJson = ref(true)
 
 const {
   data: story,
@@ -209,8 +209,7 @@ const isPreviewReady = ref(false)
     v-if="story"
     class="flex min-h-0 flex-grow basis-2/3"
   >
-    <!-- Left Side: Preview/JSON -->
-    <div class="flex-1 overflow-auto bg-white">
+    <div class="code-container flex-1 overflow-auto bg-white">
       <DPreview
         v-if="!showJson && site && story"
         :site-domain="site.domain"
@@ -219,17 +218,17 @@ const isPreviewReady = ref(false)
         @ready="isPreviewReady = true"
         @componentClick="handleComponentClick"
       />
-      <pre
-        v-else-if="showJson"
-        class="overflow-x-auto p-4 break-all whitespace-pre-wrap"
-        >{{ content }}</pre
+      <div
+        v-else="showJson"
+        class="p-4"
       >
-      <div v-else-if="!iframeUrl">
-        <d-empty title="No preview available" />
+        <pre
+          class="bg-neutral text-neutral border-neutral overflow-x-auto rounded-lg border p-4 break-all whitespace-pre-wrap"
+          >{{ content }}</pre
+        >
       </div>
     </div>
 
-    <!-- Right Side: Editor -->
     <div
       class="border-neutral bg-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-scroll border-l p-5"
     >
@@ -257,3 +256,10 @@ const isPreviewReady = ref(false)
     @confirm="deleteBlock"
   ></DModal>
 </template>
+
+<style scoped>
+.code-container {
+  background: var(--background-color-neutral-weak) url("/stripes.svg");
+  background-blend-mode: overlay;
+}
+</style>

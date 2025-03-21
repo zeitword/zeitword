@@ -29,7 +29,8 @@ export default defineEventHandler(async (event) => {
     .select({
       id: stories.id,
       slug: stories.slug,
-      title: stories.title
+      title: stories.title,
+      content: stories.content
       // Add other fields you want, but keep it minimal.
     })
     .from(stories)

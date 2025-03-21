@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core"
+import { EyeOffIcon } from "lucide-vue-next"
+
+const siteId = useRouteParams("siteId")
 
 const props = defineProps({
   siteDomain: {
@@ -133,7 +136,23 @@ onBeforeUnmount(() => {
       @load="handleIframeLoad"
     />
   </div>
-  <div v-else>
-    <d-empty title="No preview available" />
+  <div
+    v-else
+    class="p-5"
+  >
+    <d-empty
+      title="No preview available"
+      description="Setup a domain to preview to start previewing your site."
+      size="sm"
+      class="mx-auto max-w-md"
+      :icon="EyeOffIcon"
+    >
+      <d-button
+        variant="secondary"
+        @click="navigateTo(`/sites/${siteId}/settings`)"
+      >
+        Setup Domain
+      </d-button>
+    </d-empty>
   </div>
 </template>

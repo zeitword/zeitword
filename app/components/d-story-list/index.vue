@@ -1,13 +1,5 @@
-// zeitword/app/components/d-story-list/index.vue
 <script setup lang="ts">
-import {
-  Trash2,
-  CornerRightDown,
-  LetterText,
-  FileIcon,
-  FolderIcon,
-  LetterTextIcon
-} from "lucide-vue-next"
+import { Trash2, CornerRightDown, LetterText, FolderIcon, LetterTextIcon } from "lucide-vue-next"
 
 const siteId = useRouteParams("siteId")
 

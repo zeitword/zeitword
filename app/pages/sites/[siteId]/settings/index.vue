@@ -69,10 +69,15 @@ async function deleteSite() {
             class="w-full"
           />
         </d-settings-row>
-        <d-settings-row title="Domain">
+        <d-settings-row
+          title="Domain"
+          subtitle="Used to preview the site"
+        >
           <DInput
             v-model="formData.domain"
             class="w-full"
+            type="url"
+            placeholder="https://example.com/"
           />
         </d-settings-row>
       </d-settings-container>

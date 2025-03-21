@@ -4,6 +4,7 @@ type Props = {
   description?: string
   icon?: Component
   size?: "sm" | "md" | "lg"
+  transparent?: boolean
 }
 
 const paddings = {
@@ -16,8 +17,8 @@ const { icon, title, description, size = "sm" } = defineProps<Props>()
 </script>
 <template>
   <div
-    class="border-neutral flex flex-col items-center justify-center gap-2 rounded-lg border bg-white px-5"
-    :class="paddings[size]"
+    class="flex flex-col items-center justify-center gap-2 rounded-lg px-5"
+    :class="[paddings[size], transparent ? 'bg-transparent' : 'border-neutral border bg-white']"
   >
     <div
       v-if="icon"

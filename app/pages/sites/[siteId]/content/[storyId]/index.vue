@@ -87,7 +87,7 @@ async function deleteStory() {
 </script>
 
 <template>
-  <DPageTitle :title="currentStory?.title || 'Content'">
+  <DPageTitle :title="currentStory?.title || 'Untitled Story'">
     <template #subtitle>
       <p class="text-copy-sm text-neutral-subtle">
         {{ currentStory?.slug }}
@@ -95,6 +95,7 @@ async function deleteStory() {
     </template>
     <DButton @click="isCreateModalOpen = true">Add Story</DButton>
   </DPageTitle>
+
   <DPageWrapper>
     <div class="py-5">
       <DStoryList
