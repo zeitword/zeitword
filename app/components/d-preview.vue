@@ -124,9 +124,9 @@ onBeforeUnmount(() => {
   >
     <div
       v-if="!isIframeReady"
-      class="absolute inset-0 flex items-center justify-center bg-gray-50"
+      class="bg-neutral-weak absolute inset-0 flex items-center justify-center"
     >
-      <div class="text-gray-500">Loading preview...</div>
+      <div class="text-neutral">Loading preview...</div>
     </div>
     <iframe
       id="previewFrame"

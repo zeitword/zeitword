@@ -10,7 +10,7 @@ const { toast } = useToast()
 
 const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
 
-const showJson = ref(true)
+const showJson = ref(false)
 
 const {
   data: story,
