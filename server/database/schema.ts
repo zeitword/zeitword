@@ -256,3 +256,11 @@ export const storiesRelations = relations(stories, ({ one }) => ({
     references: [organisations.id]
   })
 }))
+
+export const waitlist = pgTable("waitlist", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  email: text().notNull().unique(),
+  confirmed: boolean().notNull().default(false),
+  confirmationToken: text().notNull().unique(),
+  ...timestamps
+})

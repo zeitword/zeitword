@@ -23,7 +23,14 @@ export default defineNuxtConfig({
     s3Region: "",
 
     // Postmark credentials
-    postmarkServerToken: ""
+    postmarkServerToken: "",
+
+    //Resend
+    resend: "",
+
+    public: {
+      siteUrl: ""
+    }
   },
 
   nitro: {
