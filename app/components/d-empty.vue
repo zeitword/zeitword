@@ -18,7 +18,7 @@ const { icon, title, description, size = "sm" } = defineProps<Props>()
 <template>
   <div
     class="flex flex-col items-center justify-center gap-2 rounded-lg px-5"
-    :class="[paddings[size], transparent ? 'bg-transparent' : 'border-neutral border bg-white']"
+    :class="[paddings[size], transparent ? 'bg-transparent' : 'border-neutral bg-neutral border']"
   >
     <div
       v-if="icon"

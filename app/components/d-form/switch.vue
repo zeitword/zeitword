@@ -2,8 +2,8 @@
   <button
     type="button"
     :class="[
-      'group focus-visble:ring-2 relative box-content inline-flex w-10 flex-shrink-0 cursor-pointer rounded-full border p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-indigo-600 focus-visible:ring-offset-2',
-      modelValue ? 'bg-neutral-800' : 'border-neutral-300 bg-neutral-100'
+      'group focus-visble:ring-2 relative box-content inline-flex w-10 flex-shrink-0 cursor-pointer rounded-full border p-0.5 transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-blue-600 focus-visible:ring-offset-2',
+      modelValue ? 'bg-neutral-inverse border-neutral' : 'bg-neutral-subtle border-neutral'
     ]"
     :aria-checked="modelValue"
     @click="toggle"

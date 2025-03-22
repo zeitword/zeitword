@@ -23,7 +23,7 @@ const route = useRoute()
             ? 'text-neutral border-neutral-strong'
             : 'text-neutral-subtle border-transparent'
         "
-        class="group border-b-2 py-2 transition duration-150 ease-in-out hover:text-gray-900"
+        class="group hover:text-neutral border-b-2 py-2 transition duration-150 ease-in-out"
       >
         <div class="group-hover:bg-neutral-subtle text-copy rounded-lg px-3 py-1">
           {{ item?.name }}

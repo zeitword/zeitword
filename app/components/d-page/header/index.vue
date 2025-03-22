@@ -62,6 +62,7 @@ const initials = computed(() => {
         </template>
       </div>
       <div class="flex items-center gap-2">
+        <DThemeSwitcher />
         <DButton
           :icon-left="LogOutIcon"
           variant="secondary"

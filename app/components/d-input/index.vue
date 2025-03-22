@@ -61,7 +61,9 @@ const [model, modifiers] = defineModel<string | number>({
   <div
     class="bg-neutral border-neutral text-neutral text-copy has-[:focus]:bg-neutral flex h-9 overflow-hidden rounded-lg border leading-none transition-all outline-none has-[:focus]:border-blue-600 has-[:focus]:ring-2 has-[:focus]:ring-blue-300"
     :class="[
-      disabled ? 'cursor-not-allowed bg-neutral-100 opacity-50' : 'hover:border-neutral-strong/30'
+      disabled
+        ? 'bg-neutral-strong cursor-not-allowed opacity-50'
+        : 'hover:border-neutral-strong/30'
     ]"
   >
     <div

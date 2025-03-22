@@ -206,7 +206,7 @@ async function save() {
         </DFormGroup>
         <DFormGroup>
           <DFormLabel name="required">Required</DFormLabel>
-          <DInputSwitch
+          <DFormSwitch
             id="required"
             name="required"
             v-model="formData.required"
@@ -372,7 +372,7 @@ async function save() {
         <template v-if="formData.fieldType === 'boolean'">
           <DFormGroup>
             <DFormLabel name="default-value">Default Value</DFormLabel>
-            <DInputSwitch
+            <DFormSwitch
               id="default-value"
               name="default-value"
               v-model="formData.defaultValue"

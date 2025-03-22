@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
       <div
         v-for="(field, index) in sortedFields"
         :key="field.fieldKey"
-        class="hover:bg-neutral-hover group border-neutral flex border-b bg-white px-4 last:border-transparent"
+        class="hover:bg-neutral-hover group border-neutral bg-neutral flex border-b px-4 last:border-transparent"
       >
         <div class="text-copy flex flex-1 items-center gap-3">
           <DButton

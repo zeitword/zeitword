@@ -32,10 +32,10 @@ const open = ref(false)
   >
     <SelectTrigger
       :disabled="disabled"
-      class="bg-neutral border-neutral hover: flex cursor-default items-center justify-between rounded-lg border px-2.5 text-sm outline-none select-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
+      class="bg-neutral border-neutral hover: focus:bg-neutral flex cursor-default items-center justify-between rounded-lg border px-2.5 text-sm outline-none select-none focus:border-blue-600 focus:ring-2 focus:ring-blue-300"
       :class="[
         disabled
-          ? 'cursor-not-allowed bg-neutral-100 opacity-50'
+          ? 'bg-neutral-strong cursor-not-allowed opacity-50'
           : 'hover:border-neutral-strong/30',
         size === 'sm' ? 'h-7' : 'h-9'
       ]"
@@ -58,7 +58,7 @@ const open = ref(false)
         position="popper"
         side="bottom"
         align="start"
-        class="border-neutral z-[9999] w-[var(--reka-select-trigger-width)] rounded-lg border bg-white shadow-sm"
+        class="border-neutral bg-neutral z-[9999] w-[var(--reka-select-trigger-width)] rounded-lg border shadow-sm"
         :side-offset="5"
         ref="selectContentRef"
       >
@@ -67,7 +67,7 @@ const open = ref(false)
             v-for="option in options"
             :key="String(option.value)"
             :value="option.value as string | number"
-            class="hover:bg-neutral-hover focus:bg-neutral-hover flex cursor-default items-center justify-between rounded-md px-2.5 py-1.5 text-sm text-neutral-900 select-none focus:outline-0"
+            class="hover:bg-neutral-hover focus:bg-neutral-hover text-neutral flex cursor-default items-center justify-between rounded-md px-2.5 py-1.5 text-sm select-none focus:outline-0"
           >
             <SelectItemText>
               {{ option.display }}
