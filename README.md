@@ -66,7 +66,12 @@ Zeitword is built with modern and reliable technologies:
    ```
    The example configuration includes default values for local development with PostgreSQL and MinIO.
 
-4. **Start Development Server**
+4. **Run Migrations**
+   ```bash
+   bunx drizzle-kit migrate
+   ```
+
+5. **Start Development Server**
    ```bash
    bun dev
    ```
@@ -111,7 +116,7 @@ For local development, the `.env.example` comes pre-configured for the included 
    NUXT_SESSION_PASSWORD="your-secure-session-password"
    ```
    - `NUXT_DSN`: PostgreSQL connection string
-   - `NUXT_SESSION_PASSWORD`: Secret key for session encryption (use a strong random string)
+   - `NUXT_SESSION_PASSWORD`: Secret key for session encryption (this MUST be atleast 32 chars)
 
 2. **S3 Storage Configuration**
    ```env
