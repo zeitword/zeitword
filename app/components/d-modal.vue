@@ -58,13 +58,13 @@ function confirm() {
           class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 fixed inset-0 z-10 backdrop-blur-xs"
         />
         <DialogContent
-          class="data-[state=open]:animate-contentShow relative z-20 flex w-full flex-col rounded-lg bg-white shadow-lg outline-none"
+          class="data-[state=open]:animate-contentShow relative z-20 flex w-full flex-col rounded-lg bg-neutral shadow-lg outline-none"
           :class="[sizeClasses[size], 'max-h-[80vh]']"
         >
           <!-- Header -->
           <div class="border-neutral flex items-center justify-between border-b p-5">
             <div>
-              <DialogTitle class="text-lg font-semibold text-neutral-900">
+              <DialogTitle class="text-lg font-semibold text-neutral">
                 {{ title }}
               </DialogTitle>
               <DialogDescription
