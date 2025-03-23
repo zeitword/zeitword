@@ -67,7 +67,7 @@ const handleClear = (e: Event) => {
     :disabled="props.disabled"
   >
     <ComboboxAnchor
-      class="bg-neutral border-neutral hover: flex min-h-[2.25rem] w-full cursor-default items-center justify-between rounded-lg border text-sm outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
+      class="bg-neutral border-neutral hover: flex min-h-[2.25rem] w-full cursor-default items-center justify-between rounded-lg border text-sm outline-none focus:border-blue-600 focus:bg-neutral focus:ring-2 focus:ring-blue-300"
       :class="[
         props.disabled
           ? 'cursor-not-allowed bg-neutral-100 opacity-50'
