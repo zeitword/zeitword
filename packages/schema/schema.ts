@@ -1,266 +1,493 @@
-import type { fieldTypeEnum } from "./drizzle/schema";
+import type { fieldTypeEnum } from "./drizzle/schema"
 
-type DFieldType = (typeof fieldTypeEnum.enumValues)[number];
+type DFieldType = (typeof fieldTypeEnum.enumValues)[number]
 type DField = {
-  displayName: string;
-  type: DFieldType;
-  required?: boolean;
-  description?: string;
-  options?: { key: string; value: string }[];
-  componentWhitelist?: string[];
-};
+  displayName: string
+  type: DFieldType
+  required?: boolean
+  description?: string
+  options?: { key: string; value: string }[]
+  componentWhitelist?: string[]
+}
 type DComponent = {
-  name: string;
-  displayName: string;
-  previewField?: string;
+  name: string
+  displayName: string
+  previewField?: string
   fields: {
-    [key: string]: DField;
-  };
-};
+    [key: string]: DField
+  }
+}
 
 type DSchema = {
-  [key: string]: DComponent;
-};
+  [key: string]: DComponent
+}
 
-const colorField: DField = {
-  displayName: "Color",
-  type: "option",
-  options: [
-    { key: "slate", value: "Slate" },
-    { key: "gray", value: "Gray" },
-    { key: "zinc", value: "Zinc" },
-    { key: "neutral", value: "Neutral" },
-    { key: "stone", value: "Stone" },
-    { key: "red", value: "Red" },
-    { key: "orange", value: "Orange" },
-    { key: "amber", value: "Amber" },
-    { key: "yellow", value: "Yellow" },
-    { key: "lime", value: "Lime" },
-    { key: "green", value: "Green" },
-    { key: "emerald", value: "Emerald" },
-    { key: "teal", value: "Teal" },
-    { key: "cyan", value: "Cyan" },
-    { key: "sky", value: "Sky" },
-    { key: "blue", value: "Blue" },
-    { key: "indigo", value: "Indigo" },
-    { key: "violet", value: "Violet" },
-    { key: "purple", value: "Purple" },
-    { key: "fuchsia", value: "Fuchsia" },
-    { key: "pink", value: "Pink" },
-    { key: "rose", value: "Rose" },
-  ],
-};
+const linkField: DField = {
+  displayName: "Link",
+  type: "link"
+}
 
-const organisationField: DField = {
-  displayName: "Organisation",
-  type: "option",
-  options: [
-    { key: "Gesamtschule", value: "Gesamtschule" },
-    { key: "Grundschule", value: "Grundschule" },
-    { key: "Kita", value: "Kita" },
-    { key: "Geschäftsführung", value: "Geschäftsführung" },
-    { key: "Verwaltung", value: "Verwaltung" },
-    { key: "Hausmeisterei", value: "Hausmeisterei" },
-    { key: "Küche", value: "Küche" },
-    { key: "Reinigung", value: "Reinigung" },
-  ],
-};
+const imageField: DField = {
+  displayName: "Image",
+  type: "asset"
+}
 
-const departmentField: DField = {
-  displayName: "Department",
-  type: "option",
-  options: [
-    { key: "Schulleitungsteam", value: "Schulleitungsteam" },
-    { key: "Pädagogisches Team", value: "Pädagogisches Team" },
-    { key: "Verwaltungsteam", value: "Verwaltungsteam" },
-    { key: "Leitung", value: "Leitung" },
-    { key: "Organisation", value: "Organisation" },
-  ],
-};
+const videoField: DField = {
+  displayName: "Video",
+  type: "asset"
+}
 
-const contentFields: { [key: string]: DField } = {
-  headline: {
-    displayName: "Headline",
-    type: "text",
+const titleField: DField = { displayName: "Title", type: "text" }
+const headingField: DField = { displayName: "Heading", type: "text" }
+const descriptionField: DField = { displayName: "Description", type: "textarea" }
+
+const iconField: DField = { displayName: "Icon", type: "text" } // Simplified, assuming icon name is stored as text.  Consider "custom" if you need a dedicated icon picker.
+
+const buttonFields: { [key: string]: DField } = {
+  text: { displayName: "Text", type: "text" },
+  link: linkField,
+  variant: {
+    displayName: "Variant",
+    type: "option",
+    options: [
+      { key: "primary", value: "Primary" },
+      { key: "secondary", value: "Secondary" },
+      { key: "transparent", value: "Transparent" },
+      { key: "text", value: "Text" },
+      { key: "accent", value: "Accent" }
+    ]
   },
-  color: colorField,
-  title: {
-    displayName: "Title",
-    type: "text",
+  inverse: { displayName: "Inverse", type: "boolean" }
+}
+
+const cardFields: { [key: string]: DField } = {
+  variant: {
+    displayName: "Variant",
+    type: "option",
+    options: [
+      { key: "neutral", value: "Neutral" },
+      { key: "white", value: "White" },
+      { key: "accent", value: "Accent" }
+    ]
   },
-  subtitle: {
-    displayName: "Subtitle",
-    type: "text",
-  },
-  description: {
-    displayName: "Description",
-    type: "textarea",
-  },
-  buttons: {
-    displayName: "Buttons",
+  icon: iconField,
+  image: imageField,
+  number: { displayName: "Number", type: "text" },
+  heading: headingField,
+  title: titleField,
+  description: descriptionField,
+  button: {
+    displayName: "Button",
     type: "blocks",
-    componentWhitelist: ["button"],
+    componentWhitelist: ["button"]
   },
-};
+  link: linkField,
+  interactive: { displayName: "Interactive", type: "boolean" }
+}
+
+const introFields: { [key: string]: DField } = {
+  heading: headingField,
+  title: titleField,
+  level: {
+    displayName: "Heading Level",
+    type: "option",
+    options: [
+      { key: "1", value: "H1" },
+      { key: "2", value: "H2" },
+      { key: "3", value: "H3" },
+      { key: "4", value: "H4" },
+      { key: "5", value: "H5" },
+      { key: "6", value: "H6" }
+    ]
+  },
+  width: {
+    displayName: "Width",
+    type: "option",
+    options: [
+      { key: "xs", value: "Extra Small" },
+      { key: "sm", value: "Small" },
+      { key: "md", value: "Medium" },
+      { key: "lg", value: "Large" }
+    ]
+  },
+  description: descriptionField,
+  button: {
+    displayName: "Button",
+    type: "blocks",
+    componentWhitelist: ["button"]
+  },
+  center: { displayName: "Centered", type: "boolean" },
+  inverse: { displayName: "Inverse", type: "boolean" }
+}
+
+const backgroundField: DField = {
+  displayName: "Background Color",
+  type: "option",
+  options: [
+    { key: "white", value: "White" },
+    { key: "neutral", value: "Neutral" },
+    { key: "accent", value: "Accent" },
+    { key: "transparent", value: "Transparent" }
+  ]
+}
+
+const spacingField: DField = {
+  displayName: "Spacing",
+  type: "custom"
+}
 
 export const schema: DSchema = {
-  page: {
-    name: "page",
-    displayName: "Page",
-    fields: {
-      title: { displayName: "Title", type: "text" },
-      blocks: {
-        displayName: "Blocks",
-        type: "blocks",
-        componentWhitelist: [
-          "section-cards",
-          "section-gallery",
-          "section-general",
-          "section-hero",
-          "section-image",
-          "section-intro",
-          "section-join",
-          "section-posts",
-          "section-streetview",
-          "section-team-grid",
-          "section-team",
-          "section-video",
-        ],
-      },
-    },
-  },
-  button: {
-    name: "button",
+  "base-button": {
+    name: "base-button",
     displayName: "Button",
-    previewField: "link",
+    previewField: "text",
+    fields: buttonFields
+  },
+  "base-card": {
+    name: "base-card",
+    displayName: "Card",
+    previewField: "title",
+    fields: cardFields
+  },
+  "base-teaser-card2": {
+    name: "base-teaser-card2",
+    displayName: "Teaser Card",
+    previewField: "title",
+    fields: cardFields
+  },
+  "base-intro": {
+    name: "base-intro",
+    displayName: "Intro",
+    previewField: "title",
+    fields: introFields
+  },
+  "base-image": {
+    name: "base-image",
+    displayName: "Image",
+    fields: {
+      image: imageField
+    }
+  },
+  "base-video": {
+    name: "base-video",
+    displayName: "Video",
+    fields: {
+      video: videoField
+    }
+  },
+  "base-heading": {
+    name: "base-heading",
+    displayName: "Heading",
+    fields: {
+      level: {
+        displayName: "Heading Level",
+        type: "option",
+        options: [
+          { key: "1", value: "H1" },
+          { key: "2", value: "H2" },
+          { key: "3", value: "H3" },
+          { key: "4", value: "H4" },
+          { key: "5", value: "H5" },
+          { key: "6", value: "H6" }
+        ]
+      },
+      inverse: { displayName: "Inverse", type: "boolean" },
+      text: { displayName: "Text", type: "text" }
+    }
+  },
+  "base-title": {
+    name: "base-title",
+    displayName: "Title",
+    fields: {
+      level: {
+        displayName: "Heading Level",
+        type: "option",
+        options: [
+          { key: "1", value: "H1" },
+          { key: "2", value: "H2" },
+          { key: "3", value: "H3" },
+          { key: "4", value: "H4" },
+          { key: "5", value: "H5" },
+          { key: "6", value: "H6" }
+        ]
+      },
+      inverse: { displayName: "Inverse", type: "boolean" },
+      neutral: { displayName: "Neutral", type: "boolean" },
+      text: { displayName: "Text", type: "text" }
+    }
+  },
+  "base-text": {
+    name: "base-text",
+    displayName: "Text",
     fields: {
       text: { displayName: "Text", type: "text" },
-      link: { displayName: "Link", type: "link" },
+      size: {
+        displayName: "Size",
+        type: "option",
+        options: [
+          { key: "2xl", value: "2xl" },
+          { key: "xl", value: "xl" },
+          { key: "lg", value: "lg" },
+          { key: "md", value: "md" },
+          { key: "sm", value: "sm" },
+          { key: "xs", value: "xs" }
+        ]
+      },
+      inverse: { displayName: "Inverse", type: "boolean" },
       variant: {
         displayName: "Variant",
         type: "option",
         options: [
-          { key: "primary", value: "Primary" },
-          { key: "secondary", value: "Secondary" },
-          { key: "link", value: "Link" },
-        ],
+          { key: "subtle", value: "Subtle" },
+          { key: "strong", value: "Strong" }
+        ]
+      }
+    }
+  },
+  "base-checkmark": {
+    name: "base-checkmark",
+    displayName: "Checkmark",
+    fields: {
+      text: { displayName: "Text", type: "text" },
+      inverse: { displayName: "Inverse", type: "boolean" }
+    }
+  },
+  "base-link": {
+    name: "base-link",
+    displayName: "Link",
+    fields: {
+      inverse: { displayName: "Inverse", type: "boolean" },
+      ...linkField
+    }
+  },
+  "base-boxed-icon": {
+    name: "base-boxed-icon",
+    displayName: "Boxed Icon",
+    fields: {
+      icon: iconField,
+      text: { displayName: "Text", type: "text" },
+      fg: { displayName: "Foreground Color", type: "text" },
+      bg: { displayName: "Background Color", type: "text" }
+    }
+  },
+
+  "block-cards1": {
+    name: "block-cards1",
+    displayName: "Cards Block",
+    previewField: "intro.title",
+    fields: {
+      id: { displayName: "ID", type: "text" },
+      background: backgroundField,
+      intro: {
+        displayName: "Intro",
+        type: "blocks",
+        componentWhitelist: ["base-intro"]
       },
-    },
-  },
-  card: {
-    name: "card",
-    displayName: "Card",
-    previewField: "title",
-    fields: contentFields,
-  },
-  team_member: {
-    name: "team-member",
-    displayName: "Team Member",
-    previewField: "first_name",
-    fields: {
-      first_name: { displayName: "First Name", type: "text" },
-      last_name: { displayName: "Last Name", type: "text" },
-      position: { displayName: "Position", type: "text" },
-      image: { displayName: "Image", type: "asset" },
-      organisation: organisationField,
-      department: departmentField,
-    },
-  },
-  section_cards: {
-    name: "section-cards",
-    displayName: "Section Cards",
-    previewField: "title",
-    fields: {
-      ...contentFields,
       cards: {
         displayName: "Cards",
         type: "blocks",
-        componentWhitelist: ["card"],
+        componentWhitelist: ["base-card"]
       },
-    },
-  },
-  section_gallery: {
-    name: "section-gallery",
-    displayName: "Section Gallery",
-    fields: {
-      images: { displayName: "Images", type: "assets" },
-    },
-  },
-  section_general: {
-    name: "section-general",
-    displayName: "Section General",
-    fields: {
-      ...contentFields,
-      image: { displayName: "Image", type: "asset" },
-    },
-  },
-  section_hero: {
-    name: "section-hero",
-    displayName: "Section Hero",
-    previewField: "title",
-    fields: {
-      color: colorField,
-      title: { displayName: "Title", type: "text" },
       buttons: {
         displayName: "Buttons",
         type: "blocks",
-        componentWhitelist: ["button"],
+        componentWhitelist: ["base-button"]
+      }
+    }
+  },
+  "block-cta1": {
+    name: "block-cta1",
+    displayName: "CTA Block",
+    fields: {
+      background: backgroundField,
+      heading: headingField,
+      title: titleField,
+      description: descriptionField,
+      benefits: {
+        displayName: "Benefits",
+        type: "textarea",
+        description: "List of benefits (one per line)"
       },
-      image: { displayName: "Image", type: "asset" },
-    },
+      buttons: {
+        displayName: "Buttons",
+        type: "blocks",
+        componentWhitelist: ["base-button"]
+      }
+    }
   },
-  section_image: {
-    name: "section-image",
-    displayName: "Section Image",
+  "block-footer1": {
+    name: "block-footer1",
+    displayName: "Footer Block",
+    previewField: "company",
     fields: {
-      image: { displayName: "Image", type: "asset" },
-    },
+      id: { displayName: "ID", type: "text" },
+      background: backgroundField,
+      spacing: spacingField,
+
+      links: {
+        displayName: "Links",
+        type: "blocks",
+        componentWhitelist: ["text-link"]
+      },
+      legal: {
+        displayName: "Legal Links",
+        type: "blocks",
+        componentWhitelist: ["text-link"]
+      },
+      logo: {
+        displayName: "Logo",
+        type: "blocks",
+        componentWhitelist: ["image-link"]
+      },
+      company: { displayName: "Company Name", type: "text" },
+      disclaimer: { displayName: "Disclaimer", type: "textarea" },
+      badge: {
+        displayName: "Badge",
+        type: "blocks",
+        componentWhitelist: ["badge"]
+      }
+    }
   },
-  section_intro: {
-    name: "section-intro",
-    displayName: "Section Intro",
-    fields: contentFields,
-  },
-  section_join: {
-    name: "section-join",
-    displayName: "Section Join",
-    fields: {},
-  },
-  section_posts: {
-    name: "section-posts",
-    displayName: "Section Posts",
-    fields: {},
-  },
-  section_streetview: {
-    name: "section-streetview",
-    displayName: "Section Streetview",
+  "block-hero1": {
+    name: "block-hero1",
+    displayName: "Hero Block",
     fields: {
-      url: { displayName: "URL", type: "link" },
-    },
+      id: { displayName: "ID", type: "text" },
+      background: backgroundField,
+      video: {
+        displayName: "Video",
+        type: "blocks",
+        componentWhitelist: ["base-video"]
+      },
+      image: {
+        displayName: "Image",
+        type: "blocks",
+        componentWhitelist: ["base-image"]
+      },
+      heading: headingField,
+      title: titleField,
+      level: {
+        displayName: "Level",
+        type: "number"
+      },
+      description: descriptionField,
+      width: {
+        displayName: "Width",
+        type: "text"
+      },
+      buttons: {
+        displayName: "Buttons",
+        type: "blocks",
+        componentWhitelist: ["base-button"]
+      },
+      benefits: {
+        displayName: "Benefits",
+        type: "text"
+      },
+      center: { displayName: "Center Content", type: "boolean" }
+    }
   },
-  section_team_grid: {
-    name: "section-team-grid",
-    displayName: "Section Team Grid",
-    previewField: "title",
+  "block-html1": {
+    name: "block-html1",
+    displayName: "HTML Block",
     fields: {
-      ...contentFields,
-      organisation: organisationField,
-      department: departmentField,
-    },
+      background: backgroundField,
+      html: { displayName: "HTML", type: "richtext" }
+    }
   },
-  section_team: {
-    name: "section-team",
-    displayName: "Section Team",
+  "block-image2": {
+    name: "block-image2",
+    displayName: "Image Block 2",
     fields: {
-      organisation: organisationField,
-      department: departmentField,
-    },
+      id: { displayName: "ID", type: "text" },
+      background: backgroundField,
+      spacing: spacingField,
+      intro: {
+        displayName: "Intro",
+        type: "blocks",
+        componentWhitelist: ["base-intro"]
+      },
+      image: {
+        displayName: "Image",
+        type: "blocks",
+        componentWhitelist: ["base-image"]
+      }
+    }
   },
-  section_video: {
-    name: "section-video",
-    displayName: "Section Video",
+  "block-image3": {
+    name: "block-image3",
+    displayName: "Image Block 3",
     fields: {
-      video: { displayName: "Video", type: "asset" },
-    },
+      background: backgroundField,
+      intro: {
+        displayName: "Intro",
+        type: "blocks",
+        componentWhitelist: ["base-intro"]
+      },
+      image: {
+        displayName: "Image",
+        type: "blocks",
+        componentWhitelist: ["base-image"]
+      }
+    }
   },
-};
+  "block-intro1": {
+    name: "block-intro1",
+    displayName: "Intro Block",
+    fields: {
+      id: { displayName: "ID", type: "text" },
+      background: backgroundField,
+      spacing: spacingField,
+      ...introFields
+    }
+  },
+  "block-navigation1": {
+    name: "block-navigation1",
+    displayName: "Navigation Block",
+    fields: {
+      logo: {
+        displayName: "Logo",
+        type: "blocks",
+        componentWhitelist: ["image-link"]
+      },
+      links: {
+        displayName: "Links",
+        type: "blocks",
+        componentWhitelist: ["base-link"]
+      },
+      button: {
+        displayName: "Button",
+        type: "blocks",
+        componentWhitelist: ["base-button"]
+      },
+      startInverted: { displayName: "Start Inverted", type: "boolean" }
+    }
+  },
+
+  // Helper Components (Used within blocks)
+  "text-link": {
+    name: "text-link",
+    displayName: "Text Link",
+    fields: {
+      text: { displayName: "Text", type: "text" },
+      link: linkField
+    }
+  },
+  "image-link": {
+    name: "image-link",
+    displayName: "Image Link",
+    fields: {
+      image: imageField,
+      link: linkField
+    }
+  },
+  badge: {
+    name: "badge",
+    displayName: "Badge",
+    fields: {
+      logo: imageField,
+      text: { displayName: "Text", type: "text" },
+      link: linkField
+    }
+  }
+}
