@@ -60,6 +60,47 @@ export default defineEventHandler(async (event) => {
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
+  // Validate min/max values based on field type
+  if (data.fieldType === 'text' || data.fieldType === 'textarea') {
+    if (data.defaultValue && data.minValue && data.defaultValue.length < data.minValue) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Default value length must be at least ${data.minValue} characters`
+      });
+    }
+    
+    if (data.defaultValue && data.maxValue && data.defaultValue.length > data.maxValue) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Default value length cannot exceed ${data.maxValue} characters`
+      });
+    }
+  }
+  
+  if (data.fieldType === 'number') {
+    if (data.defaultValue !== null && data.minValue !== null && Number(data.defaultValue) < data.minValue) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Default value must be at least ${data.minValue}`
+      });
+    }
+    
+    if (data.defaultValue !== null && data.maxValue !== null && Number(data.defaultValue) > data.maxValue) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Default value cannot exceed ${data.maxValue}`
+      });
+    }
+  }
+  
+  // Make sure min is less than max if both are provided
+  if (data.minValue !== null && data.maxValue !== null && data.minValue > data.maxValue) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `Minimum value cannot be greater than maximum value`
+    });
+  }
+
   const db = useDrizzle()
 
   const tx = await db.transaction(async (tx) => {
