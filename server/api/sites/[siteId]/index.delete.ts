@@ -30,6 +30,74 @@ export default defineEventHandler(async (event) => {
         })
       }
 
+      // Get all stories to validate content before deletion
+      const siteStories = await tx
+        .select()
+        .from(stories)
+        .where(and(eq(stories.siteId, siteId), eq(stories.organisationId, secure.organisationId)))
+
+      // Get all components to check for references
+      const siteComponents = await tx
+        .select()
+        .from(components)
+        .where(and(eq(components.siteId, siteId), eq(components.organisationId, secure.organisationId)))
+
+      // Get all component fields to validate content against
+      const siteComponentFields = await tx
+        .select()
+        .from(componentFields)
+        .where(and(eq(componentFields.siteId, siteId), eq(componentFields.organisationId, secure.organisationId)))
+
+      // Check for orphaned data in stories content
+      for (const story of siteStories) {
+        // Validate that the story's content references valid components and fields
+        const content = story.content as any
+        if (content && typeof content === 'object') {
+          // Validate component references
+          if (content.componentId) {
+            const componentExists = siteComponents.some(comp => comp.id === content.componentId);
+            if (!componentExists) {
+              throw createError({
+                statusCode: 400,
+                statusMessage: `Story '${story.title}' references a non-existent component`
+              });
+            }
+          }
+          
+          // Validate fields in content
+          if (content.fields && typeof content.fields === 'object') {
+            for (const fieldKey in content.fields) {
+              const fieldExists = siteComponentFields.some(
+                field => field.componentId === story.componentId && field.fieldKey === fieldKey
+              );
+              
+              if (!fieldExists) {
+                throw createError({
+                  statusCode: 400,
+                  statusMessage: `Story '${story.title}' contains invalid field '${fieldKey}'`
+                });
+              }
+            }
+          }
+          
+          // Check for nested components
+          if (Array.isArray(content.children)) {
+            for (const child of content.children) {
+              if (child.componentId) {
+                const childComponentExists = siteComponents.some(comp => comp.id === child.componentId);
+                if (!childComponentExists) {
+                  throw createError({
+                    statusCode: 400,
+                    statusMessage: `Story '${story.title}' contains a nested component that doesn't exist`
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Delete in proper order to respect foreign key constraints
       await tx
         .delete(stories)
         .where(and(eq(stories.siteId, siteId), eq(stories.organisationId, secure.organisationId)))
