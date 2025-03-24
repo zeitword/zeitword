@@ -24,7 +24,7 @@ async function login() {
     await refresh()
     await navigateTo("/sites")
   } catch (e) {
-    errorMsg.value = "Ungültige Anmeldedaten"
+    errorMsg.value = "Invalid credentials"
   } finally {
     loading.value = false
   }
@@ -41,50 +41,50 @@ async function login() {
         class="flex flex-col gap-4"
       >
         <div class="flex flex-col gap-1">
-          <d-label for="email">E-Mail</d-label>
+          <d-label for="email">Email</d-label>
           <d-input
             v-model="email"
             type="email"
             id="email"
             name="email"
             required
-            placeholder="Deine E-Mail-Adresse"
+            placeholder="Your email address"
           />
         </div>
 
         <div class="flex flex-col gap-1">
-          <d-label for="password">Passwort</d-label>
+          <d-label for="password">Password</d-label>
           <d-input
             v-model="password"
             type="password"
             id="password"
             name="password"
             required
-            placeholder="Dein Passwort"
+            placeholder="Your password"
           />
         </div>
 
         <div class="flex flex-col items-stretch gap-2">
           <DButton
-            :loading
+            :loading="loading"
             type="submit"
             text-center
           >
-            Anmelden
+            Login
           </DButton>
           <DButton
             to="/register"
             variant="secondary"
             text-center
           >
-            Registrieren
+            Register
           </DButton>
           <DButton
             to="/forgot-password"
             variant="transparent"
             text-center
           >
-            Passwort vergessen?
+            Forgot password?
           </DButton>
         </div>
 

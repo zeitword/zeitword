@@ -9,6 +9,7 @@ type DField = {
   options?: { key: string; value: string }[]
   componentWhitelist?: string[]
 }
+
 type DComponent = {
   name: string
   displayName: string
