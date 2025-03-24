@@ -78,6 +78,13 @@ export default defineEventHandler(async (event) => {
   }
   
   if (data.fieldType === 'number') {
+    if (data.defaultValue !== null && isNaN(Number(data.defaultValue))) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: `Default value must be a valid number`
+        });
+      }
+
     if (data.defaultValue !== null && data.minValue !== null && Number(data.defaultValue) < data.minValue) {
       throw createError({
         statusCode: 400,
