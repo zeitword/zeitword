@@ -67,26 +67,26 @@ const handleClear = (e: Event) => {
     :disabled="props.disabled"
   >
     <ComboboxAnchor
-      class="bg-neutral border-neutral hover: flex min-h-[2.25rem] w-full cursor-default items-center justify-between rounded-lg border text-sm outline-none focus:border-blue-600 focus:bg-neutral focus:ring-2 focus:ring-blue-300"
+      class="bg-neutral border-neutral hover: focus:bg-neutral flex min-h-[2.25rem] w-full cursor-default items-center justify-between rounded-lg border px-2 py-1.5 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-300"
       :class="[
         props.disabled
-          ? 'cursor-not-allowed bg-neutral-100 opacity-50'
+          ? 'bg-neutral-subtle cursor-not-allowed opacity-50'
           : 'hover:border-neutral-strong/30'
       ]"
     >
-      <div class="flex min-h-6 flex-1 flex-wrap items-center gap-1 overflow-hidden pl-2.5">
+      <div class="flex min-h-6 flex-1 flex-wrap items-center gap-1 overflow-hidden">
         <template v-if="props.multiple">
           <template v-if="Array.isArray(model) && model.length">
             <div
               v-for="item in model"
               :key="String(item.value)"
-              class="flex items-center rounded bg-neutral-100 px-1 text-xs"
+              class="bg-neutral-subtle flex items-center gap-1 rounded-lg py-1 pr-1 pl-2 text-xs"
             >
               <span>{{ item.display }}</span>
               <button
                 type="button"
                 @click.stop="model = model.filter((i) => i.value !== item.value)"
-                class="ml-1"
+                class="hover:bg-neutral grid size-5 place-items-center rounded"
               >
                 <XIcon class="size-3" />
               </button>
@@ -94,7 +94,7 @@ const handleClear = (e: Event) => {
           </template>
           <ComboboxInput
             :placeholder="Array.isArray(model) && model.length ? '' : props.placeholder"
-            class="h-7 flex-1 resize-y border-0 bg-transparent px-0 py-1.5 text-sm outline-none placeholder:text-neutral-500"
+            class="flex-1 resize-y border-0 bg-transparent px-0 text-sm outline-none placeholder:text-neutral-500"
           />
         </template>
         <template v-else>
@@ -111,24 +111,26 @@ const handleClear = (e: Event) => {
           </span>
         </template>
       </div>
-      <div class="flex items-center pr-2.5">
+      <div class="flex items-center gap-1">
         <ComboboxCancel
           v-if="
             (props.multiple && Array.isArray(model) && model.length) || (!props.multiple && model)
           "
           @click="handleClear"
+          as-child
         >
-          <XIcon class="size-4 text-neutral-700" />
+          <DButton
+            :icon-left="XIcon"
+            variant="secondary"
+            size="sm"
+          ></DButton>
         </ComboboxCancel>
         <ComboboxTrigger>
-          <ChevronDownIcon
-            v-if="!open"
-            class="size-4 text-neutral-700"
-          />
-          <ChevronUpIcon
-            v-else
-            class="size-4 text-neutral-700"
-          />
+          <DButton
+            :icon-left="open ? ChevronUpIcon : ChevronDownIcon"
+            variant="secondary"
+            size="sm"
+          ></DButton>
         </ComboboxTrigger>
       </div>
     </ComboboxAnchor>
@@ -138,7 +140,7 @@ const handleClear = (e: Event) => {
         position="popper"
         side="bottom"
         align="start"
-        class="border-neutral z-[9999] w-[var(--reka-combobox-trigger-width)] rounded-lg border bg-white shadow-sm"
+        class="border-neutral bg-neutral z-[9999] w-[var(--reka-combobox-trigger-width)] rounded-lg border shadow-sm"
         :side-offset="5"
       >
         <ComboboxViewport class="max-h-48 overflow-auto p-1">
@@ -146,7 +148,7 @@ const handleClear = (e: Event) => {
             v-for="option in filteredOptions"
             :key="String(option.value)"
             :value="option"
-            class="hover:bg-neutral-hover focus:bg-neutral-hover flex cursor-default items-center justify-between rounded-md px-2.5 py-1.5 text-sm text-neutral-900 select-none focus:outline-0"
+            class="hover:bg-neutral-hover focus:bg-neutral-hover text-neutral flex cursor-default items-center justify-between rounded-md px-2.5 py-1.5 text-sm select-none focus:outline-0"
           >
             <span>
               {{ option.display }}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Trash2 } from "lucide-vue-next"
+import { Trash2, BlocksIcon } from "lucide-vue-next"
 
 definePageMeta({
   layout: "site"
@@ -9,7 +9,6 @@ const siteId = useRouteParams("siteId")
 const componentId = useRouteParams("componentId")
 
 const { data: components, refresh } = await useFetch(`/api/sites/${siteId.value}/components`)
-import { BlocksIcon } from "lucide-vue-next"
 
 const isCreateModalOpen = ref(false)
 
