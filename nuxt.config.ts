@@ -36,6 +36,9 @@ export default defineNuxtConfig({
   nitro: {
     // preset: "bun",
 
+    experimental: {
+      openAPI: true
+    },
     storage: { limiter: { driver: "memory" } }
   },
 
