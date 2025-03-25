@@ -230,7 +230,7 @@ const isPreviewReady = ref(false)
     </div>
 
     <div
-      class="border-neutral bg-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-scroll border-l p-5"
+      class="border-neutral bg-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l p-5"
     >
       <template
         v-for="field in sortedFields"

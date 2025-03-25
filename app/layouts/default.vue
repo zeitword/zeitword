@@ -8,7 +8,7 @@ const mainNavigation = [
 <template>
   <div class="flex h-full max-h-screen flex-col">
     <DPageHeader :navigation="mainNavigation" />
-    <main class="flex flex-1 flex-col overflow-scroll">
+    <main class="flex flex-1 flex-col overflow-auto">
       <slot></slot>
     </main>
   </div>

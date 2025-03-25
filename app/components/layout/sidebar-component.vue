@@ -25,7 +25,7 @@ const navigation = ref([
 
       <DPageHeaderNavigation :navigation="navigation" />
     </div>
-    <div class="flex min-h-0 flex-1 flex-col overflow-scroll">
+    <div class="flex min-h-0 flex-1 flex-col overflow-auto">
       <div class="p-4">
         <slot></slot>
       </div>

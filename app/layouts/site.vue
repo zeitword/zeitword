@@ -12,7 +12,7 @@ const navigation = ref([
 <template>
   <div class="flex flex-1 flex-col">
     <DPageHeader :navigation="navigation" />
-    <main class="flex flex-1 flex-col overflow-scroll">
+    <main class="flex flex-1 flex-col overflow-auto">
       <slot></slot>
     </main>
   </div>

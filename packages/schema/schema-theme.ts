@@ -1,4 +1,4 @@
-import type { fieldTypeEnum } from "./drizzle/schema" // Assuming you have this from your Drizzle setup
+import type { fieldTypeEnum } from "./drizzle/schema"
 
 type DFieldType = (typeof fieldTypeEnum.enumValues)[number]
 
@@ -28,14 +28,14 @@ type DSchema = {
 
 const titleField: DField = { displayName: "Title", type: "text" }
 const descriptionField: DField = { displayName: "Description", type: "textarea" }
-const linkField: DField = { displayName: "Link", type: "link" } // Assuming 'link' type exists
-const iconField: DField = { displayName: "Icon", type: "text" } // Assuming icon name (string) is sufficient
+const linkField: DField = { displayName: "Link", type: "link" }
+const iconField: DField = { displayName: "Icon", type: "text" }
+const imageField: DField = { displayName: "Image", type: "asset" }
 
 // --- Button Fields ---
-
 const buttonFields: { [key: string]: DField } = {
   text: { displayName: "Text", type: "text" },
-  link: linkField, // Use the reusable link field
+  link: linkField,
   variant: {
     displayName: "Variant",
     type: "option",
@@ -45,7 +45,7 @@ const buttonFields: { [key: string]: DField } = {
       { key: "transparent", value: "Transparent" }
     ]
   },
-  icon: iconField, // Reusable icon field.
+  icon: iconField,
   size: {
     displayName: "Size",
     type: "option",
@@ -71,6 +71,48 @@ const cardFields: { [key: string]: DField } = {
   }
 }
 
+const imageLinkFields: { [key: string]: DField } = {
+  image: imageField,
+  link: linkField
+}
+const textLinkFields: { [key: string]: DField } = {
+  text: { displayName: "Text", type: "text" },
+  url: { displayName: "Url", type: "text" },
+  target: {
+    displayName: "Target",
+    type: "option",
+    options: [
+      { key: "_blank", value: "Blank" },
+      { key: "_self", value: "Self" },
+      { key: "_parent", value: "Parent" },
+      { key: "_top", value: "Top" }
+    ]
+  }
+}
+
+//Navigation fields
+const navigationFields: { [key: string]: DField } = {
+  logo: {
+    displayName: "Logo",
+    type: "blocks",
+    componentWhitelist: ["d-image-link"]
+  },
+  links: {
+    displayName: "Links",
+    type: "blocks",
+    componentWhitelist: ["d-text-link"]
+  },
+  buttons: {
+    displayName: "Buttons",
+    type: "blocks",
+    componentWhitelist: ["d-button"]
+  },
+  startInverted: {
+    displayName: "Start Inverted",
+    type: "boolean"
+  }
+}
+
 // --- Schema Definition ---
 
 export const schema: DSchema = {
@@ -86,10 +128,20 @@ export const schema: DSchema = {
     previewField: "title",
     fields: cardFields
   },
+  "d-image-link": {
+    name: "d-image-link",
+    displayName: "Image Link",
+    fields: imageLinkFields
+  },
+  "d-text-link": {
+    name: "d-text-link",
+    displayName: "Text Link",
+    fields: textLinkFields
+  },
   "block-cards-1": {
     name: "block-cards-1",
     displayName: "Cards Block 1",
-    previewField: "cards.0.title", // Preview with the title of the first card.
+    previewField: "cards.0.title",
     fields: {
       cards: {
         displayName: "Cards",
@@ -112,6 +164,12 @@ export const schema: DSchema = {
       }
     }
   },
+  "block-navigation-1": {
+    name: "block-navigation-1",
+    displayName: "Navigation Block 1",
+    previewField: "logo",
+    fields: navigationFields
+  },
   page: {
     name: "page",
     displayName: "Page",
@@ -121,7 +179,7 @@ export const schema: DSchema = {
       blocks: {
         displayName: "Blocks",
         type: "blocks",
-        componentWhitelist: ["block-cards-1", "block-hero-1"]
+        componentWhitelist: ["block-cards-1", "block-hero-1", "block-navigation-1"]
       }
     }
   }
