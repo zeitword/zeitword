@@ -89,10 +89,6 @@ watch(
   { deep: true }
 )
 
-const hasChanges = computed(() => {
-  return JSON.stringify(field.value) !== JSON.stringify(formData.value)
-})
-
 const { toast } = useToast()
 
 function addOption() {
@@ -162,6 +158,34 @@ async function save() {
     toast.error({ description: "Error saving field" })
   }
 }
+
+const isDeleteModalOpen = ref(false)
+
+function openDeleteModal() {
+  isDeleteModalOpen.value = true
+}
+
+function closeDeleteModal() {
+  isDeleteModalOpen.value = false
+}
+
+async function deleteField() {
+  try {
+    await $fetch(
+      `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`,
+      {
+        method: "DELETE"
+      }
+    )
+    refresh()
+    toast.success({ description: "Field deleted successfully" })
+    closeDeleteModal()
+    navigateTo(`/sites/${siteId.value}/components/${componentId.value}`)
+  } catch (error) {
+    console.error("Error deleting field:", error)
+    toast.error({ description: "Error deleting field" })
+  }
+}
 </script>
 
 <template>
@@ -214,12 +238,7 @@ async function save() {
         </DFormGroup>
         <DFormGroup>
           <DFormLabel name="description">Description</DFormLabel>
-          <textarea
-            class="border-neutral rounded-lg border p-4 ring-offset-0 transition-all outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-300"
-            v-model="formData.description"
-            rows="5"
-            cols="50"
-          ></textarea>
+          <DTextarea v-model="formData.description"></DTextarea>
         </DFormGroup>
         <DFormGroup>
           <DFormLabel name="display-name">Display Name</DFormLabel>
@@ -240,7 +259,6 @@ async function save() {
               multiple
               placeholder="Select a component"
             />
-            <!-- <pre>{{ selectedComponentIds }}</pre> -->
           </DFormGroup>
 
           <DFormGroup>
@@ -447,17 +465,28 @@ async function save() {
           </DFormGroup>
         </template>
 
-        <div>
+        <div class="flex justify-end gap-2">
           <DButton
-            type="submit"
-            :disabled="!hasChanges"
+            variant="danger"
+            @click="openDeleteModal"
           >
-            Save
+            Delete
           </DButton>
+          <DButton type="submit">Save</DButton>
         </div>
       </form>
     </div>
   </div>
+
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Field"
+    description="All content with this field will be deleted"
+    confirm-text="Delete Field"
+    danger
+    @confirm="deleteField"
+    @close="isDeleteModalOpen = false"
+  ></DModal>
 </template>
 
 <style scoped>
