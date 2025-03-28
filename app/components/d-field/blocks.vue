@@ -2,7 +2,6 @@
 import { PlusIcon, GripVertical } from "lucide-vue-next"
 import type { DField, DComponent } from "~/types/models"
 import { LexoRank } from "lexorank"
-import { nextTick, ref, watch, onMounted, onBeforeUnmount } from "vue" // Corrected imports
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
 

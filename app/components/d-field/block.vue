@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ChevronDownIcon, Trash2Icon } from "lucide-vue-next"
 import type { DComponent } from "~/types/models"
-import { computed } from "vue" // Import computed
 
 const siteId = useRouteParams("siteId")
 

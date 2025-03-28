@@ -27,13 +27,24 @@ async function createSite() {
         v-if="sites && sites?.length > 0"
       >
         <NuxtLink
-          :to="`/sites/${site.id}/components`"
+          :to="`/sites/${site.id}/content`"
           v-for="site in sites"
           :key="site.id"
-          class="hover:border-neutral-strong/20 bg-neutral border-neutral cursor-pointer overflow-hidden rounded-md border shadow-sm transition-all duration-100 hover:shadow-md"
+          class="hover:border-neutral-strong/20 bg-neutral border-neutral group cursor-pointer items-center overflow-hidden rounded-md border shadow-sm transition-all duration-100 hover:shadow-md"
         >
           <div class="p-5">
-            {{ site.name }}
+            <p class="text-copy-lg text-neutral">
+              {{ site.name }}
+            </p>
+            <p
+              v-if="site.domain"
+              class="text-neutral-subtle text-xs"
+            >
+              {{ site.domain }}
+            </p>
+            <p class="text-neutral-subtle text-xs">
+              {{ formatDate(new Date(site.updatedAt)) }}
+            </p>
           </div>
         </NuxtLink>
       </div>

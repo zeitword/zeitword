@@ -13,7 +13,7 @@ const { field, path = [], value } = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
-  (e: "delete-block", id: string): void // Expect full path
+  (e: "delete-block", id: string): void
 }>()
 
 function deleteBlock(id: string) {
@@ -96,7 +96,11 @@ function openFileSelector() {
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <div v-if="value">
+    <DAsset
+      :value="value"
+      @update:value="emit('update:value', $event)"
+    />
+    <!-- <div v-if="value">
       <img
         v-if="typeof value === 'string'"
         :src="value"
@@ -108,8 +112,8 @@ function openFileSelector() {
         class="text-code"
         >{{ value }}</pre
       >
-    </div>
-    <DButton @click="openFileSelector">Select Asset</DButton>
+    </div> -->
+    <!-- <DButton @click="openFileSelector">Select Asset</DButton> -->
   </DFormGroup>
 
   <DFormGroup v-else-if="field.type === 'assets'">
