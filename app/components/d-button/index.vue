@@ -65,7 +65,7 @@ const sizeClass = computed(() => {
     :is="to ? RouterLink : 'button'"
     :type
     :to
-    class="relative inline-flex cursor-default items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2"
+    class="relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2"
     :class="[sizeClass, variantClasses[variant], disabled ? 'pointer-events-none opacity-50' : '']"
     :disabled
   >
