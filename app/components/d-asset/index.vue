@@ -3,13 +3,16 @@ import { ref } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon, ReplaceIcon, Trash2Icon } from "lucide-vue-next"
 
+type AssetObject = { id: string; src: string; alt: string }
+
 type Props = {
-  value: string | null | undefined
+  value: AssetObject | null | undefined
+  borderless?: boolean
 }
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  (e: "update:value", value: string | null): void
+  (e: "update:value", value: AssetObject | null): void
 }>()
 
 const isLoading = ref(false)
@@ -26,20 +29,20 @@ onFileDialogChange(async (selectedFiles) => {
   await uploadFile(selectedFiles[0])
 })
 
+const { toast } = useToast()
+
 function onDrop(files: File[] | null) {
-  isDragging.value = false // Ensure dragging state is reset
+  isDragging.value = false
   if (!files || files.length === 0) return
-  // Simple check if the dropped file is an image (client-side)
   const file = files[0]
   if (file.type.startsWith("image/")) {
     uploadFile(file)
   } else {
     console.warn("Dropped file is not an image:", file.type)
-    // Optionally show a user-facing error message here
+    toast.warning({ title: "File type not supported", description: "Please drop an image file." })
   }
 }
 
-// Simplified useDropZone configuration - removed dataTypes
 useDropZone(dropZoneRef, {
   onDrop,
   onLeave: () => {
@@ -48,7 +51,6 @@ useDropZone(dropZoneRef, {
   onEnter: () => {
     isDragging.value = true
   }
-  // dataTypes: ['image/*'] // Temporarily removed for broader testing
 })
 
 async function uploadFile(file: File) {
@@ -56,13 +58,15 @@ async function uploadFile(file: File) {
   try {
     const formData = new FormData()
     formData.append("file", file)
-    const fileId = await $fetch<string>("/api/assets", {
+    const fileIdOrUrl = await $fetch<string>("/api/assets", {
       method: "POST",
       body: formData
     })
-    emit("update:value", fileId)
+    // Note: Assuming API returns a string (ID or URL) used for both id and src
+    emit("update:value", { id: fileIdOrUrl, src: fileIdOrUrl, alt: "" })
   } catch (error) {
     console.error("Upload failed:", error)
+    emit("update:value", null)
   } finally {
     isLoading.value = false
   }
@@ -78,19 +82,25 @@ function changeAsset() {
 </script>
 
 <template>
-  <div class="relative h-40">
+  <div class="relative h-30">
     <div
-      v-if="props.value"
+      v-if="props.value?.src"
       class="relative flex h-full space-y-2"
     >
-      <div class="group border-neutral relative h-full w-full overflow-hidden rounded-xl border">
+      <div
+        class="group border-neutral relative h-full w-full overflow-hidden rounded-xl"
+        :class="[borderless ? '' : 'border']"
+      >
         <img
-          :src="props.value"
-          alt="Selected Asset"
-          class="block h-full w-full object-contain"
+          :src="props.value.src"
+          :alt="props.value.alt || 'Selected Asset'"
+          class="block h-full w-full object-cover"
         />
       </div>
-      <div class="absolute top-0 right-0 flex gap-1 p-2">
+      <div
+        class="absolute top-0 right-0 flex gap-1 p-2"
+        :class="borderless ? '' : 'p-2'"
+      >
         <DButton
           variant="secondary"
           size="sm"
@@ -121,7 +131,7 @@ function changeAsset() {
         v-if="isLoading"
         class="absolute inset-0 z-10 flex items-center justify-center rounded-md"
       >
-        <LoaderCircleIcon class="text-neutral-subtle h-8 w-8 animate-spin" />
+        <LoaderCircleIcon class="text-neutral-subtle size-5 animate-spin" />
         <span class="text-copy ml-2">Uploading...</span>
       </div>
 
@@ -130,7 +140,7 @@ function changeAsset() {
         class="text-neutral pointer-events-none flex flex-col items-center"
       >
         <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
-        <p class="text-copy-sm">
+        <p class="text-copy-sm text-neutral-subtle">
           <span v-if="isDragging">Drop file to upload</span>
           <span v-else>Drag & drop image here, or</span>
         </p>

@@ -21,31 +21,6 @@ function deleteBlock(id: string) {
   console.log(id)
   emit("delete-block", id)
 }
-
-const { files, open, reset, onCancel, onChange } = useFileDialog({
-  // accept: 'image/*', // Set to accept only image files
-  directory: false // Select directories instead of files if set true
-})
-
-onChange(async (selectedFiles) => {
-  if (!selectedFiles) return
-
-  const file = selectedFiles[0]
-
-  if (file) {
-    const formData = new FormData()
-    formData.append("file", file)
-    const fileId = await $fetch("/api/assets", {
-      method: "POST",
-      body: formData
-    })
-    emit("update:value", fileId)
-  }
-})
-
-function openFileSelector() {
-  open()
-}
 </script>
 
 <template>
@@ -100,53 +75,19 @@ function openFileSelector() {
       :value="value"
       @update:value="emit('update:value', $event)"
     />
-    <!-- <div v-if="value">
-      <img
-        v-if="typeof value === 'string'"
-        :src="value"
-        alt="Asset"
-        class="h-auto max-w-full"
-      />
-      <pre
-        v-else
-        class="text-code"
-        >{{ value }}</pre
-      >
-    </div> -->
-    <!-- <DButton @click="openFileSelector">Select Asset</DButton> -->
   </DFormGroup>
 
   <DFormGroup v-else-if="field.type === 'assets'">
     <DFormLabel :required="field.required">
       {{ field.displayName || field.fieldKey }}
     </DFormLabel>
-    <!-- Basic multiple assets display (replace with your assets component) -->
-    <div v-if="Array.isArray(value) && value.length > 0">
-      <div
-        v-for="(asset, index) in value"
-        :key="index"
-        class="mb-2"
-      >
-        <img
-          v-if="typeof asset === 'string'"
-          :src="asset"
-          alt="Asset"
-          class="h-auto max-w-full"
-        />
-        <pre
-          v-else
-          class="text-code"
-          >{{ asset }}</pre
-        >
-      </div>
-    </div>
-    <DButton
-      @click="
-        $emit('update:value', ['https://placehold.co/600x400/', 'https://placehold.co/600x400/'])
-      "
-    >
-      Select Assets (Placeholder)
-    </DButton>
+
+    <DFieldAssets
+      :field="field"
+      :path="path"
+      :value="value"
+      @update:value="emit('update:value', $event)"
+    />
   </DFormGroup>
 
   <DFormGroup v-else-if="field.type === 'link'">
@@ -158,7 +99,6 @@ function openFileSelector() {
       @update:modelValue="emit('update:value', $event)"
       placeholder="Enter link URL"
     />
-    <!-- You might want a more sophisticated link component here -->
   </DFormGroup>
 
   <DFormGroup v-else-if="field.type === 'number'">
