@@ -36,6 +36,20 @@
       "when": 1742551250740,
       "tag": "0004_blue_turbo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1743176004799,
+      "tag": "0005_sudden_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743178950647,
+      "tag": "0006_robust_ronan",
+      "breakpoints": true
     }
   ]
 }

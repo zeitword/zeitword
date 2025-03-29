@@ -49,7 +49,7 @@ async function deleteStory() {
       method: "DELETE"
     })
     // Navigate back to the site's content list (or wherever appropriate)
-    navigateTo(`/sites/${siteId}/content`)
+    navigateTo(`/sites/${siteId}/stories`)
   } catch (error: any) {
     console.error(error)
   }

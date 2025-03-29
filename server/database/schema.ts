@@ -39,6 +39,8 @@ export const fieldTypeEnum = pgEnum("field_type", [
   "custom"
 ])
 
+export const storyTypeEnum = pgEnum("story_type", ["story", "folder"])
+
 const organisationId = {
   organisationId: uuid()
     .notNull()
@@ -138,12 +140,11 @@ export const stories = pgTable(
   "stories",
   {
     id: uuid().primaryKey().$defaultFn(uuidv7),
+    type: storyTypeEnum().notNull().default("story"),
     slug: text().notNull(),
     title: text().notNull(),
     content: jsonb().notNull(),
-    componentId: uuid()
-      .notNull()
-      .references(() => components.id),
+    componentId: uuid().references(() => components.id),
     siteId: uuid()
       .notNull()
       .references(() => sites.id),

@@ -11,9 +11,10 @@ const jsonSchema: z.ZodType<Json> = z.lazy(() =>
 
 const bodySchema = z.object({
   slug: z.string().min(1).max(255),
+  type: z.enum(["story", "folder"]),
   title: z.string().min(1).max(255),
   content: jsonSchema,
-  componentId: z.string().uuid()
+  componentId: z.string().uuid().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -30,6 +31,7 @@ export default defineEventHandler(async (event) => {
       .insert(stories)
       .values({
         slug: data.slug,
+        type: data.type,
         title: data.title,
         content: data.content,
         siteId: siteId,

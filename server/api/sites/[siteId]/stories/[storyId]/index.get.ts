@@ -1,4 +1,10 @@
-import { stories, components, componentFields, fieldOptions } from "~~/server/database/schema"
+import {
+  stories,
+  components,
+  componentFields,
+  fieldOptions,
+  storyTypeEnum
+} from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
@@ -6,18 +12,22 @@ export default defineEventHandler(async (event) => {
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const siteId = getRouterParam(event, "siteId")
-  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
-
   const storyId = getRouterParam(event, "storyId")
-  if (!storyId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
-  // First get the story and its component
-  const [storyData] = await useDrizzle()
+  if (!siteId || !storyId) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid Site or Item ID" })
+  }
+
+  const [itemData] = await useDrizzle()
     .select({
       id: stories.id,
       slug: stories.slug,
       title: stories.title,
       content: stories.content,
+      type: stories.type,
+      createdAt: stories.createdAt,
+      updatedAt: stories.updatedAt,
+      componentId: stories.componentId,
       component: {
         id: components.id,
         name: components.name,
@@ -27,67 +37,88 @@ export default defineEventHandler(async (event) => {
       }
     })
     .from(stories)
-    .innerJoin(components, eq(stories.componentId, components.id))
+    .leftJoin(components, eq(stories.componentId, components.id))
     .where(
       and(
-        eq(components.siteId, siteId),
-        eq(stories.organisationId, secure.organisationId),
-        eq(stories.id, storyId)
+        eq(stories.id, storyId),
+        eq(stories.siteId, siteId),
+        eq(stories.organisationId, secure.organisationId)
       )
     )
+    .limit(1)
 
-  if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
+  if (!itemData) {
+    throw createError({ statusCode: 404, statusMessage: "Item not found" })
+  }
 
-  const fields = await useDrizzle()
-    .select()
-    .from(componentFields)
-    .where(
-      and(
-        eq(componentFields.componentId, storyData.component.id),
-        eq(componentFields.organisationId, secure.organisationId)
+  // 2. If it's a STORY, fetch fields and options
+  if (itemData.type === storyTypeEnum.enumValues[0] && itemData.component?.id) {
+    const componentId = itemData.component.id
+
+    const fields = await useDrizzle()
+      .select()
+      .from(componentFields)
+      .where(
+        and(
+          eq(componentFields.componentId, componentId),
+          eq(componentFields.organisationId, secure.organisationId)
+        )
       )
-    )
-    .orderBy(componentFields.order)
+      .orderBy(componentFields.order)
 
-  // Fetch options for fields of type 'option' or 'options'
-  const componentId = storyData.component.id
-  const options = await useDrizzle()
-    .select()
-    .from(fieldOptions)
-    .where(
-      and(
-        eq(fieldOptions.componentId, componentId),
-        eq(fieldOptions.organisationId, secure.organisationId)
+    const options = await useDrizzle()
+      .select()
+      .from(fieldOptions)
+      .where(
+        and(
+          eq(fieldOptions.componentId, componentId),
+          eq(fieldOptions.organisationId, secure.organisationId)
+        )
       )
-    )
 
-  // Create a map for quick option lookup
-  const optionsMap = new Map<string, { optionName: string; optionValue: string }[]>()
-  options.forEach((option) => {
-    const key = `${option.componentId}-${option.fieldKey}`
-    if (!optionsMap.has(key)) {
-      optionsMap.set(key, [])
-    }
-    optionsMap.get(key)!.push({ optionName: option.optionName, optionValue: option.optionValue })
-  })
+    const optionsMap = new Map<string, { optionName: string; optionValue: string }[]>()
+    options.forEach((option) => {
+      const key = `${option.componentId}-${option.fieldKey}`
+      if (!optionsMap.has(key)) {
+        optionsMap.set(key, [])
+      }
+      optionsMap.get(key)!.push({ optionName: option.optionName, optionValue: option.optionValue })
+    })
 
-  // Add options to the relevant fields
-  const fieldsWithOptions = fields.map((field) => {
-    if (field.type === "option" || field.type === "options") {
-      const key = `${componentId}-${field.fieldKey}`
-      return {
-        ...field,
-        options: optionsMap.get(key) || [] // Return options if found, otherwise an empty array
+    const fieldsWithOptions = fields.map((field) => {
+      if (field.type === "option" || field.type === "options") {
+        const key = `${componentId}-${field.fieldKey}`
+        return {
+          ...field,
+          options: optionsMap.get(key) || []
+        }
+      }
+      return field
+    })
+
+    return {
+      id: itemData.id,
+      slug: itemData.slug,
+      title: itemData.title,
+      content: itemData.content,
+      type: itemData.type,
+      createdAt: itemData.createdAt,
+      updatedAt: itemData.updatedAt,
+      component: {
+        ...itemData.component,
+        fields: fieldsWithOptions
       }
     }
-    return field
-  })
-
-  return {
-    ...storyData,
-    component: {
-      ...storyData.component,
-      fields: fieldsWithOptions // Use the fields with options
+  } else {
+    return {
+      id: itemData.id,
+      slug: itemData.slug,
+      title: itemData.title,
+      content: itemData.content,
+      type: itemData.type,
+      createdAt: itemData.createdAt,
+      updatedAt: itemData.updatedAt,
+      component: null
     }
   }
 })

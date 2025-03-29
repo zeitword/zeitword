@@ -1,38 +1,44 @@
 <script setup lang="ts">
-import { Trash2, CornerRightDown, LetterText, FolderIcon, LetterTextIcon } from "lucide-vue-next"
+import { Trash2, FolderIcon, LetterTextIcon } from "lucide-vue-next"
 
 const siteId = useRouteParams("siteId")
 
-type Story = {
+type Item = {
   id: string
   title: string
   slug: string
+  type: "story" | "folder"
   component?: { displayName: string }
-  content?: Record<string, any>
 }
 
 type Props = {
-  stories: Story[]
+  stories: Item[]
   parentSlug?: string
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(["delete-story", "create-story"])
+const emit = defineEmits(["delete-story", "create-story", "create-folder"])
 
 function getSlugName(slug: string) {
-  if (!props.parentSlug) {
+  if (!props.parentSlug || props.parentSlug === "/") {
     return slug === "index" ? "/" : `/${slug}`
   }
-  // Remove the parent slug and leading/trailing slashes
-  const relativeSlug = slug.replace(props.parentSlug, "").replace(/^\/+|\/+$/g, "")
-  return relativeSlug === "index" ? "/" : `/${relativeSlug}`
+  const cleanParentSlug = props.parentSlug.endsWith("/")
+    ? props.parentSlug.slice(0, -1)
+    : props.parentSlug
+  const relativeSlug = slug.startsWith(cleanParentSlug + "/")
+    ? slug.substring(cleanParentSlug.length + 1)
+    : slug
+  return "/" + cleanParentSlug + "/" + relativeSlug
 }
 
-const sortedStories = computed(() => {
-  return props.stories.sort((a, b) => {
-    let slugA = getSlugName(a.slug)
-    let slugB = getSlugName(b.slug)
-    return slugA.localeCompare(slugB)
+const sortedItems = computed(() => {
+  if (!props.stories) return []
+
+  return [...props.stories].sort((a, b) => {
+    if (a.type === "folder" && b.type !== "folder") return -1
+    if (a.type !== "folder" && b.type === "folder") return 1
+    return a.slug.localeCompare(b.slug)
   })
 })
 
@@ -41,37 +47,38 @@ function showDeleteModal(id: string) {
 }
 
 function createStory() {
-  emit("create-story", props.parentSlug)
+  emit("create-story")
 }
 
-function hasContent(story: Story) {
-  if (!story.content) return false
-  return Object.keys(story.content).length > 0
+function createFolder() {
+  emit("create-folder")
 }
 
-function nav(story: Story) {
-  if (hasContent(story)) {
-    navigateTo(`/sites/${siteId.value}/content/${story.id}/content`)
+function nav(item: Item) {
+  if (item.type === "story") {
+    navigateTo(`/sites/${siteId.value}/stories/story/${item.id}/content`)
   } else {
-    navigateTo(`/sites/${siteId.value}/content/${story.id}`)
+    navigateTo(`/sites/${siteId.value}/stories/${item.id}`)
   }
 }
 </script>
 
 <template>
-  <DList v-if="stories && stories.length > 0">
+  <DList v-if="sortedItems && sortedItems.length > 0">
     <DListItem
-      v-for="story in sortedStories"
-      :key="story.id"
-      @click="nav(story)"
+      v-for="item in sortedItems"
+      :key="item.id"
+      @click="nav(item)"
       class="group cursor-pointer"
     >
       <div class="text-copy flex w-full items-center justify-between">
-        <div class="flex flex-1 items-center gap-2">
+        <div class="flex min-w-0 flex-1 items-center gap-2">
           <div class="flex flex-1 items-center gap-2 truncate">
-            <div class="border-neutral grid size-8 min-w-8 place-items-center rounded-md border">
+            <div
+              class="border-neutral grid size-8 min-w-8 shrink-0 place-items-center rounded-md border"
+            >
               <LetterTextIcon
-                v-if="hasContent(story)"
+                v-if="item.type === 'story'"
                 class="text-neutral-subtle size-4"
               />
               <FolderIcon
@@ -80,50 +87,54 @@ function nav(story: Story) {
               />
             </div>
             <span class="min-w-0 truncate">
-              {{ story.title }}
+              {{ item.title }}
             </span>
+
             <div
-              v-if="story.component"
-              class="text-copy-sm bg-neutral border-neutral inline-flex rounded-full border px-2 py-px"
+              v-if="item.type === 'story' && item.component"
+              class="text-copy-sm bg-neutral border-neutral inline-flex shrink-0 rounded-full border px-2 py-px"
             >
-              {{ story.component.displayName }}
+              {{ item.component.displayName }}
             </div>
           </div>
-          <div class="flex-start flex flex-1">
-            <div class="text-copy-sm bg-neutral border-neutral rounded-full border px-2 py-px">
-              {{ getSlugName(story.slug) }}
+
+          <div class="flex flex-1">
+            <div class="text-copy-sm text-neutral-subtle px-2 py-px">
+              {{ getSlugName(item.slug) }}
             </div>
           </div>
         </div>
-        <div class="flex gap-2 opacity-0 group-hover:opacity-100">
-          <DButton
-            :icon-left="CornerRightDown"
-            size="sm"
-            variant="secondary"
-            @click.stop="navigateTo(`/sites/${siteId}/content/${story.id}`)"
-          />
+
+        <div
+          class="ml-2 flex shrink-0 gap-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        >
           <DButton
             :icon-left="Trash2"
             size="sm"
             variant="secondary"
-            @click.stop="showDeleteModal(story.id)"
+            @click.stop="showDeleteModal(item.id)"
+            aria-label="Delete Item"
           />
         </div>
       </div>
     </DListItem>
   </DList>
+
   <DEmpty
     v-else
-    title="No stories yet"
-    description="Create your first story to get started"
-    :icon="LetterText"
+    title="No items yet"
+    description="Create your first story or folder to get started."
+    :icon="FolderIcon"
     size="lg"
   >
-    <DButton
-      @click="createStory"
-      variant="secondary"
-    >
-      Create Story
-    </DButton>
+    <div class="flex gap-2">
+      <DButton
+        @click="createFolder"
+        variant="secondary"
+      >
+        Create Folder
+      </DButton>
+      <DButton @click="createStory">Create Story</DButton>
+    </div>
   </DEmpty>
 </template>

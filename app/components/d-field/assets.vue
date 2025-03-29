@@ -298,7 +298,8 @@ onBeforeUnmount(() => {
         class="group bg-neutral border-neutral bg-neutral-bg relative flex items-center gap-1 border-b p-2 last:border-none"
       >
         <DButton
-          class="drag-handle cursor-move opacity-50 transition-all group-hover:opacity-100"
+          class="drag-handle cursor-grab opacity-50 transition-all group-hover:opacity-100"
+          no-cursor
           :icon-left="GripVertical"
           size="sm"
           variant="transparent"

@@ -1,4 +1,4 @@
-import { stories, components, componentFields } from "~~/server/database/schema"
+import { stories, components } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
