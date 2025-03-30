@@ -34,7 +34,6 @@ function getDisplaySlug(itemSlug: string) {
   return `/${itemSlug}`
 }
 
-// Keep action/navigation emitters (no changes needed)
 function showDeleteModal(id: string) {
   emit("delete-story", id)
 }

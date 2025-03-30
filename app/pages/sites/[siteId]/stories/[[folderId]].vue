@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref, watch } from "vue"
 import { useDebounceFn } from "@vueuse/core"
 import type { Item as StoryListItem } from "~/components/d-story-list/index.vue"
 import { SearchIcon } from "lucide-vue-next"
@@ -29,7 +30,10 @@ const { data: components } = await useFetch(`/api/sites/${siteId.value}/componen
 
 const { data: currentFolder, error: folderError } = await useFetch(
   () => (folderId.value ? `/api/sites/${siteId.value}/stories/${folderId.value}` : null),
-  { watch: [folderId] }
+  {
+    watch: [folderId],
+    default: () => null
+  }
 )
 
 if (folderError.value) {
@@ -43,17 +47,19 @@ const {
   data: stories,
   refresh: refreshStories,
   error: listError
-} = await useAsyncData(
+} = await useAsyncData<StoryListItem[]>(
   `stories-${siteId.value}-${folderId.value || "root"}-${debouncedSearchQuery.value}`,
-  async () => {
+  async (): Promise<StoryListItem[]> => {
     if (debouncedSearchQuery.value) {
-      return $fetch(`/api/sites/${siteId.value}/stories`, {
+      return await $fetch<StoryListItem[]>(`/api/sites/${siteId.value}/stories`, {
         params: { query: debouncedSearchQuery.value }
       })
     } else if (folderId.value) {
-      return $fetch(`/api/sites/${siteId.value}/stories/${folderId.value}/children`)
+      return await $fetch<StoryListItem[]>(
+        `/api/sites/${siteId.value}/stories/${folderId.value}/children`
+      )
     } else {
-      return $fetch(`/api/sites/${siteId.value}/stories`)
+      return await $fetch<StoryListItem[]>(`/api/sites/${siteId.value}/stories`)
     }
   },
   {
@@ -61,10 +67,48 @@ const {
     default: () => []
   }
 )
+
 if (listError.value) {
   toast.error({ description: "Failed to load content list." })
   console.error("List fetch error:", listError.value)
 }
+
+const sortedDisplayItems = computed(() => {
+  const itemsToSort = stories.value || []
+  const currentParentSlug = parentSlugForDisplay.value
+  const searching = isSearching.value
+
+  return [...itemsToSort].sort((a, b) => {
+    if (a.type === "folder" && b.type !== "folder") return -1
+    if (a.type !== "folder" && b.type === "folder") return 1
+
+    const getComparisonSlug = (itemSlug: string): string => {
+      if (searching) {
+        return itemSlug
+      }
+      const parent = currentParentSlug || "/"
+      if (parent === "/") {
+        return itemSlug
+      }
+      const parentPrefix = parent.endsWith("/") ? parent : parent + "/"
+      if (itemSlug.startsWith(parentPrefix)) {
+        const relative = itemSlug.substring(parentPrefix.length)
+        return relative === "" && itemSlug === parent ? "index" : relative
+      }
+      return itemSlug
+    }
+
+    const aCompSlug = getComparisonSlug(a.slug)
+    const bCompSlug = getComparisonSlug(b.slug)
+
+    if (!searching && a.type === "story" && b.type === "story") {
+      if (aCompSlug === "index" && bCompSlug !== "index") return -1
+      if (aCompSlug !== "index" && bCompSlug === "index") return 1
+    }
+
+    return aCompSlug.localeCompare(bCompSlug)
+  })
+})
 
 const isCreateModalOpen = ref(false)
 const itemTypeToCreate = ref<"story" | "folder">("story")
@@ -82,10 +126,8 @@ const contentTypeOptions = computed(() => {
     })) || []
   )
 })
-const pageTitle = computed(() => (folderId.value ? currentFolder.value?.title : null) || "Content")
-const parentSlugForDisplay = computed(
-  () => (folderId.value ? currentFolder.value?.slug : null) || "/"
-)
+const pageTitle = computed(() => currentFolder.value?.title || "Content")
+const parentSlugForDisplay = computed(() => currentFolder.value?.slug || "/")
 
 function handleNavigation(item: StoryListItem) {
   if (item.type === "story") {
@@ -114,17 +156,22 @@ async function createItem() {
     return toast.info({ description: "Please select a content type for the story" })
   }
 
+  const slugIsRequired = itemTypeToCreate.value === "folder" || !!folderId.value
+
+  if (slugIsRequired && slug.value === "") {
+    return toast.info({ description: "Please enter a slug" })
+  }
+  if (!slugIsRequired && slug.value === "" && itemTypeToCreate.value === "folder") {
+    return toast.info({ description: "Folder slug cannot be empty at the root level." })
+  }
   if (slug.value !== "" && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.value)) {
     return toast.warning({ description: "Slug must be lowercase alphanumeric with hyphens." })
   }
 
-  if (slug.value === "") {
-    slug.value = "index"
-  }
-
   try {
     let finalSlug: string
-    const currentSlugInput = slug.value
+    const currentSlugInput =
+      slug.value || (itemTypeToCreate.value === "story" && !folderId.value ? "index" : "")
     const baseSlug = folderId.value ? currentFolder.value?.slug : null
 
     if (baseSlug) {
@@ -133,7 +180,7 @@ async function createItem() {
       finalSlug = `${baseSlug}/${currentSlugInput}`
     } else {
       if (itemTypeToCreate.value === "story") {
-        finalSlug = currentSlugInput || "index"
+        finalSlug = currentSlugInput
       } else {
         if (!currentSlugInput) throw new Error("Folder slug is required at the root level.")
         finalSlug = currentSlugInput
@@ -232,7 +279,6 @@ function handleApiError(error: any, itemType: "story" | "folder") {
   </DPageTitle>
 
   <DPageWrapper>
-    <!-- Search Input is now here, outside the loading block -->
     <div class="py-5">
       <div class="mb-4">
         <DInput
@@ -248,7 +294,7 @@ function handleApiError(error: any, itemType: "story" | "folder") {
       >
         Failed to load items.
         <DButton
-          variant="link"
+          variant="secondary"
           size="sm"
           @click="refreshStories"
         >
@@ -257,7 +303,7 @@ function handleApiError(error: any, itemType: "story" | "folder") {
       </div>
       <DStoryList
         v-else
-        :stories="stories || []"
+        :stories="sortedDisplayItems"
         :is-searching="isSearching"
         :parent-slug="parentSlugForDisplay"
         @delete-story="openDeleteModal"

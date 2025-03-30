@@ -34,7 +34,6 @@ export default defineEventHandler(async (event) => {
       .from(stories)
       .leftJoin(components, eq(stories.componentId, components.id))
       .where(and(...conditions))
-      .orderBy(asc(stories.type), asc(stories.slug))
 
     const mappedStories = storiesData.map((row) => ({
       id: row.id,
