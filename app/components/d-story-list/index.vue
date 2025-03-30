@@ -36,9 +36,11 @@ const sortedItems = computed(() => {
   if (!props.stories) return []
 
   return [...props.stories].sort((a, b) => {
+    const aSlug = getSlugName(a.slug)
+    const bSlug = getSlugName(b.slug)
     if (a.type === "folder" && b.type !== "folder") return -1
     if (a.type !== "folder" && b.type === "folder") return 1
-    return a.slug.localeCompare(b.slug)
+    return aSlug.localeCompare(bSlug)
   })
 })
 
