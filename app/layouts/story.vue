@@ -6,9 +6,8 @@ const navigation = computed(() => {
   const storyId = route.params.storyId as string
 
   return [
-    { name: "Children", to: `/sites/${siteId}/content/${storyId}` },
-    { name: "Content", to: `/sites/${siteId}/content/${storyId}/content` },
-    { name: "Settings", to: `/sites/${siteId}/content/${storyId}/settings` }
+    { name: "Story", to: `/sites/${siteId}/stories/story/${storyId}/content` },
+    { name: "Settings", to: `/sites/${siteId}/stories/story/${storyId}/settings` }
   ]
 })
 </script>

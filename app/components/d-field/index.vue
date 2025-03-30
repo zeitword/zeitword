@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DField, DComponent } from "~/types/models"
+import { computed } from "vue"
 
 type Props = {
   field: DField
@@ -16,153 +17,96 @@ const emit = defineEmits<{
   (e: "delete-block", id: string): void
 }>()
 
+const labelText = computed(() => field.displayName || field.fieldKey)
+
+const modelValue = computed({
+  get: () => value,
+  set: (newValue) => emit("update:value", newValue)
+})
+
 function deleteBlock(id: string) {
-  console.log("index.vue")
-  console.log(id)
   emit("delete-block", id)
 }
 </script>
 
 <template>
-  <DFormGroup v-if="field.type === 'text'">
+  <DFormGroup>
     <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
+      {{ labelText }}
     </DFormLabel>
+
+    <p
+      v-if="field.description"
+      class="text-copy-sm text-neutral-subtle mb-1"
+    >
+      {{ field.description }}
+    </p>
+
     <DInput
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
-      :placeholder="field.displayName || field.fieldKey"
+      v-if="field.type === 'text'"
+      v-model="modelValue"
+      :placeholder="labelText"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'textarea'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DTextarea
-      :model-value="value"
+      v-else-if="field.type === 'textarea'"
+      v-model="modelValue"
       :required="field.required"
-      @update:modelValue="emit('update:value', $event)"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'richtext'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DRichText
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
+      v-else-if="field.type === 'richtext'"
+      v-model="modelValue"
     />
-  </DFormGroup>
-
-  <DFieldBlocks
-    v-else-if="field.type === 'blocks'"
-    :field="field"
-    :path="path"
-    :blocks="components"
-    :value="value"
-    :target-block-id="targetBlockId"
-    @update:value="emit('update:value', $event)"
-    @delete-block="(id) => deleteBlock(id)"
-  />
-
-  <DFormGroup v-else-if="field.type === 'asset'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
-    <DAsset
+    <DFieldBlocks
+      v-else-if="field.type === 'blocks'"
+      :field="field"
+      :path="path"
+      :blocks="components"
       :value="value"
-      @update:value="emit('update:value', $event)"
+      :target-block-id="targetBlockId"
+      @update:value="modelValue = $event"
+      @delete-block="deleteBlock"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'assets'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
-
+    <DAsset
+      v-else-if="field.type === 'asset'"
+      :value="value"
+      @update:value="modelValue = $event"
+    />
     <DFieldAssets
+      v-else-if="field.type === 'assets'"
       :field="field"
       :path="path"
       :value="value"
-      @update:value="emit('update:value', $event)"
+      @update:value="modelValue = $event"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'link'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DInput
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
+      v-else-if="field.type === 'link'"
+      v-model="modelValue"
       placeholder="Enter link URL"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'number'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DInput
+      v-else-if="field.type === 'number'"
+      v-model="modelValue"
       type="number"
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'datetime'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DInput
+      v-else-if="field.type === 'datetime'"
+      v-model="modelValue"
       type="datetime-local"
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'boolean'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DFormSwitch
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
+      v-else-if="field.type === 'boolean'"
+      v-model="modelValue"
     />
-  </DFormGroup>
-
-  <DFormGroup v-else-if="field.type === 'option' || field.type === 'options'">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
     <DSelect
-      :model-value="value"
-      @update:modelValue="emit('update:value', $event)"
-      :options="
-        field.options
-          ? field.options.map((option) => ({
-              display: option.optionName,
-              value: option.optionValue
-            }))
-          : []
-      "
+      v-else-if="field.type === 'option' || field.type === 'options'"
+      v-model="modelValue"
+      :options="field.options?.map((o) => ({ display: o.optionName, value: o.optionValue })) || []"
     />
-  </DFormGroup>
 
-  <!--  Placeholder for other types -->
-  <template v-else-if="['section', 'custom'].includes(field.type)">
-    <DFormGroup>
-      <DFormLabel :required="field.required">
-        {{ field.displayName || field.fieldKey }} ({{ field.type }})
-      </DFormLabel>
+    <!-- Placeholder for unimplemented types -->
+    <template v-else-if="['section', 'custom'].includes(field.type)">
       <div class="bg-warn rounded-md p-2">Not implemented yet: {{ field.type }}</div>
       <pre class="text-code">{{ value }}</pre>
-    </DFormGroup>
-  </template>
-
-  <p class="text-copy-sm text-neutral-subtle">
-    {{ field.description }}
-  </p>
+    </template>
+  </DFormGroup>
 </template>

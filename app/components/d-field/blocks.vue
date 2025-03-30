@@ -219,104 +219,99 @@ const isMaxReached = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
-    <DFormLabel :required="field.required">
-      {{ field.displayName || field.fieldKey }}
-    </DFormLabel>
-
+  <div
+    class="bg-neutral border-neutral blocks-container overflow-hidden rounded-[10px] border p-0.5"
+  >
     <div
-      class="bg-neutral border-neutral blocks-container overflow-hidden rounded-[10px] border p-0.5"
+      class="border-neutral overflow-hidden rounded-lg border shadow-md"
+      ref="blocksContainer"
+      v-if="sortedBlocks.length > 0"
     >
-      <div
-        class="border-neutral overflow-hidden rounded-lg border shadow-md"
-        ref="blocksContainer"
-        v-if="sortedBlocks.length > 0"
+      <template
+        v-for="(block, index) in sortedBlocks"
+        :key="block.id + '-' + block.order"
       >
-        <template
-          v-for="(block, index) in sortedBlocks"
-          :key="block.id + '-' + block.order"
+        <DFieldBlock
+          :block="getBlock(block.componentId)"
+          :block-content="block"
+          :is-targeted="targetBlockId === block.id"
+          :path="[...path, block.id]"
+          class="border-neutral overflow-hidden border-b last:border-none"
+          @update:value="updateNestedBlock(index, $event)"
+          @delete-block="(id) => deleteBlock(id)"
         >
-          <DFieldBlock
-            :block="getBlock(block.componentId)"
-            :block-content="block"
-            :is-targeted="targetBlockId === block.id"
-            :path="[...path, block.id]"
-            class="border-neutral overflow-hidden border-b last:border-none"
-            @update:value="updateNestedBlock(index, $event)"
-            @delete-block="(id) => deleteBlock(id)"
-          >
-            <template #controls>
-              <DButton
-                class="drag-handle opacity-50 transition-all group-hover:opacity-100"
-                :icon-left="GripVertical"
-                size="sm"
-                variant="transparent"
-              />
-            </template>
-          </DFieldBlock>
-        </template>
-      </div>
-
-      <div class="flex items-center justify-between p-1">
-        <button
-          @click="isAddModalOpen = true"
-          class="text-neutral-subtle text-copy group/button relative inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 ring-blue-500 transition-all outline-none focus-visible:ring-2"
-          :class="[isMaxReached ? 'scale-50 opacity-0' : '']"
-        >
-          <div
-            class="bg-neutral-strong absolute inset-0 scale-50 rounded-md opacity-0 transition-all group-hover/button:scale-100 group-hover/button:opacity-100"
-          ></div>
-          <div class="relative z-10 flex items-center gap-2">
-            <PlusIcon class="size-4" />
-            <span>Add Block</span>
-          </div>
-        </button>
-        <p
-          v-if="field.maxValue"
-          class="text-copy-sm text-neutral-subtle flex gap-0.5 rounded-md px-2 py-0.5"
-          :class="[isMaxReached ? 'bg-neutral-strong' : '']"
-        >
-          <span
-            class="mr-1"
-            v-if="isMaxReached"
-          >
-            Block limit reached
-          </span>
-          <span :class="[isMaxReached ? 'text-warn-onsurface' : 'text-neutral']">
-            {{ sortedBlocks.length }}
-          </span>
-          <span>/</span>
-          <span>
-            {{ field.maxValue }}
-          </span>
-        </p>
-      </div>
+          <template #controls>
+            <DButton
+              class="drag-handle cursor-grab opacity-50 transition-all group-hover:opacity-100"
+              :icon-left="GripVertical"
+              size="sm"
+              variant="transparent"
+              no-cursor
+            />
+          </template>
+        </DFieldBlock>
+      </template>
     </div>
 
-    <DModal
-      :open="isAddModalOpen"
-      title="Add Block"
-      @close="isAddModalOpen = false"
-    >
-      <div class="flex flex-col gap-2">
-        <DList>
-          <DListItem
-            v-for="block in filteredComponents"
-            :key="block.id"
-            @click="addBlock(block.id)"
-          >
-            <div class="text-copy flex w-full items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-60">
-                  {{ block?.displayName }}
-                </div>
+    <div class="flex items-center justify-between p-1">
+      <button
+        @click="isAddModalOpen = true"
+        class="text-neutral-subtle text-copy group/button relative inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 ring-blue-500 transition-all outline-none focus-visible:ring-2"
+        :class="[isMaxReached ? 'scale-50 opacity-0' : '']"
+      >
+        <div
+          class="bg-neutral-strong absolute inset-0 scale-50 rounded-md opacity-0 transition-all group-hover/button:scale-100 group-hover/button:opacity-100"
+        ></div>
+        <div class="relative z-10 flex items-center gap-2">
+          <PlusIcon class="size-4" />
+          <span>Add Block</span>
+        </div>
+      </button>
+      <p
+        v-if="field.maxValue"
+        class="text-copy-sm text-neutral-subtle flex gap-0.5 rounded-md px-2 py-0.5"
+        :class="[isMaxReached ? 'bg-neutral-strong' : '']"
+      >
+        <span
+          class="mr-1"
+          v-if="isMaxReached"
+        >
+          Block limit reached
+        </span>
+        <span :class="[isMaxReached ? 'text-warn-onsurface' : 'text-neutral']">
+          {{ sortedBlocks.length }}
+        </span>
+        <span>/</span>
+        <span>
+          {{ field.maxValue }}
+        </span>
+      </p>
+    </div>
+  </div>
+
+  <DModal
+    :open="isAddModalOpen"
+    title="Add Block"
+    @close="isAddModalOpen = false"
+  >
+    <div class="flex flex-col gap-2">
+      <DList>
+        <DListItem
+          v-for="block in filteredComponents"
+          :key="block.id"
+          @click="addBlock(block.id)"
+        >
+          <div class="text-copy flex w-full items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-60">
+                {{ block?.displayName }}
               </div>
             </div>
-          </DListItem>
-        </DList>
-      </div>
-    </DModal>
-  </div>
+          </div>
+        </DListItem>
+      </DList>
+    </div>
+  </DModal>
 </template>
 <style>
 @reference "../../app.css";

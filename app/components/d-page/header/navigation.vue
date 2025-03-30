@@ -19,7 +19,7 @@ const route = useRoute()
         :key="item?.name"
         :to="item?.to"
         :class="
-          route.path.endsWith(item?.to)
+          route.path.startsWith(item?.to)
             ? 'text-neutral border-neutral-strong'
             : 'text-neutral-subtle border-transparent'
         "

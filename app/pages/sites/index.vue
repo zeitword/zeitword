@@ -27,7 +27,7 @@ async function createSite() {
         v-if="sites && sites?.length > 0"
       >
         <NuxtLink
-          :to="`/sites/${site.id}/content`"
+          :to="`/sites/${site.id}/stories`"
           v-for="site in sites"
           :key="site.id"
           class="hover:border-neutral-strong/20 bg-neutral border-neutral group cursor-pointer items-center overflow-hidden rounded-md border shadow-sm transition-all duration-100 hover:shadow-md"

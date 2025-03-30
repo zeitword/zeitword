@@ -3,7 +3,7 @@ const route = useRoute()
 const siteId = useRouteParams("siteId")
 
 const navigation = ref([
-  { name: "Content", to: `/sites/${siteId.value}/content` },
+  { name: "Content", to: `/sites/${siteId.value}/stories` },
   { name: "Components", to: `/sites/${siteId.value}/components` },
   { name: "Settings", to: `/sites/${siteId.value}/settings` }
 ])

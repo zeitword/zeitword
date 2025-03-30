@@ -49,7 +49,7 @@ const initials = computed(() => {
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
             :name="site?.name"
-            :to="`/sites/${siteId}/content`"
+            :to="`/sites/${siteId}/stories`"
           />
         </template>
 
@@ -57,7 +57,7 @@ const initials = computed(() => {
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
             :name="story?.title"
-            :to="`/sites/${siteId}/content/${storyId}`"
+            :to="`/sites/${siteId}/stories/${storyId}`"
           />
         </template>
       </div>

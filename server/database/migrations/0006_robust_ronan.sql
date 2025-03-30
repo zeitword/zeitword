@@ -1,0 +1,1 @@
+ALTER TABLE "stories" ALTER COLUMN "component_id" DROP NOT NULL;
