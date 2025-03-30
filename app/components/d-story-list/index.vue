@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { Trash2, FolderIcon, LetterTextIcon } from "lucide-vue-next"
+import { Trash2, FolderIcon, LetterTextIcon, SearchIcon } from "lucide-vue-next"
 
-const siteId = useRouteParams("siteId")
-
-type Item = {
+export type Item = {
   id: string
   title: string
   slug: string
@@ -14,63 +12,49 @@ type Item = {
 type Props = {
   stories: Item[]
   parentSlug?: string
+  isSearching: boolean
+  searchTerm?: string
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(["delete-story", "create-story", "create-folder"])
+const emit = defineEmits(["delete-story", "create-story", "create-folder", "navigate"])
 
-function getSlugName(slug: string) {
-  if (!props.parentSlug || props.parentSlug === "/") {
-    return slug === "index" ? "/" : `/${slug}`
+function getDisplaySlug(itemSlug: string) {
+  if (props.isSearching) {
+    return itemSlug === "index" ? "/" : `/${itemSlug}`
   }
-  const cleanParentSlug = props.parentSlug.endsWith("/")
-    ? props.parentSlug.slice(0, -1)
-    : props.parentSlug
-  const relativeSlug = slug.startsWith(cleanParentSlug + "/")
-    ? slug.substring(cleanParentSlug.length + 1)
-    : slug
-  return "/" + cleanParentSlug + "/" + relativeSlug
+  const parent = props.parentSlug || "/"
+  if (parent === "/") {
+    return itemSlug === "index" ? "/" : `/${itemSlug}`
+  }
+  const parentPrefix = parent.endsWith("/") ? parent : parent + "/"
+  if (itemSlug.startsWith(parentPrefix)) {
+    return itemSlug.substring(parentPrefix.length) || "/"
+  }
+  return `/${itemSlug}`
 }
 
-const sortedItems = computed(() => {
-  if (!props.stories) return []
-
-  return [...props.stories].sort((a, b) => {
-    const aSlug = getSlugName(a.slug)
-    const bSlug = getSlugName(b.slug)
-    if (a.type === "folder" && b.type !== "folder") return -1
-    if (a.type !== "folder" && b.type === "folder") return 1
-    return aSlug.localeCompare(bSlug)
-  })
-})
-
+// Keep action/navigation emitters (no changes needed)
 function showDeleteModal(id: string) {
   emit("delete-story", id)
 }
-
 function createStory() {
   emit("create-story")
 }
-
 function createFolder() {
   emit("create-folder")
 }
-
-function nav(item: Item) {
-  if (item.type === "story") {
-    navigateTo(`/sites/${siteId.value}/stories/story/${item.id}/content`)
-  } else {
-    navigateTo(`/sites/${siteId.value}/stories/${item.id}`)
-  }
+function requestNavigation(item: Item) {
+  emit("navigate", item)
 }
 </script>
 
 <template>
-  <DList v-if="sortedItems && sortedItems.length > 0">
+  <DList v-if="stories.length > 0">
     <DListItem
-      v-for="item in sortedItems"
+      v-for="item in stories"
       :key="item.id"
-      @click="nav(item)"
+      @click="requestNavigation(item)"
       class="group cursor-pointer"
     >
       <div class="text-copy flex w-full items-center justify-between">
@@ -88,10 +72,7 @@ function nav(item: Item) {
                 class="text-neutral-subtle size-4 fill-neutral-500"
               />
             </div>
-            <span class="min-w-0 truncate">
-              {{ item.title }}
-            </span>
-
+            <span class="min-w-0 truncate">{{ item.title }}</span>
             <div
               v-if="item.type === 'story' && item.component"
               class="text-copy-sm bg-neutral border-neutral inline-flex shrink-0 rounded-full border px-2 py-px"
@@ -99,14 +80,12 @@ function nav(item: Item) {
               {{ item.component.displayName }}
             </div>
           </div>
-
-          <div class="flex flex-1">
+          <div class="flex flex-1 justify-end">
             <div class="text-copy-sm text-neutral-subtle px-2 py-px">
-              {{ getSlugName(item.slug) }}
+              {{ getDisplaySlug(item.slug) }}
             </div>
           </div>
         </div>
-
         <div
           class="ml-2 flex shrink-0 gap-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
         >
@@ -123,7 +102,15 @@ function nav(item: Item) {
   </DList>
 
   <DEmpty
-    v-else
+    v-else-if="isSearching && stories.length === 0"
+    title="No matches found"
+    :description="`Your search for '${searchTerm}' did not return any results.`"
+    :icon="SearchIcon"
+    size="lg"
+  />
+
+  <DEmpty
+    v-else-if="!isSearching && stories.length === 0"
     title="No items yet"
     description="Create your first story or folder to get started."
     :icon="FolderIcon"

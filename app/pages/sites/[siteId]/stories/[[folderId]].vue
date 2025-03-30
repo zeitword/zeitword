@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useDebounceFn } from "@vueuse/core"
+import type { Item as StoryListItem } from "~/components/d-story-list/index.vue"
+import { SearchIcon } from "lucide-vue-next"
+
 definePageMeta({
   layout: "site"
 })
@@ -9,15 +13,30 @@ const folderId = computed(() => route.params.folderId as string | undefined)
 
 const { toast } = useToast()
 
+const searchInput = ref("")
+const debouncedSearchQuery = ref("")
+const isSearching = computed(() => !!debouncedSearchQuery.value)
+
+const updateSearchQuery = useDebounceFn((value: string) => {
+  debouncedSearchQuery.value = value
+}, 300)
+
+watch(searchInput, (newValue) => {
+  updateSearchQuery(newValue)
+})
+
 const { data: components } = await useFetch(`/api/sites/${siteId.value}/components`)
 
 const { data: currentFolder, error: folderError } = await useFetch(
-  `/api/sites/${siteId.value}/stories/${folderId.value}`
+  () => (folderId.value ? `/api/sites/${siteId.value}/stories/${folderId.value}` : null),
+  { watch: [folderId] }
 )
 
 if (folderError.value) {
-  toast.error({ description: "Failed to load folder details." })
-  console.error("Folder fetch error:", folderError.value)
+  if (folderId.value) {
+    toast.error({ description: "Failed to load folder details." })
+    console.error("Folder fetch error:", folderError.value)
+  }
 }
 
 const {
@@ -25,14 +44,23 @@ const {
   refresh: refreshStories,
   error: listError
 } = await useAsyncData(
-  `stories-${folderId.value || "root"}`,
-  () =>
-    folderId.value
-      ? $fetch(`/api/sites/${siteId.value}/stories/${folderId.value}/children`)
-      : $fetch(`/api/sites/${siteId.value}/stories`),
-  { watch: [folderId] }
+  `stories-${siteId.value}-${folderId.value || "root"}-${debouncedSearchQuery.value}`,
+  async () => {
+    if (debouncedSearchQuery.value) {
+      return $fetch(`/api/sites/${siteId.value}/stories`, {
+        params: { query: debouncedSearchQuery.value }
+      })
+    } else if (folderId.value) {
+      return $fetch(`/api/sites/${siteId.value}/stories/${folderId.value}/children`)
+    } else {
+      return $fetch(`/api/sites/${siteId.value}/stories`)
+    }
+  },
+  {
+    watch: [folderId, debouncedSearchQuery],
+    default: () => []
+  }
 )
-
 if (listError.value) {
   toast.error({ description: "Failed to load content list." })
   console.error("List fetch error:", listError.value)
@@ -43,11 +71,9 @@ const itemTypeToCreate = ref<"story" | "folder">("story")
 const name = ref("")
 const slug = ref("")
 const contentType = ref("")
-
 const isDeleteModalOpen = ref(false)
 const selectedStoryId = ref<string | null>(null)
 
-// --- Computed Properties ---
 const contentTypeOptions = computed(() => {
   return (
     components.value?.map((component) => ({
@@ -56,10 +82,19 @@ const contentTypeOptions = computed(() => {
     })) || []
   )
 })
-const pageTitle = computed(() => currentFolder.value?.title || "Content")
-const parentSlug = computed(() => currentFolder.value?.slug || "/")
+const pageTitle = computed(() => (folderId.value ? currentFolder.value?.title : null) || "Content")
+const parentSlugForDisplay = computed(
+  () => (folderId.value ? currentFolder.value?.slug : null) || "/"
+)
 
-// --- Actions ---
+function handleNavigation(item: StoryListItem) {
+  if (item.type === "story") {
+    navigateTo(`/sites/${siteId.value}/stories/story/${item.id}/content`)
+  } else {
+    navigateTo(`/sites/${siteId.value}/stories/${item.id}`)
+  }
+}
+
 function openCreateModal(type: "story" | "folder") {
   itemTypeToCreate.value = type
   name.value = ""
@@ -79,33 +114,28 @@ async function createItem() {
     return toast.info({ description: "Please select a content type for the story" })
   }
 
-  if (
-    (itemTypeToCreate.value === "folder" && slug.value === "") ||
-    (itemTypeToCreate.value === "story" && folderId.value && slug.value === "")
-  ) {
-    if (itemTypeToCreate.value === "story" && !folderId.value && slug.value === "") {
-    } else {
-      return toast.info({ description: "Please enter a slug" })
-    }
-  }
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.value) && slug.value !== "") {
+  if (slug.value !== "" && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.value)) {
     return toast.warning({ description: "Slug must be lowercase alphanumeric with hyphens." })
+  }
+
+  if (slug.value === "") {
+    slug.value = "index"
   }
 
   try {
     let finalSlug: string
     const currentSlugInput = slug.value
+    const baseSlug = folderId.value ? currentFolder.value?.slug : null
 
-    if (folderId.value) {
-      if (!currentFolder.value?.slug) throw new Error("Cannot determine parent path.")
-      finalSlug = `${currentFolder.value.slug}/${currentSlugInput}`
+    if (baseSlug) {
+      if (!currentSlugInput)
+        throw new Error("Slug is required when creating items inside a folder.")
+      finalSlug = `${baseSlug}/${currentSlugInput}`
     } else {
       if (itemTypeToCreate.value === "story") {
-        finalSlug = currentSlugInput.length > 0 ? currentSlugInput : "index"
+        finalSlug = currentSlugInput || "index"
       } else {
-        if (currentSlugInput.length === 0) {
-          return toast.info({ description: "Folder slug cannot be empty at the root level." })
-        }
+        if (!currentSlugInput) throw new Error("Folder slug is required at the root level.")
         finalSlug = currentSlugInput
       }
     }
@@ -122,17 +152,14 @@ async function createItem() {
       title: name.value,
       content: {}
     }
-
     if (itemTypeToCreate.value === "story") {
+      if (!contentType.value) throw new Error("Content type is required for stories.")
       body.componentId = contentType.value
     }
 
-    await $fetch(`/api/sites/${siteId.value}/stories`, {
-      method: "POST",
-      body: body
-    })
-
+    await $fetch(`/api/sites/${siteId.value}/stories`, { method: "POST", body: body })
     closeCreateModal()
+    searchInput.value = ""
     await refreshStories()
     toast.success({
       description: `${itemTypeToCreate.value.charAt(0).toUpperCase() + itemTypeToCreate.value.slice(1)} created successfully.`
@@ -154,10 +181,15 @@ async function deleteStory() {
       method: "DELETE"
     })
     toast.success({ description: "Item deleted successfully" })
+    searchInput.value = ""
     await refreshStories()
   } catch (error: any) {
     console.error(error)
-    toast.error({ description: "Failed to delete item." })
+    if (error.response?._data?.message?.includes("Cannot delete folder with children")) {
+      toast.error({ description: "Cannot delete folder: Please delete its contents first." })
+    } else {
+      toast.error({ description: "Failed to delete item." })
+    }
   } finally {
     selectedStoryId.value = null
     isDeleteModalOpen.value = false
@@ -168,22 +200,25 @@ function handleApiError(error: any, itemType: "story" | "folder") {
   console.error(`Error creating ${itemType}:`, error)
   if (error.response && error.response.status === 409) {
     toast.error({
-      description: error.response._data?.statusMessage || `Slug conflict creating ${itemType}.`
+      description:
+        error.response._data?.statusMessage ||
+        `A story or folder with this slug already exists in this location.`
     })
   } else if (error.response?.data?.message) {
     toast.error({ description: `Invalid input: ${error.response.data.message}` })
   } else {
-    toast.error({ description: `Failed to create ${itemType}.` })
+    toast.error({ description: `Failed to create ${itemType}. ${error.message || ""}` })
   }
 }
 </script>
+
 <template>
   <DPageTitle :title="pageTitle">
     <template
       #subtitle
-      v-if="currentFolder"
+      v-if="folderId && currentFolder"
     >
-      <p class="text-copy-sm text-neutral-subtle">{{ currentFolder.slug }}</p>
+      <p class="text-copy-sm text-neutral-subtle">/{{ currentFolder.slug }}</p>
     </template>
     <div class="flex gap-2">
       <DButton
@@ -197,14 +232,39 @@ function handleApiError(error: any, itemType: "story" | "folder") {
   </DPageTitle>
 
   <DPageWrapper>
+    <!-- Search Input is now here, outside the loading block -->
     <div class="py-5">
+      <div class="mb-4">
+        <DInput
+          v-model="searchInput"
+          placeholder="Search stories and folders..."
+          :icon-left="SearchIcon"
+        />
+      </div>
+
+      <div
+        v-if="listError"
+        class="text-destructive p-4 text-center"
+      >
+        Failed to load items.
+        <DButton
+          variant="link"
+          size="sm"
+          @click="refreshStories"
+        >
+          Retry
+        </DButton>
+      </div>
       <DStoryList
+        v-else
         :stories="stories || []"
-        :site-id="siteId"
-        :parent-slug="parentSlug"
+        :is-searching="isSearching"
+        :parent-slug="parentSlugForDisplay"
         @delete-story="openDeleteModal"
         @create-story="openCreateModal('story')"
         @create-folder="openCreateModal('folder')"
+        @navigate="handleNavigation"
+        :search-term="debouncedSearchQuery"
       />
     </div>
   </DPageWrapper>
@@ -235,7 +295,6 @@ function handleApiError(error: any, itemType: "story" | "folder") {
           :placeholder="`e.g. ${itemTypeToCreate === 'story' ? 'About Us' : 'Blog Posts'}`"
         />
       </DFormGroup>
-
       <DFormGroup>
         <DFormLabel
           name="slug"
@@ -247,9 +306,9 @@ function handleApiError(error: any, itemType: "story" | "folder") {
           id="slug"
           name="slug"
           v-model.slug="slug"
-          :leading="parentSlug === '/' ? '/' : '/' + parentSlug + '/'"
+          :leading="parentSlugForDisplay === '/' ? '/' : `/${parentSlugForDisplay}/`"
           :placeholder="
-            itemTypeToCreate === 'folder' ? 'blog-posts' : folderId ? 'sub-page' : 'index'
+            itemTypeToCreate === 'folder' ? 'folder-name' : folderId ? 'sub-page-slug' : 'index'
           "
           :required="itemTypeToCreate === 'folder' || !!folderId"
         />
@@ -257,16 +316,15 @@ function handleApiError(error: any, itemType: "story" | "folder") {
           v-if="itemTypeToCreate === 'story' && !folderId"
           class="text-copy-xs text-neutral-subtle mt-1"
         >
-          Leave empty for root "index".
+          Leave empty for the root page (slug will be "index").
         </p>
         <p
-          v-if="itemTypeToCreate === 'folder' || !!folderId"
+          v-else
           class="text-copy-xs text-neutral-subtle mt-1"
         >
-          Lowercase letters, numbers, and hyphens.
+          Required. Lowercase letters, numbers, and hyphens only.
         </p>
       </DFormGroup>
-
       <DFormGroup v-if="itemTypeToCreate === 'story'">
         <DFormLabel
           name="contentType"
