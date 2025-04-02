@@ -1,5 +1,6 @@
+// zeitword/server/api/public/sites/[siteId]/stories/[...slug].ts
 import { stories, components } from "~~/server/database/schema"
-import { eq, and, or, like, notLike } from "drizzle-orm"
+import { eq, and, or } from "drizzle-orm" // Import 'or'
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -8,30 +9,17 @@ export default defineEventHandler(async (event) => {
   const requestedSlug = getRouterParam(event, "slug")
   if (!requestedSlug) throw createError({ statusCode: 400, statusMessage: "Invalid Slug" })
 
+  console.log(
+    `\n>>> HIT: [...slug].get.ts | Slug Param: ${requestedSlug} | Full URL: ${getRequestURL(event).pathname}\n`
+  )
+
+  // Potential slug variations to check in the DB
   const slugVariations = [requestedSlug]
   if (!requestedSlug.endsWith("/index")) {
     slugVariations.push(`${requestedSlug}/index`)
   }
 
-  const [parentStory] = await useDrizzle()
-    .select({ slug: stories.slug })
-    .from(stories)
-    .innerJoin(components, eq(stories.componentId, components.id))
-    .where(
-      and(
-        eq(components.siteId, siteId),
-        or(...slugVariations.map((slug) => eq(stories.slug, slug)))
-      )
-    )
-    .limit(1)
-
-  if (!parentStory) throw createError({ statusCode: 404, statusMessage: "Parent story not found" })
-
-  const parentSlug = parentStory.slug
-  const parentSlugWithSlashWildcard = `${parentSlug}/%`
-  const parentSlugGrandchildWildcard = `${parentSlug}/%/%`
-
-  const children = await useDrizzle()
+  const [storyData] = await useDrizzle()
     .select({
       id: stories.id,
       slug: stories.slug,
@@ -43,13 +31,15 @@ export default defineEventHandler(async (event) => {
     .where(
       and(
         eq(components.siteId, siteId),
-        like(stories.slug, parentSlugWithSlashWildcard),
-        notLike(stories.slug, parentSlugGrandchildWildcard)
+        // Check if stories.slug matches EITHER the original OR the '/index' version
+        or(...slugVariations.map((slug) => eq(stories.slug, slug)))
       )
     )
+
+  if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
 
-  return children
+  return storyData
 })
