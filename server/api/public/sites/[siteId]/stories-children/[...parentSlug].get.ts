@@ -53,7 +53,8 @@ export default defineEventHandler(async (event) => {
     .select({
       id: stories.id,
       slug: stories.slug,
-      title: stories.title
+      title: stories.title,
+      content: stories.content
     })
     .from(stories)
     .innerJoin(components, eq(stories.componentId, components.id))
