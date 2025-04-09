@@ -34,6 +34,11 @@ watch(
   { deep: true }
 )
 
+const renderPreview = computed(() => {
+  if (!story) return false
+  return story.value?.component?.renderPreview
+})
+
 async function save() {
   if (!story.value) return
 
@@ -209,7 +214,10 @@ const isPreviewReady = ref(false)
     v-if="story"
     class="flex min-h-0 flex-grow basis-2/3"
   >
-    <div class="code-container flex-1 overflow-auto bg-white">
+    <div
+      class="code-container flex-1 overflow-auto bg-white"
+      v-if="renderPreview || showJson"
+    >
       <DPreview
         v-if="!showJson && site && story"
         :site-domain="site.domain"
@@ -230,20 +238,23 @@ const isPreviewReady = ref(false)
     </div>
 
     <div
-      class="border-neutral bg-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l p-5"
+      class="border-neutral bg-neutral flex flex-1 flex-col gap-2 overflow-auto border-l p-5"
+      :class="!renderPreview && !showJson ? 'w-full' : 'max-w-[500px]'"
     >
-      <template
-        v-for="field in sortedFields"
-        :key="field.fieldKey"
-      >
-        <DField
-          :field="field"
-          :value="content[field.fieldKey]"
-          :target-block-id="targetBlockId"
-          @update:value="updateNestedField([field.fieldKey], $event)"
-          @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
-        />
-      </template>
+      <div class="mx-auto w-full max-w-4xl">
+        <template
+          v-for="field in sortedFields"
+          :key="field.fieldKey"
+        >
+          <DField
+            :field="field"
+            :value="content[field.fieldKey]"
+            :target-block-id="targetBlockId"
+            @update:value="updateNestedField([field.fieldKey], $event)"
+            @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
+          />
+        </template>
+      </div>
     </div>
   </div>
   <DModal

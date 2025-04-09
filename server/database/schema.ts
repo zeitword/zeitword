@@ -85,6 +85,7 @@ export const components = pgTable(
     displayName: text().notNull(),
     previewImage: text(),
     previewField: text(),
+    renderPreview: boolean().notNull().default(false),
     siteId: uuid()
       .notNull()
       .references(() => sites.id),

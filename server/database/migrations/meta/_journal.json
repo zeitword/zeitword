@@ -50,6 +50,13 @@
       "when": 1743178950647,
       "tag": "0006_robust_ronan",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1744184634378,
+      "tag": "0007_nostalgic_synch",
+      "breakpoints": true
     }
   ]
 }
