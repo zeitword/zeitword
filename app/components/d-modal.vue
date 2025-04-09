@@ -52,19 +52,19 @@ function confirm() {
       <!-- Conditionally render the overlay and content -->
       <div
         v-if="open"
-        class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto"
+        class="fixed inset-0 z-50 flex justify-center overflow-y-auto pt-30"
       >
         <DialogOverlay
           class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 fixed inset-0 z-10 backdrop-blur-xs"
         />
         <DialogContent
-          class="data-[state=open]:animate-contentShow relative z-20 flex w-full flex-col rounded-lg bg-neutral shadow-lg outline-none"
+          class="data-[state=open]:animate-contentShow bg-neutral relative z-20 flex h-fit w-full flex-col rounded-lg shadow-lg outline-none"
           :class="[sizeClasses[size], 'max-h-[80vh]']"
         >
           <!-- Header -->
           <div class="border-neutral flex items-center justify-between border-b p-5">
             <div>
-              <DialogTitle class="text-lg font-semibold text-neutral">
+              <DialogTitle class="text-neutral text-lg font-semibold">
                 {{ title }}
               </DialogTitle>
               <DialogDescription
