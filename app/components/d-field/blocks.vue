@@ -25,16 +25,34 @@ const { data: availableComponents } = await useFetch<DComponent[]>(
   `/api/sites/${siteId.value}/components`
 )
 
+// Component Search
+const searchTerm = ref("")
+
 const filteredComponents = computed(() => {
-  if (!availableComponents.value) return []
-  if (Array.isArray(field.componentWhitelist) && field.componentWhitelist.length > 0) {
-    const componentWhitelist: string[] = field.componentWhitelist
-    return availableComponents.value.filter((component) =>
-      componentWhitelist.includes(component.name)
+  // Assume availableComponents.value is always an array or undefined/null
+  let components = availableComponents.value || []
+
+  // 1. Apply whitelist filter if present
+  if (Array.isArray(field?.componentWhitelist) && field.componentWhitelist.length > 0) {
+    const whitelist = field.componentWhitelist
+    // Assume 'components' is an array here
+    components = components.filter(
+      (component) => component?.name && whitelist.includes(component.name)
     )
-  } else {
-    return availableComponents.value
   }
+
+  // 2. Apply search term filter if present
+  if (searchTerm.value) {
+    const lowerSearch = searchTerm.value.toLowerCase()
+    // Assume 'components' is an array here
+    components = components.filter(
+      (component) =>
+        (component?.displayName?.toLowerCase() || "").includes(lowerSearch) ||
+        (component?.name?.toLowerCase() || "").includes(lowerSearch)
+    )
+  }
+
+  return components
 })
 
 const isAddModalOpen = ref(false)
@@ -54,7 +72,7 @@ function initializeBlockContent(component: DComponent): any {
 }
 
 function addBlock(componentId: string) {
-  isAddModalOpen.value = false
+  closeAddModal()
 
   const component = availableComponents.value?.find((c) => c.id === componentId)
   if (!component) {
@@ -216,6 +234,19 @@ const isMaxReached = computed(() => {
   if (!field.maxValue) return false
   return sortedBlocks.value.length >= field.maxValue
 })
+
+const searchInput = ref<HTMLInputElement | null>(null)
+async function openAddModal() {
+  isAddModalOpen.value = true
+  await nextTick(() => {
+    searchInput.value?.focus()
+  })
+}
+
+function closeAddModal() {
+  isAddModalOpen.value = false
+  searchTerm.value = ""
+}
 </script>
 
 <template>
@@ -255,7 +286,7 @@ const isMaxReached = computed(() => {
 
     <div class="flex items-center justify-between p-1">
       <button
-        @click="isAddModalOpen = true"
+        @click="openAddModal()"
         class="text-neutral-subtle text-copy group/button relative inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 ring-blue-500 transition-all outline-none focus-visible:ring-2"
         :class="[isMaxReached ? 'scale-50 opacity-0' : '']"
       >
@@ -292,9 +323,16 @@ const isMaxReached = computed(() => {
   <DModal
     :open="isAddModalOpen"
     title="Add Block"
-    @close="isAddModalOpen = false"
+    @close="closeAddModal"
   >
     <div class="flex flex-col gap-2">
+      <DInput
+        ref="searchInput"
+        v-model="searchTerm"
+        placeholder="Search blocks by name..."
+        aria-label="Search blocks"
+        autofocus
+      />
       <DList>
         <DListItem
           v-for="block in filteredComponents"

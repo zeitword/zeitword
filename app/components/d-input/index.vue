@@ -55,6 +55,14 @@ const [model, modifiers] = defineModel<string | number>({
     return value
   }
 })
+
+const inputElement = ref<HTMLInputElement | null>(null)
+
+defineExpose({
+  focus: () => {
+    inputElement.value?.focus()
+  }
+})
 </script>
 
 <template>
@@ -79,6 +87,7 @@ const [model, modifiers] = defineModel<string | number>({
       </template>
     </div>
     <input
+      ref="inputElement"
       :id="name"
       :name="name"
       :type="type"
