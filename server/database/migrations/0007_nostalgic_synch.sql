@@ -1,0 +1,1 @@
+ALTER TABLE "components" ADD COLUMN "render_preview" boolean DEFAULT false NOT NULL;

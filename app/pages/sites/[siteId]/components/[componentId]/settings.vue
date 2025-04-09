@@ -11,7 +11,8 @@ const formData = reactive({
   name: component.value?.name,
   displayName: component.value?.displayName,
   previewField: component.value?.previewField,
-  previwImage: null
+  renderPreview: component.value?.renderPreview,
+  previewImage: null
 })
 
 async function saveChanges() {
@@ -74,6 +75,11 @@ async function saveChanges() {
             }))
           "
         />
+      </DFormGroup>
+
+      <DFormGroup>
+        <DFormLabel>Render Story Preview</DFormLabel>
+        <DFormSwitch v-model="formData.renderPreview" />
       </DFormGroup>
 
       <!-- Save Button -->

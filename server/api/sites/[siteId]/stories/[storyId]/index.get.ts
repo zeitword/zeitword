@@ -33,7 +33,8 @@ export default defineEventHandler(async (event) => {
         name: components.name,
         displayName: components.displayName,
         previewImage: components.previewImage,
-        previewField: components.previewField
+        previewField: components.previewField,
+        renderPreview: components.renderPreview
       }
     })
     .from(stories)
@@ -100,6 +101,7 @@ export default defineEventHandler(async (event) => {
       id: itemData.id,
       slug: itemData.slug,
       title: itemData.title,
+      componentId: itemData.componentId,
       content: itemData.content,
       type: itemData.type,
       createdAt: itemData.createdAt,

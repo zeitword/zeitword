@@ -6,7 +6,8 @@ const bodySchema = z.object({
   name: z.string().min(1).max(255),
   displayName: z.string().min(1).max(255),
   previewImage: z.string().nullable().optional(),
-  previewField: z.string().nullable()
+  previewField: z.string().nullable(),
+  renderPreview: z.boolean().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -26,7 +27,8 @@ export default defineEventHandler(async (event) => {
       name: data.name,
       displayName: data.displayName,
       previewImage: data.previewImage,
-      previewField: data.previewField
+      previewField: data.previewField,
+      renderPreview: data.renderPreview
     })
     .where(
       and(
