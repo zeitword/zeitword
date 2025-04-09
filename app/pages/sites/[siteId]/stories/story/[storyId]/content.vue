@@ -241,7 +241,7 @@ const isPreviewReady = ref(false)
       class="border-neutral bg-neutral flex flex-1 flex-col gap-2 overflow-auto border-l p-5"
       :class="!renderPreview && !showJson ? 'w-full' : 'max-w-[500px]'"
     >
-      <div class="mx-auto w-full max-w-4xl">
+      <div class="mx-auto flex w-full max-w-4xl flex-col gap-2">
         <template
           v-for="field in sortedFields"
           :key="field.fieldKey"
