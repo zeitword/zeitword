@@ -3,6 +3,7 @@ import { z } from "zod"
 import { and, eq } from "drizzle-orm"
 import { componentFields } from "~~/server/database/schema"
 import { useDrizzle } from "~~/server/utils/drizzle" // Import useDrizzle
+import { validateField, validateRouteParams, commonSchemas } from "~~/server/utils/validation"
 
 const bodySchema = z.object({
   order: z.string()
@@ -12,16 +13,15 @@ export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-  const siteId = getRouterParam(event, "siteId")
-  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
+  // Validate route parameters using Zod
+  const { siteId, componentId, fieldKey } = validateRouteParams(event, {
+    siteId: commonSchemas.siteId,
+    componentId: commonSchemas.componentId,
+    fieldKey: commonSchemas.fieldKey
+  })
 
-  const componentId = getRouterParam(event, "componentId")
-  if (!componentId) throw createError({ statusCode: 400, statusMessage: "Invalid Component ID" })
-
-  const fieldKey = getRouterParam(event, "fieldKey")
-  if (!fieldKey) throw createError({ statusCode: 400, statusMessage: "Invalid Field Key" })
-
-  const data = await readValidatedBody(event, bodySchema.parse)
+  // Validate request body
+  const data = await validateField(event, bodySchema)
 
   const [updatedField] = await useDrizzle()
     .update(componentFields)

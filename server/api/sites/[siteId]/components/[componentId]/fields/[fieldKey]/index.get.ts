@@ -1,23 +1,17 @@
 import { and, eq } from "drizzle-orm"
 import { componentFields, fieldOptions } from "~~/server/database/schema"
+import { validateRouteParams, commonSchemas } from "~~/server/utils/validation"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-  const componentId = getRouterParam(event, "componentId")
-  if (!componentId)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No componentId provided"
-    })
-
-  const fieldKey = getRouterParam(event, "fieldKey")
-  if (!fieldKey)
-    throw createError({
-      statusCode: 400,
-      statusMessage: "No fieldKey provided"
-    })
+  // Validate route parameters using Zod
+  const { siteId, componentId, fieldKey } = validateRouteParams(event, {
+    siteId: commonSchemas.siteId,
+    componentId: commonSchemas.componentId,
+    fieldKey: commonSchemas.fieldKey
+  })
 
   const db = useDrizzle()
 
