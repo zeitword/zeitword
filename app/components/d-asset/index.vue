@@ -20,7 +20,7 @@ const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 
 const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
-  accept: "image/*",
+  // accept: "image/*",
   multiple: false
 })
 
@@ -35,12 +35,12 @@ function onDrop(files: File[] | null) {
   isDragging.value = false
   if (!files || files.length === 0) return
   const file = files[0]
-  if (file.type.startsWith("image/")) {
-    uploadFile(file)
-  } else {
-    console.warn("Dropped file is not an image:", file.type)
-    toast.warning({ title: "File type not supported", description: "Please drop an image file." })
-  }
+  // if (file.type.startsWith("image/")) {
+  uploadFile(file)
+  // } else {
+  //   console.warn("Dropped file is not an image:", file.type)
+  //   toast.warning({ title: "File type not supported", description: "Please drop an image file." })
+  // }
 }
 
 useDropZone(dropZoneRef, {
@@ -142,7 +142,7 @@ function changeAsset() {
         <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
         <p class="text-copy-sm text-neutral-subtle">
           <span v-if="isDragging">Drop file to upload</span>
-          <span v-else>Drag & drop image here, or</span>
+          <span v-else>Drag & drop file here, or</span>
         </p>
         <DButton
           variant="secondary"
@@ -150,7 +150,7 @@ function changeAsset() {
           class="mt-2"
           tabindex="-1"
         >
-          Select File
+          Select file
         </DButton>
       </div>
     </button>
