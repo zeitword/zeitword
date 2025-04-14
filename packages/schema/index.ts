@@ -5,7 +5,12 @@ import { schema } from "./schema-theme"
 import { LexoRank } from "lexorank"
 
 const organisationId = "0195c331-1f56-7f24-9699-c4dec1bd6dfd"
+
+// U-Path
 const siteId = "0195c333-3ec6-7614-b24c-f9281bf3f34f"
+
+// Dokedu
+// const siteId = "0196203c-b876-7e16-aeca-0d57466d4e49"
 
 async function importSchema() {
   const drizzle = useDrizzle()
