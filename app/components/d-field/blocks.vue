@@ -293,7 +293,7 @@ function closeAddModal() {
         <div
           class="bg-neutral-strong absolute inset-0 scale-50 rounded-md opacity-0 transition-all group-hover/button:scale-100 group-hover/button:opacity-100"
         ></div>
-        <div class="relative z-10 flex items-center gap-2">
+        <div class="relative z-10 flex items-center gap-2 transition-all active:scale-95">
           <PlusIcon class="size-4" />
           <span>Add Block</span>
         </div>

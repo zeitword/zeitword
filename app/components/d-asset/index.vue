@@ -20,7 +20,6 @@ const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 
 const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
-  // accept: "image/*",
   multiple: false
 })
 
@@ -35,12 +34,7 @@ function onDrop(files: File[] | null) {
   isDragging.value = false
   if (!files || files.length === 0) return
   const file = files[0]
-  // if (file.type.startsWith("image/")) {
   uploadFile(file)
-  // } else {
-  //   console.warn("Dropped file is not an image:", file.type)
-  //   toast.warning({ title: "File type not supported", description: "Please drop an image file." })
-  // }
 }
 
 useDropZone(dropZoneRef, {
@@ -62,10 +56,13 @@ async function uploadFile(file: File) {
       method: "POST",
       body: formData
     })
-    // Note: Assuming API returns a string (ID or URL) used for both id and src
     emit("update:value", { id: fileIdOrUrl, src: fileIdOrUrl, alt: "" })
   } catch (error) {
     console.error("Upload failed:", error)
+    toast.error({
+      description: "Upload failed",
+      duration: 3000
+    })
     emit("update:value", null)
   } finally {
     isLoading.value = false
@@ -85,6 +82,7 @@ function changeAsset() {
   <div class="relative h-30">
     <div
       v-if="props.value?.src"
+      ref="dropZoneRef"
       class="relative flex h-full space-y-2"
     >
       <div
@@ -94,8 +92,26 @@ function changeAsset() {
         <img
           :src="props.value.src"
           :alt="props.value.alt || 'Selected Asset'"
-          class="block h-full w-full object-cover"
+          class="block h-full w-full object-contain"
         />
+
+        <div
+          v-if="isLoading"
+          class="bg-neutral/50 absolute inset-0 z-10 flex items-center justify-center rounded-xl"
+        >
+          <LoaderCircleIcon class="text-neutral-subtle size-5 animate-spin" />
+          <span class="text-copy ml-2">Uploading...</span>
+        </div>
+
+        <div
+          v-else-if="isDragging"
+          class="bg-neutral/80 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl"
+        >
+          <div class="text-center">
+            <UploadCloudIcon class="text-neutral-subtle mx-auto mb-2 size-5" />
+            <p class="text-copy-sm">Drop to replace</p>
+          </div>
+        </div>
       </div>
       <div
         class="absolute top-0 right-0 flex gap-1 p-2"
@@ -106,7 +122,9 @@ function changeAsset() {
           size="sm"
           @click="changeAsset"
           :icon-left="ReplaceIcon"
-        />
+        >
+          Replace
+        </DButton>
         <DButton
           variant="secondary"
           size="sm"
