@@ -91,11 +91,10 @@ function addBlock(componentId: string) {
   const newBlock = {
     id: uuidv7(),
     componentId: componentId,
-    componentFieldKey: component.name,
+    componentName: component.name,
     content: initializeBlockContent(component),
     order: newRank.toString()
   }
-  console.log(newBlock, component)
   currentBlocks.push(newBlock)
   emit("update:value", currentBlocks)
 }
