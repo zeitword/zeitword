@@ -65,10 +65,10 @@ watch(
       ref="blockRef"
       :class="{ 'ring-primary ring-2': isTargeted }"
     >
-      <div class="group flex w-full items-center gap-2 px-2 py-2">
+      <div class="group flex w-full items-center gap-2 px-2 py-2 perspective-normal">
         <slot name="controls" />
         <button
-          class="flex flex-1 items-center gap-2 text-left transition-all duration-100 active:scale-98"
+          class="flex flex-1 items-center gap-2 text-left"
           @click="isBlockOpen = !isBlockOpen"
         >
           <div class="grid size-7 place-items-center rounded-md transition">
@@ -77,7 +77,9 @@ watch(
               :class="[isBlockOpen ? 'rotate-180' : '']"
             />
           </div>
-          <div class="text-copy text-neutral flex flex-1 items-baseline gap-2 select-none">
+          <div
+            class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none group-active:scale-98"
+          >
             <div class="text-nowrap">{{ block.displayName }}</div>
             <div class="text-neutral-subtle line-clamp-1">
               {{ blockContent.content[block.previewField] }}
