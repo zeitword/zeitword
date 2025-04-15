@@ -86,15 +86,16 @@ function addBlock(componentId: string) {
     newRank = LexoRank.middle()
   } else {
     const lastBlock = currentBlocks.at(-1)
-    newRank = LexoRank.parse(lastBlock!.order).genNext() // Use genNext for new blocks
+    newRank = LexoRank.parse(lastBlock!.order).genNext()
   }
   const newBlock = {
     id: uuidv7(),
     componentId: componentId,
-    componentFieldKey: component.fieldKey,
+    componentFieldKey: component.name,
     content: initializeBlockContent(component),
     order: newRank.toString()
   }
+  console.log(newBlock, component)
   currentBlocks.push(newBlock)
   emit("update:value", currentBlocks)
 }

@@ -138,6 +138,40 @@ export const schema: DSchema = {
     displayName: "Text Link",
     fields: textLinkFields
   },
+  "d-map-marker": {
+    name: "d-map-marker",
+    displayName: "Map Marker",
+    previewField: "top",
+    fields: {
+      top: {
+        displayName: "Top",
+        type: "number"
+      },
+      left: {
+        displayName: "Left",
+        type: "number"
+      }
+    }
+  },
+  "d-map-marker-img": {
+    name: "d-map-marker-img",
+    displayName: "Map Marker Image",
+    previewField: "top",
+    fields: {
+      image: {
+        displayName: "Image",
+        type: "asset"
+      },
+      top: {
+        displayName: "Top",
+        type: "number"
+      },
+      left: {
+        displayName: "Left",
+        type: "number"
+      }
+    }
+  },
   "block-cards-1": {
     name: "block-cards-1",
     displayName: "Cards Block 1",
@@ -168,7 +202,26 @@ export const schema: DSchema = {
     name: "block-navigation-1",
     displayName: "Navigation Block 1",
     previewField: "logo",
-    fields: navigationFields
+    fields: {
+      slug: {
+        displayName: "Slug",
+        type: "text"
+      }
+    }
+  },
+  "block-map-1": {
+    name: "block-map-1",
+    displayName: "Map Block 1",
+    previewField: "title",
+    fields: {
+      title: titleField,
+      description: descriptionField,
+      map: {
+        displayName: "Map",
+        type: "blocks",
+        componentWhitelist: ["d-map-marker", "d-map-marker-img"]
+      }
+    }
   },
   page: {
     name: "page",
@@ -179,7 +232,7 @@ export const schema: DSchema = {
       blocks: {
         displayName: "Blocks",
         type: "blocks",
-        componentWhitelist: ["block-cards-1", "block-hero-1", "block-navigation-1"]
+        componentWhitelist: ["block-cards-1", "block-hero-1", "block-navigation-1", "block-map-1"]
       }
     }
   }
