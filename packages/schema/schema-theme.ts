@@ -9,6 +9,7 @@ type DField = {
   description?: string
   options?: { key: string; value: string }[]
   componentWhitelist?: string[]
+  default?: string | number
 }
 
 type DComponent = {
@@ -26,6 +27,7 @@ type DSchema = {
 
 // --- Reusable Fields ---
 
+const headingField: DField = { displayName: "Heading", type: "text" }
 const titleField: DField = { displayName: "Title", type: "text" }
 const descriptionField: DField = { displayName: "Description", type: "textarea" }
 const linkField: DField = { displayName: "Link", type: "link" }
@@ -45,17 +47,16 @@ const buttonFields: { [key: string]: DField } = {
       { key: "transparent", value: "Transparent" }
     ]
   },
-  icon: iconField,
-  size: {
-    displayName: "Size",
+  target: {
+    displayName: "Target",
     type: "option",
     options: [
-      { key: "xs", value: "Extra Small" },
-      { key: "sm", value: "Small" },
-      { key: "md", value: "Medium" },
-      { key: "lg", value: "Large" }
-    ]
-  }
+      { key: "_self", value: "Same Tab" },
+      { key: "_blank", value: "New Tab" }
+    ],
+    default: "_self"
+  },
+  icon: iconField
 }
 
 // --- Card Fields ---
@@ -136,6 +137,7 @@ export const schema: DSchema = {
   "d-text-link": {
     name: "d-text-link",
     displayName: "Text Link",
+    previewField: "text",
     fields: textLinkFields
   },
   "d-map-marker": {
@@ -175,7 +177,6 @@ export const schema: DSchema = {
   "block-cards-1": {
     name: "block-cards-1",
     displayName: "Cards Block 1",
-    previewField: "cards.0.title",
     fields: {
       cards: {
         displayName: "Cards",
@@ -184,11 +185,42 @@ export const schema: DSchema = {
       }
     }
   },
-  "block-hero-1": {
-    name: "block-hero-1",
-    displayName: "Hero Block 1",
+  "block-logos-1": {
+    name: "block-logos-1",
+    displayName: "Logos Block 1",
     previewField: "title",
     fields: {
+      heading: headingField,
+      logos: {
+        displayName: "Logos",
+        type: "assets"
+      }
+    }
+  },
+  "block-intro-1": {
+    name: "block-intro-1",
+    displayName: "Intro Block 1",
+    previewField: "title",
+    fields: {
+      heading: headingField,
+      title: titleField,
+      description: {
+        displayName: "Description",
+        type: "richtext"
+      },
+      buttons: {
+        displayName: "Buttons",
+        type: "blocks",
+        componentWhitelist: ["d-button"]
+      }
+    }
+  },
+  "block-cta-1": {
+    name: "block-cta-1",
+    displayName: "CTA Block 1",
+    previewField: "title",
+    fields: {
+      heading: headingField,
       title: titleField,
       description: descriptionField,
       buttons: {
@@ -198,16 +230,41 @@ export const schema: DSchema = {
       }
     }
   },
+  "block-hero-1": {
+    name: "block-hero-1",
+    displayName: "Hero Block 1",
+    previewField: "title",
+    fields: {
+      image: imageField,
+      heading: headingField,
+      title: titleField,
+      description: descriptionField,
+      buttons: {
+        displayName: "Buttons",
+        type: "blocks",
+        componentWhitelist: ["d-button"]
+      },
+      center: {
+        displayName: "Center",
+        type: "boolean"
+      }
+    }
+  },
   "block-navigation-1": {
     name: "block-navigation-1",
     displayName: "Navigation Block 1",
-    previewField: "logo",
     fields: {
       slug: {
         displayName: "Slug",
         type: "text"
       }
     }
+  },
+  navigation: {
+    name: "navigation",
+    displayName: "Navigation",
+    previewField: "title",
+    fields: navigationFields
   },
   "block-map-1": {
     name: "block-map-1",
@@ -232,7 +289,15 @@ export const schema: DSchema = {
       blocks: {
         displayName: "Blocks",
         type: "blocks",
-        componentWhitelist: ["block-cards-1", "block-hero-1", "block-navigation-1", "block-map-1"]
+        componentWhitelist: [
+          "block-cards-1",
+          "block-hero-1",
+          "block-navigation-1",
+          "block-intro-1",
+          "block-logos-1",
+          "block-cta-1",
+          "block-map-1"
+        ]
       }
     }
   }
