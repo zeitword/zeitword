@@ -114,6 +114,36 @@ const navigationFields: { [key: string]: DField } = {
   }
 }
 
+const footerFields: { [key: string]: DField } = {
+  logo: {
+    displayName: "Logo",
+    type: "blocks",
+    componentWhitelist: ["d-image-link"]
+  },
+  links: {
+    displayName: "Links",
+    type: "blocks",
+    componentWhitelist: ["d-text-link"]
+  },
+  legal: {
+    displayName: "Legal Links",
+    type: "blocks",
+    componentWhitelist: ["d-text-link"]
+  },
+  company: {
+    displayName: "Company Name",
+    type: "text"
+  },
+  copyright: {
+    displayName: "Copyright",
+    type: "text"
+  },
+  disclaimer: {
+    displayName: "Disclaimer",
+    type: "text"
+  }
+}
+
 // --- Schema Definition ---
 
 export const schema: DSchema = {
@@ -171,6 +201,51 @@ export const schema: DSchema = {
       left: {
         displayName: "Left",
         type: "number"
+      }
+    }
+  },
+  "d-icon-link": {
+    name: "d-icon-link",
+    displayName: "Icon Link",
+    previewField: "text",
+    fields: {
+      icon: iconField,
+      text: { displayName: "Text", type: "text" },
+      link: linkField
+    }
+  },
+  "d-tag": {
+    name: "d-tag",
+    displayName: "Tag",
+    previewField: "text",
+    fields: {
+      text: { displayName: "Text", type: "text" }
+    }
+  },
+  "d-contact": {
+    name: "d-contact",
+    displayName: "Contact",
+    previewField: "name",
+    fields: {
+      name: { displayName: "Name", type: "text" },
+      image: imageField,
+      roleLabel: {
+        displayName: "Role Label",
+        type: "text",
+        description: "Displayed above the Role"
+      },
+      role: { displayName: "Role", type: "text" },
+      description: descriptionField,
+      location: { displayName: "Location", type: "text" },
+      tags: {
+        displayName: "Tags",
+        type: "blocks",
+        componentWhitelist: ["d-tag"]
+      },
+      links: {
+        displayName: "Links",
+        type: "blocks",
+        componentWhitelist: ["d-icon-link"]
       }
     }
   },
@@ -260,12 +335,6 @@ export const schema: DSchema = {
       }
     }
   },
-  navigation: {
-    name: "navigation",
-    displayName: "Navigation",
-    previewField: "title",
-    fields: navigationFields
-  },
   "block-map-1": {
     name: "block-map-1",
     displayName: "Map Block 1",
@@ -277,6 +346,69 @@ export const schema: DSchema = {
         displayName: "Map",
         type: "blocks",
         componentWhitelist: ["d-map-marker", "d-map-marker-img"]
+      }
+    }
+  },
+  "block-team-1": {
+    name: "block-team-1",
+    displayName: "Team Block 1",
+    fields: {
+      contacts: {
+        displayName: "Contacts",
+        type: "blocks",
+        componentWhitelist: ["d-contact"]
+      }
+    }
+  },
+  "block-rich-text-1": {
+    name: "block-rich-text-1",
+    displayName: "Rich Text Block 1",
+    fields: {
+      body: {
+        displayName: "Body",
+        type: "richtext"
+      }
+    }
+  },
+  "block-articles-1": {
+    name: "block-articles-1",
+    displayName: "Articles Block 1",
+    fields: {
+      slug: {
+        displayName: "Slug",
+        type: "text"
+      }
+    }
+  },
+  footer: {
+    name: "footer",
+    displayName: "Footer",
+    fields: footerFields
+  },
+  navigation: {
+    name: "navigation",
+    displayName: "Navigation",
+    previewField: "title",
+    fields: navigationFields
+  },
+  article: {
+    name: "article",
+    displayName: "Article",
+    fields: {
+      title: titleField,
+      image: imageField,
+      description: {
+        displayName: "Description",
+        type: "textarea"
+      },
+      date: {
+        displayName: "Date",
+        type: "datetime"
+      },
+      blocks: {
+        displayName: "Blocks",
+        type: "blocks",
+        componentWhitelist: ["block-hero-1", "block-cards-1", "block-cta-1", "block-rich-text-1"]
       }
     }
   },
@@ -292,11 +424,13 @@ export const schema: DSchema = {
         componentWhitelist: [
           "block-cards-1",
           "block-hero-1",
-          "block-navigation-1",
           "block-intro-1",
           "block-logos-1",
           "block-cta-1",
-          "block-map-1"
+          "block-map-1",
+          "block-team-1",
+          "block-rich-text-1",
+          "block-articles-1"
         ]
       }
     }
