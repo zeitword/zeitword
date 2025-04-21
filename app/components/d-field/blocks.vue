@@ -10,9 +10,20 @@ type Props = {
   path?: string[]
   value: any
   targetBlockId: string | undefined
+  currentLanguage: string
+  defaultLanguage: string
+  defaultLanguageValue?: any
 }
 
-const { field, path = [], value, targetBlockId } = defineProps<Props>()
+const {
+  field,
+  path = [],
+  value,
+  targetBlockId,
+  currentLanguage,
+  defaultLanguage,
+  defaultLanguageValue
+} = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
@@ -29,22 +40,17 @@ const { data: availableComponents } = await useFetch<DComponent[]>(
 const searchTerm = ref("")
 
 const filteredComponents = computed(() => {
-  // Assume availableComponents.value is always an array or undefined/null
   let components = availableComponents.value || []
 
-  // 1. Apply whitelist filter if present
   if (Array.isArray(field?.componentWhitelist) && field.componentWhitelist.length > 0) {
     const whitelist = field.componentWhitelist
-    // Assume 'components' is an array here
     components = components.filter(
       (component) => component?.name && whitelist.includes(component.name)
     )
   }
 
-  // 2. Apply search term filter if present
   if (searchTerm.value) {
     const lowerSearch = searchTerm.value.toLowerCase()
-    // Assume 'components' is an array here
     components = components.filter(
       (component) =>
         (component?.displayName?.toLowerCase() || "").includes(lowerSearch) ||
@@ -88,13 +94,17 @@ function addBlock(componentId: string) {
     const lastBlock = currentBlocks.at(-1)
     newRank = LexoRank.parse(lastBlock!.order).genNext()
   }
+
+  const newBlockId = uuidv7()
   const newBlock = {
-    id: uuidv7(),
+    id: newBlockId,
     componentId: componentId,
     componentName: component.name,
     content: initializeBlockContent(component),
     order: newRank.toString()
   }
+
+  // Add block to current language's structure
   currentBlocks.push(newBlock)
   emit("update:value", currentBlocks)
 }
@@ -151,7 +161,6 @@ async function initSortable() {
         const prevRank = LexoRank.parse(sortedBlocks.value[evt.newIndex - 1].order)
         const nextRank = LexoRank.parse(sortedBlocks.value[evt.newIndex + 1].order)
 
-        // --- COLLISION CHECK ---
         if (prevRank.toString() === nextRank.toString()) {
           console.error("Ranks are equal, regenerating order (blocks.vue)")
           recalculateBlockOrders()
@@ -173,7 +182,6 @@ async function initSortable() {
   })
 }
 
-// Watcher to update sortedBlocks and initialize/re-initialize Sortable
 watch(
   [() => value, () => isMounted.value],
   async ([newValue, mounted]) => {
@@ -206,12 +214,11 @@ function updateNestedBlock(_index: number, updatedBlock: any) {
     return
   }
 
-  newBlocks[oldBlockIndex] = updatedBlock // Replace the entire block.
+  newBlocks[oldBlockIndex] = updatedBlock
   emit("update:value", newBlocks)
 }
 
 function deleteBlock(id: string) {
-  console.log(id)
   emit("delete-block", id)
 }
 
@@ -267,6 +274,9 @@ function closeAddModal() {
           :block-content="block"
           :is-targeted="targetBlockId === block.id"
           :path="[...path, block.id]"
+          :current-language="currentLanguage"
+          :default-language="defaultLanguage"
+          :default-language-value="defaultLanguageValue?.find((b) => b.id === block.id)"
           class="border-neutral overflow-hidden border-b last:border-none"
           @update:value="updateNestedBlock(index, $event)"
           @delete-block="(id) => deleteBlock(id)"
@@ -351,6 +361,7 @@ function closeAddModal() {
     </div>
   </DModal>
 </template>
+
 <style>
 @reference "../../app.css";
 

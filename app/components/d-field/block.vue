@@ -6,12 +6,23 @@ const siteId = useRouteParams("siteId")
 
 type Props = {
   block: DComponent | undefined
-  blockContent: { id: string; content: { [key: string]: any }; order: string } // Include order
+  blockContent: { id: string; content: { [key: string]: any }; order: string }
   path?: string[]
   isTargeted: boolean
+  currentLanguage: string
+  defaultLanguage: string
+  defaultLanguageValue?: { id: string; content: { [key: string]: any }; order: string }
 }
 
-const { block, path = [], blockContent, isTargeted = false } = defineProps<Props>()
+const {
+  block,
+  path = [],
+  blockContent,
+  isTargeted = false,
+  currentLanguage,
+  defaultLanguage,
+  defaultLanguageValue
+} = defineProps<Props>()
 
 const isBlockOpen = ref(false)
 const emit = defineEmits<{
@@ -110,6 +121,13 @@ watch(
             :field="field"
             :path="[...path, 'content', field.fieldKey]"
             :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
+            :current-language="currentLanguage"
+            :default-language="defaultLanguage"
+            :default-language-value="
+              defaultLanguageValue?.content
+                ? defaultLanguageValue.content[field.fieldKey]
+                : undefined
+            "
             @update:value="updateNestedBlockField(field.fieldKey, $event)"
             @delete-block="(nestedPath) => $emit('delete-block', nestedPath)"
           />

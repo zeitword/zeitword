@@ -18,9 +18,9 @@ const {
   error,
   refresh
 } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
-  query: {
+  query: computed(() => ({
     lang: selectedLanguage.value
-  }
+  }))
 })
 
 if (error.value) {
@@ -99,7 +99,7 @@ function updateNestedField(originalPath: string[], value: any) {
   let current = content.value
 
   for (const key of path) {
-    if (typeof current[key] !== "object" || current[key] === null) {
+    if (!current[key] || typeof current[key] !== "object") {
       current[key] = {}
     }
     current = current[key]
@@ -274,9 +274,12 @@ const isPreviewReady = ref(false)
         >
           <DField
             :field="field"
-            :value="content[field.fieldKey]"
-            :target-block-id="targetBlockId"
-            @update:value="updateNestedField([field.fieldKey], $event)"
+            :value="content[selectedLanguage]?.[field.fieldKey]"
+            :target-block-id="targetBlockId || undefined"
+            :current-language="selectedLanguage"
+            :default-language="story.defaultLanguage"
+            :default-language-value="content[story.defaultLanguage]?.[field.fieldKey]"
+            @update:value="updateNestedField([selectedLanguage, field.fieldKey], $event)"
             @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
           />
         </template>
