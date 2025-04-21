@@ -159,7 +159,36 @@ export const sites = pgTable("sites", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   domain: text().notNull().default(""),
+  defaultLanguage: text()
+    .references(() => languages.code)
+    .notNull()
+    .default("en"),
   ...organisationId,
+  ...timestamps
+})
+
+export const languages = pgTable("languages", {
+  code: text().primaryKey(),
+  name: text().notNull(),
+  nativeName: text().notNull(),
+  ...timestamps
+})
+
+export const siteLanguages = pgTable(
+  "site_languages",
+  {
+    siteId: uuid().references(() => sites.id),
+    languageCode: text().references(() => languages.code),
+    ...timestamps
+  },
+  (t) => [primaryKey({ columns: [t.siteId, t.languageCode] })]
+)
+
+export const waitlist = pgTable("waitlist", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  email: text().notNull().unique(),
+  confirmed: boolean().notNull().default(false),
+  confirmationToken: text().notNull().unique(),
   ...timestamps
 })
 
@@ -198,11 +227,31 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   componentFields: many(componentFields),
   components: many(components),
   fieldOptions: many(fieldOptions),
+  languages: many(siteLanguages),
+  defaultLang: one(languages, {
+    fields: [sites.defaultLanguage],
+    references: [languages.code]
+  }),
   organisation: one(organisations, {
     fields: [sites.organisationId],
     references: [organisations.id]
   }),
   stories: many(stories)
+}))
+
+export const languagesRelations = relations(languages, ({ many }) => ({
+  sites: many(siteLanguages)
+}))
+
+export const siteLanguagesRelations = relations(siteLanguages, ({ one }) => ({
+  site: one(sites, {
+    fields: [siteLanguages.siteId],
+    references: [sites.id]
+  }),
+  language: one(languages, {
+    fields: [siteLanguages.languageCode],
+    references: [languages.code]
+  })
 }))
 
 export const organisationsRelations = relations(organisations, ({ many }) => ({
@@ -258,11 +307,3 @@ export const storiesRelations = relations(stories, ({ one }) => ({
     references: [organisations.id]
   })
 }))
-
-export const waitlist = pgTable("waitlist", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  email: text().notNull().unique(),
-  confirmed: boolean().notNull().default(false),
-  confirmationToken: text().notNull().unique(),
-  ...timestamps
-})

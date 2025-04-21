@@ -3,7 +3,8 @@ import {
   components,
   componentFields,
   fieldOptions,
-  storyTypeEnum
+  storyTypeEnum,
+  sites
 } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 
@@ -13,10 +14,21 @@ export default defineEventHandler(async (event) => {
 
   const siteId = getRouterParam(event, "siteId")
   const storyId = getRouterParam(event, "storyId")
+  const query = getQuery(event)
+  const selectedLang = (query.lang as string) || "en"
 
   if (!siteId || !storyId) {
     throw createError({ statusCode: 400, statusMessage: "Invalid Site or Item ID" })
   }
+
+  // Get site's default language
+  const [site] = await useDrizzle()
+    .select({ defaultLanguage: sites.defaultLanguage })
+    .from(sites)
+    .where(eq(sites.id, siteId))
+    .limit(1)
+
+  const defaultLang = site?.defaultLanguage || "en"
 
   const [itemData] = await useDrizzle()
     .select({
@@ -50,6 +62,13 @@ export default defineEventHandler(async (event) => {
 
   if (!itemData) {
     throw createError({ statusCode: 404, statusMessage: "Item not found" })
+  }
+
+  // Filter content to only include selected and default language
+  const content = {
+    [selectedLang]:
+      itemData.content[selectedLang] || itemData.content[defaultLang] || itemData.content["en"],
+    ...(selectedLang !== defaultLang && { [defaultLang]: itemData.content[defaultLang] })
   }
 
   // 2. If it's a STORY, fetch fields and options
@@ -102,7 +121,9 @@ export default defineEventHandler(async (event) => {
       slug: itemData.slug,
       title: itemData.title,
       componentId: itemData.componentId,
-      content: itemData.content,
+      content,
+      selectedLanguage: selectedLang,
+      defaultLanguage: defaultLang,
       type: itemData.type,
       createdAt: itemData.createdAt,
       updatedAt: itemData.updatedAt,
@@ -116,7 +137,9 @@ export default defineEventHandler(async (event) => {
       id: itemData.id,
       slug: itemData.slug,
       title: itemData.title,
-      content: itemData.content,
+      content,
+      selectedLanguage: selectedLang,
+      defaultLanguage: defaultLang,
       type: itemData.type,
       createdAt: itemData.createdAt,
       updatedAt: itemData.updatedAt,

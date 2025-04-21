@@ -9,6 +9,7 @@ const siteId = useRouteParams("siteId")
 const { toast } = useToast()
 
 const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
+const selectedLanguage = ref(site.value?.defaultLanguage || "en")
 
 const showJson = ref(false)
 
@@ -16,7 +17,11 @@ const {
   data: story,
   error,
   refresh
-} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`)
+} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
+  query: {
+    lang: selectedLanguage.value
+  }
+})
 
 if (error.value) {
   toast.error({ description: "Failed to load story" })
@@ -33,6 +38,22 @@ watch(
   },
   { deep: true }
 )
+
+watch(selectedLanguage, async (newLang) => {
+  try {
+    await refresh()
+  } catch (error) {
+    toast.error({ description: "Failed to switch language" })
+  }
+})
+
+const languageOptions = computed(() => {
+  if (!site.value?.languages) return []
+  return site.value.languages.map((lang) => ({
+    value: lang.language.code,
+    display: `${lang.language.name} (${lang.language.nativeName})`
+  }))
+})
 
 const renderPreview = computed(() => {
   if (!story) return false
@@ -196,6 +217,10 @@ const isPreviewReady = ref(false)
       <p class="text-copy-sm text-neutral-subtle">{{ story.slug }}</p>
     </template>
     <div class="flex items-center gap-2">
+      <DSelect
+        v-model="selectedLanguage"
+        :options="languageOptions"
+      />
       <DButton
         :icon-left="FileJsonIcon"
         @click="showJson = !showJson"
@@ -230,6 +255,7 @@ const isPreviewReady = ref(false)
         v-else="showJson"
         class="p-4"
       >
+        <!-- <pre>{{ story }}</pre> -->
         <pre
           class="bg-neutral text-neutral border-neutral overflow-x-auto rounded-lg border p-4 break-all whitespace-pre-wrap"
           >{{ content }}</pre
