@@ -109,42 +109,46 @@ watch(
         </div>
       </div>
       <div
-        class="bg-neutral border-neutral flex flex-col gap-2 border-t p-2"
-        v-show="isBlockOpen"
+        class="grid overflow-hidden transition-[grid-template-rows]"
+        :class="isBlockOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
       >
-        <template
-          v-if="block.fields.length > 0"
-          v-for="field in sortedNestedFields"
-          :key="field.id"
-        >
-          <DField
-            :field="field"
-            :path="[...path, 'content', field.fieldKey]"
-            :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
-            :current-language="currentLanguage"
-            :default-language="defaultLanguage"
-            :default-language-value="
-              defaultLanguageValue?.content
-                ? defaultLanguageValue.content[field.fieldKey]
-                : undefined
-            "
-            @update:value="updateNestedBlockField(field.fieldKey, $event)"
-            @delete-block="(nestedPath) => $emit('delete-block', nestedPath)"
-          />
-        </template>
-        <DEmpty
-          v-else
-          title="No fields available"
-          description="Add fields to the component"
-        >
-          <DButton
-            variant="secondary"
-            size="sm"
-            :to="`/sites/${siteId}/components/${block.id}`"
-          >
-            Edit component
-          </DButton>
-        </DEmpty>
+        <div class="min-h-0">
+          <div class="bg-neutral border-neutral flex flex-col gap-2 border-t p-2">
+            <template
+              v-if="block.fields.length > 0"
+              v-for="field in sortedNestedFields"
+              :key="field.id"
+            >
+              <DField
+                :field="field"
+                :path="[...path, 'content', field.fieldKey]"
+                :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
+                :current-language="currentLanguage"
+                :default-language="defaultLanguage"
+                :default-language-value="
+                  defaultLanguageValue?.content
+                    ? defaultLanguageValue.content[field.fieldKey]
+                    : undefined
+                "
+                @update:value="updateNestedBlockField(field.fieldKey, $event)"
+                @delete-block="(nestedPath) => $emit('delete-block', nestedPath)"
+              />
+            </template>
+            <DEmpty
+              v-else
+              title="No fields available"
+              description="Add fields to the component"
+            >
+              <DButton
+                variant="secondary"
+                size="sm"
+                :to="`/sites/${siteId}/components/${block.id}`"
+              >
+                Edit component
+              </DButton>
+            </DEmpty>
+          </div>
+        </div>
       </div>
     </div>
   </div>
