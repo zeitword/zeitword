@@ -7,6 +7,7 @@ import {
   sites
 } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
+import { mergeWithFallback } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -64,11 +65,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Item not found" })
   }
 
-  // Filter content to only include selected and default language
+  // Get content for both languages and merge with fallback
+  const defaultContent = itemData.content[defaultLang] || {}
+  const selectedContent = itemData.content[selectedLang] || {}
+
   const content = {
-    [selectedLang]:
-      itemData.content[selectedLang] || itemData.content[defaultLang] || itemData.content["en"],
-    ...(selectedLang !== defaultLang && { [defaultLang]: itemData.content[defaultLang] })
+    [selectedLang]: mergeWithFallback(defaultContent, selectedContent),
+    ...(selectedLang !== defaultLang && { [defaultLang]: defaultContent })
   }
 
   // 2. If it's a STORY, fetch fields and options
