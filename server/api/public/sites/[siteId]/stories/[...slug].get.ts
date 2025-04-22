@@ -52,6 +52,15 @@ export default defineEventHandler(async (event) => {
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
 
+  console.log(`Story ${storyData.id} (${storyData.slug}) content structure:`, {
+    defaultLang: site.defaultLanguage,
+    requestedLang: requestedLang,
+    raw: storyData.content,
+    defaultContent,
+    requestedContent,
+    merged: mergedContent
+  })
+
   return {
     ...storyData,
     content: mergedContent
