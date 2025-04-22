@@ -8,9 +8,19 @@ type Props = {
   components?: DComponent[]
   targetBlockId?: string | undefined
   value: any
+  currentLanguage: string
+  defaultLanguage: string
+  defaultLanguageValue?: any
 }
 
-const { field, path = [], value } = defineProps<Props>()
+const {
+  field,
+  path = [],
+  value,
+  currentLanguage,
+  defaultLanguage,
+  defaultLanguageValue
+} = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: "update:value", value: any): void
@@ -22,6 +32,15 @@ const labelText = computed(() => field.displayName || field.fieldKey)
 const modelValue = computed({
   get: () => value,
   set: (newValue) => emit("update:value", newValue)
+})
+
+const showDefaultLanguageReference = computed(() => {
+  return (
+    currentLanguage !== defaultLanguage &&
+    defaultLanguageValue !== undefined && // Changed from truthy check
+    ["text", "textarea", "richtext"].includes(field.type)
+  )
+  // Removed the value comparison for now
 })
 
 function deleteBlock(id: string) {
@@ -40,6 +59,13 @@ function deleteBlock(id: string) {
       class="text-copy-sm text-neutral-subtle mb-1"
     >
       {{ field.description }}
+    </p>
+
+    <p
+      v-if="showDefaultLanguageReference"
+      class="text-copy-sm text-neutral-subtle mb-1 italic"
+    >
+      {{ defaultLanguageValue }}
     </p>
 
     <DInput
@@ -63,6 +89,9 @@ function deleteBlock(id: string) {
       :blocks="components"
       :value="value"
       :target-block-id="targetBlockId"
+      :current-language="currentLanguage"
+      :default-language="defaultLanguage"
+      :default-language-value="defaultLanguageValue"
       @update:value="modelValue = $event"
       @delete-block="deleteBlock"
     />

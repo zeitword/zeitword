@@ -25,7 +25,7 @@ const height = computed(() => {
         class="flex items-center justify-between gap-10"
         :class="[height]"
       >
-        <div>
+        <div class="flex-1">
           <div
             class="text-neutral-strong line-clamp-1"
             :class="[size === 'sm' ? 'text-title-sm' : 'text-title']"
@@ -34,7 +34,10 @@ const height = computed(() => {
           </div>
           <slot name="subtitle" />
         </div>
-        <slot />
+        <slot name="center" />
+        <div class="flex flex-1 justify-end">
+          <slot />
+        </div>
       </div>
     </DPageWrapper>
   </div>

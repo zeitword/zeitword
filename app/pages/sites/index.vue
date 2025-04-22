@@ -2,16 +2,58 @@
 import { FileTextIcon } from "lucide-vue-next"
 const { data: sites, refresh } = await useFetch("/api/sites")
 const { data: me } = await useFetch("/api/me")
+const { data: availableLanguages } = await useFetch("/api/languages")
 
 const isCreateModalOpen = ref(false)
 const name = ref("")
+const selectedLanguage = ref<{ value: string; display: string }>({
+  value: "en",
+  display: "English (English)"
+})
+const query = ref("")
+
+const { toast } = useToast()
+
+const formattedLanguages = computed(() => {
+  if (!availableLanguages.value) return []
+  return availableLanguages.value.map((lang) => ({
+    value: lang.code,
+    display: `${lang.name} (${lang.nativeName})`
+  }))
+})
+
+const filteredLanguages = computed(() => {
+  if (!formattedLanguages.value) return []
+  return formattedLanguages.value.filter((lang) =>
+    lang.display.toLowerCase().includes(query.value.toLowerCase())
+  )
+})
 
 async function createSite() {
+  if (!name.value) {
+    toast.error({
+      description: "Please enter a name for the site."
+    })
+    return
+  }
+  if (!selectedLanguage.value) {
+    toast.error({
+      description: "Please select a language for the site."
+    })
+    return
+  }
+
   isCreateModalOpen.value = false
   await useRequestFetch()("/api/sites", {
     method: "POST",
-    body: { name: name.value }
+    body: {
+      name: name.value,
+      defaultLanguage: selectedLanguage.value.value
+    }
   })
+  name.value = ""
+  selectedLanguage.value = null
+  query.value = ""
   await refresh()
 }
 </script>
@@ -69,20 +111,35 @@ async function createSite() {
     :open="isCreateModalOpen"
     title="Add new Site"
     confirm-text="Add Site"
-    @close="isCreateModalOpen = false"
+    @close="
+      () => {
+        isCreateModalOpen = false
+        name.value = ''
+        selectedLanguage.value = null
+        query.value = ''
+      }
+    "
     @confirm="createSite"
   >
     <form
-      class="flex flex-col"
+      class="flex flex-col gap-4"
       @submit.prevent="createSite"
     >
       <DFormGroup>
-        <DFormLabel name="name">Site name</DFormLabel>
+        <DFormLabel>Site name</DFormLabel>
         <DInput
           v-if="me"
           type="text"
           v-model="name"
           placeholder="Name of the site"
+        />
+      </DFormGroup>
+      <DFormGroup>
+        <DFormLabel>Default Language</DFormLabel>
+        <DCombobox
+          v-model="selectedLanguage"
+          :options="filteredLanguages"
+          placeholder="Search for a language..."
         />
       </DFormGroup>
     </form>
