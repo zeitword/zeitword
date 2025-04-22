@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileJsonIcon } from "lucide-vue-next"
+import { FileJsonIcon, FileWarningIcon } from "lucide-vue-next"
 
 definePageMeta({ layout: "story" })
 
@@ -7,6 +7,7 @@ const storyId = useRouteParams("storyId")
 const siteId = useRouteParams("siteId")
 
 const { toast } = useToast()
+const hasChanges = ref(false)
 
 const { data: site } = await useFetch(`/api/sites/${siteId.value}`)
 const selectedLanguage = ref(site.value?.defaultLanguage || "en")
@@ -28,24 +29,41 @@ if (error.value) {
 }
 
 const content = ref(story.value?.content || {})
+const originalContent = ref(JSON.parse(JSON.stringify(story.value?.content || {})))
 
 watch(
   story,
   (newStory) => {
     if (newStory) {
       content.value = newStory.content || {}
+      originalContent.value = JSON.parse(JSON.stringify(newStory.content || {}))
+      hasChanges.value = false
     }
   },
   { deep: true }
 )
 
-watch(selectedLanguage, async (newLang) => {
+watch(
+  () => JSON.stringify(content.value),
+  () => {
+    hasChanges.value = JSON.stringify(content.value) !== JSON.stringify(originalContent.value)
+  },
+  { deep: true }
+)
+
+async function handleLanguageChange(newLang: string) {
+  if (hasChanges.value) {
+    toast.warning({ description: "Please save your changes before switching languages" })
+    return
+  }
+
+  selectedLanguage.value = newLang
   try {
     await refresh()
   } catch (error) {
     toast.error({ description: "Failed to switch language" })
   }
-})
+}
 
 const languageOptions = computed(() => {
   if (!site.value?.languages) return []
@@ -74,6 +92,7 @@ async function save() {
       }
     })
     await refresh()
+    hasChanges.value = false
     toast.success({ description: "The story has been saved." })
   } catch (saveError) {
     toast.error({ description: "Failed to save story" })
@@ -203,7 +222,34 @@ function handleComponentClick(component: ComponentPayload) {
   openBlock(component.blockId)
 }
 
+function resetChanges() {
+  content.value = JSON.parse(JSON.stringify(originalContent.value))
+  hasChanges.value = false
+}
+
 const isPreviewReady = ref(false)
+
+import { useMagicKeys, whenever } from "@vueuse/core"
+
+const { meta_s, ctrl_s } = useMagicKeys()
+
+// Prevent default browser save dialog
+useEventListener(
+  document,
+  "keydown",
+  (e) => {
+    if ((e.key === "s" || e.key === "S") && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault()
+    }
+  },
+  { passive: false }
+)
+
+whenever(meta_s || ctrl_s, () => {
+  if (hasChanges.value) {
+    save()
+  }
+})
 </script>
 
 <template>
@@ -216,23 +262,53 @@ const isPreviewReady = ref(false)
     <template #subtitle>
       <p class="text-copy-sm text-neutral-subtle">{{ story.slug }}</p>
     </template>
+    <template #center>
+      <Transition name="slide-fade-up">
+        <div
+          v-if="hasChanges"
+          class="text-warn bg-warn-subtle border-warn text-copy flex h-9 min-w-lg items-center justify-between gap-3 rounded-xl border pr-1 pl-3"
+        >
+          <div class="flex items-center gap-1">
+            <FileWarningIcon class="size-4" />
+            <p>Unsaved story</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <DButton
+              variant="secondary"
+              size="sm"
+              @click="resetChanges"
+            >
+              Reset
+            </DButton>
+            <DButton
+              variant="primary"
+              size="sm"
+              @click="save"
+              kbd="meta_s"
+            >
+              Save
+            </DButton>
+          </div>
+        </div>
+      </Transition>
+    </template>
     <div class="flex items-center gap-2">
       <DSelect
-        v-model="selectedLanguage"
+        :model-value="selectedLanguage"
         :options="languageOptions"
+        @update:model-value="handleLanguageChange($event || '')"
       />
       <DButton
         :icon-left="FileJsonIcon"
         @click="showJson = !showJson"
         :variant="showJson ? 'primary' : 'secondary'"
       />
-      <DButton
-        variant="secondary"
+      <!-- <DButton
+        variant="primary"
         @click="save"
       >
         Save
-      </DButton>
-      <DButton @click="publish">Publish</DButton>
+      </DButton> -->
     </div>
   </DPageTitle>
   <div
@@ -255,7 +331,6 @@ const isPreviewReady = ref(false)
         v-else="showJson"
         class="p-4"
       >
-        <!-- <pre>{{ story }}</pre> -->
         <pre
           class="bg-neutral text-neutral border-neutral overflow-x-auto rounded-lg border p-4 break-all whitespace-pre-wrap"
           >{{ content }}</pre

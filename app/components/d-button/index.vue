@@ -13,9 +13,16 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   noCursor?: boolean
+  kbd?: string
 }
 
-const { variant = "primary", size = "lg", type = "button", loading = false } = defineProps<Props>()
+const {
+  variant = "primary",
+  size = "lg",
+  type = "button",
+  loading = false,
+  kbd
+} = defineProps<Props>()
 
 const variantClasses: { [key: string]: string } = {
   primary:
@@ -88,6 +95,10 @@ const sizeClass = computed(() => {
     >
       <slot />
     </div>
+    <DKbd
+      v-if="kbd"
+      :combo="kbd"
+    />
     <slot name="trailing" />
     <div
       v-if="loading"

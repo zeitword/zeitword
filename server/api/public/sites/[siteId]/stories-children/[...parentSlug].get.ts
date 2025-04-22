@@ -1,9 +1,10 @@
-import { like, notLike } from "drizzle-orm"
-import { stories, components } from "~~/server/database/schema"
+import { like, notLike, eq, and, or } from "drizzle-orm"
+import { stories, components, sites } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
   const requestedParentSlug = getRouterParam(event, "parentSlug")
+  const requestedLang = getQuery(event).lang as string | undefined
 
   if (!siteId) {
     console.error("[Story Children] Invalid Site ID received.")
@@ -13,6 +14,15 @@ export default defineEventHandler(async (event) => {
     console.error("[Story Children] Invalid Parent Slug received.")
     throw createError({ statusCode: 400, statusMessage: "Invalid Parent Slug" })
   }
+
+  // Get site's default language
+  const [site] = await useDrizzle()
+    .select({ defaultLanguage: sites.defaultLanguage })
+    .from(sites)
+    .where(eq(sites.id, siteId))
+    .limit(1)
+
+  if (!site) throw createError({ statusCode: 404, statusMessage: "Site not found" })
 
   const parentSlugVariations = [requestedParentSlug]
   if (!requestedParentSlug.endsWith("/index")) {
@@ -66,8 +76,21 @@ export default defineEventHandler(async (event) => {
       )
     )
 
+  // Handle language selection for each child
+  const selectedLang = requestedLang || site.defaultLanguage
+  const processedChildren = children.map((child) => {
+    const content = child.content as Record<string, any>
+    const responseContent =
+      content[selectedLang] || content[site.defaultLanguage] || content["en"] || {}
+
+    return {
+      ...child,
+      content: responseContent
+    }
+  })
+
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
 
-  return children
+  return processedChildren
 })
