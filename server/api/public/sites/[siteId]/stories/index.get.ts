@@ -1,5 +1,6 @@
 import { stories, components, sites } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
+import { mergeWithFallback } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -7,6 +8,7 @@ export default defineEventHandler(async (event) => {
 
   const requestedLang = getQuery(event).lang as string | undefined
 
+  // Get site for default language
   const [site] = await useDrizzle()
     .select({ defaultLanguage: sites.defaultLanguage })
     .from(sites)
@@ -29,16 +31,16 @@ export default defineEventHandler(async (event) => {
   if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
   const content = storyData.content as Record<string, any>
-  const selectedLang = requestedLang || site.defaultLanguage
+  const defaultContent = content[site.defaultLanguage] || {}
+  const requestedContent = content[requestedLang || site.defaultLanguage] || {}
 
-  const responseContent =
-    content[selectedLang] || content[site.defaultLanguage] || content["en"] || {}
+  const mergedContent = mergeWithFallback(defaultContent, requestedContent)
 
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
 
   return {
     ...storyData,
-    content: responseContent
+    content: mergedContent
   }
 })

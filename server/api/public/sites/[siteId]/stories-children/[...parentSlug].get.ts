@@ -1,5 +1,6 @@
 import { like, notLike, eq, and, or } from "drizzle-orm"
 import { stories, components, sites } from "~~/server/database/schema"
+import { mergeWithFallback } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Invalid Parent Slug" })
   }
 
-  // Get site's default language
+  // Get site for default language
   const [site] = await useDrizzle()
     .select({ defaultLanguage: sites.defaultLanguage })
     .from(sites)
@@ -76,16 +77,15 @@ export default defineEventHandler(async (event) => {
       )
     )
 
-  // Handle language selection for each child
-  const selectedLang = requestedLang || site.defaultLanguage
+  // Process each child's content
   const processedChildren = children.map((child) => {
     const content = child.content as Record<string, any>
-    const responseContent =
-      content[selectedLang] || content[site.defaultLanguage] || content["en"] || {}
+    const defaultContent = content[site.defaultLanguage] || {}
+    const requestedContent = content[requestedLang || site.defaultLanguage] || {}
 
     return {
       ...child,
-      content: responseContent
+      content: mergeWithFallback(defaultContent, requestedContent)
     }
   })
 
