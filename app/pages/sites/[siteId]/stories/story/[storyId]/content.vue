@@ -323,7 +323,7 @@ whenever(meta_s || ctrl_s, () => {
         v-if="!showJson && site && story"
         :site-domain="site.domain"
         :story-slug="story.slug"
-        :content="content"
+        :content="content[selectedLanguage]"
         @ready="isPreviewReady = true"
         @componentClick="handleComponentClick"
       />

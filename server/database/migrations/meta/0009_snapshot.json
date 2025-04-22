@@ -1,6 +1,6 @@
 {
-  "id": "040e4278-5f9d-452d-ab65-12d736d8ff41",
-  "prevId": "6c679252-5694-4437-aa8f-949dfc065d2f",
+  "id": "22bd05b9-d497-4c48-ba68-b5f636cc98d9",
+  "prevId": "5bfa6af1-0418-40ed-b175-1025b7ceebd6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -539,6 +539,86 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.site_languages": {
+      "name": "site_languages",
+      "schema": "",
+      "columns": {
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "language_code": {
+          "name": "language_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "site_languages_site_id_sites_id_fk": {
+          "name": "site_languages_site_id_sites_id_fk",
+          "tableFrom": "site_languages",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "site_languages_language_code_languages_code_fk": {
+          "name": "site_languages_language_code_languages_code_fk",
+          "tableFrom": "site_languages",
+          "tableTo": "languages",
+          "columnsFrom": [
+            "language_code"
+          ],
+          "columnsTo": [
+            "code"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "site_languages_site_id_language_code_pk": {
+          "name": "site_languages_site_id_language_code_pk",
+          "columns": [
+            "site_id",
+            "language_code"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.sites": {
       "name": "sites",
       "schema": "",
@@ -561,6 +641,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "''"
+        },
+        "default_language": {
+          "name": "default_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en'"
         },
         "organisation_id": {
           "name": "organisation_id",
@@ -591,6 +678,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "sites_default_language_languages_code_fk": {
+          "name": "sites_default_language_languages_code_fk",
+          "tableFrom": "sites",
+          "tableTo": "languages",
+          "columnsFrom": [
+            "default_language"
+          ],
+          "columnsTo": [
+            "code"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
         "sites_organisation_id_organisations_id_fk": {
           "name": "sites_organisation_id_organisations_id_fk",
           "tableFrom": "sites",

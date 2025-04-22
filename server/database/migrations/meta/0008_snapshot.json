@@ -1,5 +1,5 @@
 {
-  "id": "6c679252-5694-4437-aa8f-949dfc065d2f",
+  "id": "5bfa6af1-0418-40ed-b175-1025b7ceebd6",
   "prevId": "ef1d57a1-fdb6-4bc1-ba31-b5a1570a87f3",
   "version": "7",
   "dialect": "postgresql",
@@ -94,41 +94,41 @@
         "component_fields_component_id_components_id_fk": {
           "name": "component_fields_component_id_components_id_fk",
           "tableFrom": "component_fields",
-          "tableTo": "components",
           "columnsFrom": [
             "component_id"
           ],
+          "tableTo": "components",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "component_fields_site_id_sites_id_fk": {
           "name": "component_fields_site_id_sites_id_fk",
           "tableFrom": "component_fields",
-          "tableTo": "sites",
           "columnsFrom": [
             "site_id"
           ],
+          "tableTo": "sites",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "component_fields_organisation_id_organisations_id_fk": {
           "name": "component_fields_organisation_id_organisations_id_fk",
           "tableFrom": "component_fields",
-          "tableTo": "organisations",
           "columnsFrom": [
             "organisation_id"
           ],
+          "tableTo": "organisations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -224,39 +224,39 @@
         "components_site_id_sites_id_fk": {
           "name": "components_site_id_sites_id_fk",
           "tableFrom": "components",
-          "tableTo": "sites",
           "columnsFrom": [
             "site_id"
           ],
+          "tableTo": "sites",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "components_organisation_id_organisations_id_fk": {
           "name": "components_organisation_id_organisations_id_fk",
           "tableFrom": "components",
-          "tableTo": "organisations",
           "columnsFrom": [
             "organisation_id"
           ],
+          "tableTo": "organisations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "components_siteId_name_unique": {
           "name": "components_siteId_name_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "site_id",
             "name"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -315,53 +315,53 @@
         "field_options_component_id_components_id_fk": {
           "name": "field_options_component_id_components_id_fk",
           "tableFrom": "field_options",
-          "tableTo": "components",
           "columnsFrom": [
             "component_id"
           ],
+          "tableTo": "components",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "field_options_site_id_sites_id_fk": {
           "name": "field_options_site_id_sites_id_fk",
           "tableFrom": "field_options",
-          "tableTo": "sites",
           "columnsFrom": [
             "site_id"
           ],
+          "tableTo": "sites",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "field_options_organisation_id_organisations_id_fk": {
           "name": "field_options_organisation_id_organisations_id_fk",
           "tableFrom": "field_options",
-          "tableTo": "organisations",
           "columnsFrom": [
             "organisation_id"
           ],
+          "tableTo": "organisations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "field_options_componentId_fieldKey_optionValue_unique": {
           "name": "field_options_componentId_fieldKey_optionValue_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "component_id",
             "field_key",
             "option_value"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -455,15 +455,15 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -478,90 +478,10 @@
       "uniqueConstraints": {
         "sessions_token_unique": {
           "name": "sessions_token_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "token"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.site_languages": {
-      "name": "site_languages",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "site_id": {
-          "name": "site_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "code": {
-          "name": "code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "site_languages_site_id_sites_id_fk": {
-          "name": "site_languages_site_id_sites_id_fk",
-          "tableFrom": "site_languages",
-          "tableTo": "sites",
-          "columnsFrom": [
-            "site_id"
           ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "site_languages_siteId_code_unique": {
-          "name": "site_languages_siteId_code_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "site_id",
-            "code"
-          ]
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -590,13 +510,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "''"
-        },
-        "default_language": {
-          "name": "default_language",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'en'"
         },
         "organisation_id": {
           "name": "organisation_id",
@@ -630,15 +543,15 @@
         "sites_organisation_id_organisations_id_fk": {
           "name": "sites_organisation_id_organisations_id_fk",
           "tableFrom": "sites",
-          "tableTo": "organisations",
           "columnsFrom": [
             "organisation_id"
           ],
+          "tableTo": "organisations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -740,50 +653,50 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "stories_component_id_components_id_fk": {
           "name": "stories_component_id_components_id_fk",
           "tableFrom": "stories",
-          "tableTo": "components",
           "columnsFrom": [
             "component_id"
           ],
+          "tableTo": "components",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "stories_site_id_sites_id_fk": {
           "name": "stories_site_id_sites_id_fk",
           "tableFrom": "stories",
-          "tableTo": "sites",
           "columnsFrom": [
             "site_id"
           ],
+          "tableTo": "sites",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "stories_organisation_id_organisations_id_fk": {
           "name": "stories_organisation_id_organisations_id_fk",
           "tableFrom": "stories",
-          "tableTo": "organisations",
           "columnsFrom": [
             "organisation_id"
           ],
+          "tableTo": "organisations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -864,25 +777,25 @@
         "users_organisation_id_organisations_id_fk": {
           "name": "users_organisation_id_organisations_id_fk",
           "tableFrom": "users",
-          "tableTo": "organisations",
           "columnsFrom": [
             "organisation_id"
           ],
+          "tableTo": "organisations",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -945,17 +858,17 @@
       "uniqueConstraints": {
         "waitlist_email_unique": {
           "name": "waitlist_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "waitlist_confirmationToken_unique": {
           "name": "waitlist_confirmationToken_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "confirmation_token"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -995,10 +908,10 @@
     }
   },
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

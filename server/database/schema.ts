@@ -168,7 +168,7 @@ export const sites = pgTable("sites", {
 })
 
 export const languages = pgTable("languages", {
-  code: text().primaryKey(),
+  code: text().primaryKey().default("en"),
   name: text().notNull(),
   nativeName: text().notNull(),
   ...timestamps
