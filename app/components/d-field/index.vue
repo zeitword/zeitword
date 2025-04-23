@@ -37,10 +37,9 @@ const modelValue = computed({
 const showDefaultLanguageReference = computed(() => {
   return (
     currentLanguage !== defaultLanguage &&
-    defaultLanguageValue !== undefined && // Changed from truthy check
+    defaultLanguageValue !== undefined &&
     ["text", "textarea", "richtext"].includes(field.type)
   )
-  // Removed the value comparison for now
 })
 
 function deleteBlock(id: string) {

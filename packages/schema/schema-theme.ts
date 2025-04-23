@@ -34,6 +34,27 @@ const linkField: DField = { displayName: "Link", type: "link" }
 const iconField: DField = { displayName: "Icon", type: "text" }
 const imageField: DField = { displayName: "Image", type: "asset" }
 
+// --- Site Config Fields ---
+const siteConfigFields: { [key: string]: DField } = {
+  title: titleField,
+  description: {
+    displayName: "Meta Description",
+    type: "textarea"
+  },
+  metaKeywords: {
+    displayName: "Meta Keywords",
+    type: "textarea"
+  },
+  favicon: {
+    displayName: "Favicon",
+    type: "asset"
+  },
+  ogImage: {
+    displayName: "Open Graph Image",
+    type: "asset"
+  }
+}
+
 // --- Button Fields ---
 const buttonFields: { [key: string]: DField } = {
   text: { displayName: "Text", type: "text" },
@@ -56,7 +77,12 @@ const buttonFields: { [key: string]: DField } = {
     ],
     default: "_self"
   },
-  icon: iconField
+  icon: iconField,
+  iconSide: {
+    displayName: "Icon Side",
+    type: "boolean",
+    default: "false"
+  }
 }
 
 // --- Card Fields ---
@@ -64,7 +90,11 @@ const buttonFields: { [key: string]: DField } = {
 const cardFields: { [key: string]: DField } = {
   icon: iconField,
   title: titleField,
-  description: descriptionField,
+  description: {
+    displayName: "Description",
+    type: "richtext",
+    default: ""
+  },
   buttons: {
     displayName: "Buttons",
     type: "blocks",
@@ -411,6 +441,11 @@ export const schema: DSchema = {
         componentWhitelist: ["block-hero-1", "block-cards-1", "block-cta-1", "block-rich-text-1"]
       }
     }
+  },
+  config: {
+    name: "config",
+    displayName: "Config",
+    fields: siteConfigFields
   },
   page: {
     name: "page",
