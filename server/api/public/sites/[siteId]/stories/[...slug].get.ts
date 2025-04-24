@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
       id: stories.id,
       slug: stories.slug,
       title: stories.title,
-      content: stories.content
+      content: stories.content,
+      componentId: stories.componentId
     })
     .from(stories)
     .innerJoin(components, eq(stories.componentId, components.id))
@@ -42,6 +43,13 @@ export default defineEventHandler(async (event) => {
     )
 
   if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
+  if (!storyData.componentId)
+    throw createError({ statusCode: 404, statusMessage: "Component not found" })
+
+  const [component] = await useDrizzle()
+    .select({ name: components.name })
+    .from(components)
+    .where(eq(components.id, storyData.componentId))
 
   const content = storyData.content as Record<string, any>
   const defaultContent = content[site.defaultLanguage] || {}
@@ -63,6 +71,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     ...storyData,
-    content: mergedContent
+    content: mergedContent,
+    componentName: component.name
   }
 })
