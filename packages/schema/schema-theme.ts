@@ -89,6 +89,7 @@ const buttonFields: { [key: string]: DField } = {
 
 const cardFields: { [key: string]: DField } = {
   icon: iconField,
+  image: imageField,
   title: titleField,
   description: {
     displayName: "Description",
@@ -131,7 +132,7 @@ const navigationFields: { [key: string]: DField } = {
   links: {
     displayName: "Links",
     type: "blocks",
-    componentWhitelist: ["d-text-link"]
+    componentWhitelist: ["d-text-link", "d-parent-link"]
   },
   buttons: {
     displayName: "Buttons",
@@ -142,6 +143,11 @@ const navigationFields: { [key: string]: DField } = {
     displayName: "Start Inverted",
     type: "boolean"
   }
+}
+
+const parentLinkFields = {
+  text: { displayName: "Text", type: "text" },
+  links: { displayName: "Links", type: "blocks", componentWhitelist: ["d-text-link"] }
 }
 
 const footerFields: { [key: string]: DField } = {
@@ -193,6 +199,15 @@ export const schema: DSchema = {
     name: "d-image-link",
     displayName: "Image Link",
     fields: imageLinkFields
+  },
+  "d-parent-link": {
+    name: "d-parent-link",
+    displayName: "Parent Link",
+    previewField: "text",
+    fields: {
+      text: { displayName: "Text", type: "text" },
+      links: { displayName: "Links", type: "blocks", componentWhitelist: ["d-text-link"] }
+    }
   },
   "d-text-link": {
     name: "d-text-link",
@@ -276,6 +291,21 @@ export const schema: DSchema = {
         displayName: "Links",
         type: "blocks",
         componentWhitelist: ["d-icon-link"]
+      }
+    }
+  },
+  "d-question": {
+    name: "d-question",
+    displayName: "Question",
+    previewField: "question",
+    fields: {
+      question: {
+        displayName: "Question",
+        type: "text"
+      },
+      answer: {
+        displayName: "Answer",
+        type: "textarea"
       }
     }
   },
@@ -410,6 +440,48 @@ export const schema: DSchema = {
       }
     }
   },
+  "block-rss-1": {
+    name: "block-rss-1",
+    displayName: "RSS Block 1",
+    fields: {
+      feedUrl: {
+        displayName: "Feed URL",
+        type: "text"
+      }
+    }
+  },
+  "block-gallery-1": {
+    name: "block-gallery-1",
+    displayName: "Gallery Block 1",
+    fields: {
+      images: {
+        displayName: "Images",
+        type: "assets"
+      }
+    }
+  },
+  "block-image-1": {
+    name: "block-image-1",
+    displayName: "Image Block 1",
+    fields: {
+      image: {
+        displayName: "Image",
+        type: "asset"
+      }
+    }
+  },
+  "block-faq-1": {
+    name: "block-faq-1",
+    displayName: "FAQ Block 1",
+    fields: {
+      questions: {
+        displayName: "Questions",
+        type: "blocks",
+        componentWhitelist: ["d-question"]
+      }
+    }
+  },
+
   footer: {
     name: "footer",
     displayName: "Footer",
@@ -438,7 +510,14 @@ export const schema: DSchema = {
       blocks: {
         displayName: "Blocks",
         type: "blocks",
-        componentWhitelist: ["block-hero-1", "block-cards-1", "block-cta-1", "block-rich-text-1"]
+        componentWhitelist: [
+          "block-hero-1",
+          "block-cards-1",
+          "block-cta-1",
+          "block-rich-text-1",
+          "block-gallery-1",
+          "block-image-1"
+        ]
       }
     }
   },
@@ -465,7 +544,11 @@ export const schema: DSchema = {
           "block-map-1",
           "block-team-1",
           "block-rich-text-1",
-          "block-articles-1"
+          "block-articles-1",
+          "block-rss-1",
+          "block-gallery-1",
+          "block-image-1",
+          "block-faq-1"
         ]
       }
     }

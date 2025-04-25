@@ -1,27 +1,33 @@
 import { useDrizzle } from "./drizzle/client"
 import { and, eq, notInArray } from "drizzle-orm"
-import { componentFields, components, fieldOptions } from "./drizzle/schema"
+import { componentFields, components, fieldOptions, organisations, sites } from "./drizzle/schema"
 import { schema } from "./schema-theme"
 import { LexoRank } from "lexorank"
 
-const organisationId = "0195c331-1f56-7f24-9699-c4dec1bd6dfd"
+const organisationId = process.env.ORGANISATION_ID
+const siteId = process.env.SITE_ID
 
-// U-Path
-// const siteId = "0195c333-3ec6-7614-b24c-f9281bf3f34f"
-
-// Browser OS
-const siteId = "019661f4-ad97-7774-8bf4-2ccfeadee75a"
-
-// Dokedu
-// const siteId = "0196203c-b876-7e16-aeca-0d57466d4e49"
+if (!organisationId || !siteId) {
+  throw new Error("ORGANISATION_ID and SITE_ID must be set in .env")
+}
 
 async function importSchema() {
   const drizzle = useDrizzle()
 
+  const [site] = await drizzle.select().from(sites).where(eq(sites.id, siteId))
+
+  const [org] = await drizzle
+    .select()
+    .from(organisations)
+    .where(eq(organisations.id, organisationId))
+
+  console.log(`Organisation: ${org.name} (${org.id})`)
+  console.log(`Site: ${site.name} (${site.id})`)
+
   try {
     for (const schemaKey in schema) {
       const component = schema[schemaKey]
-      console.log(component)
+      console.log(component.displayName)
 
       const [_component] = await drizzle
         .insert(components)
