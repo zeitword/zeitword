@@ -6,16 +6,19 @@ import {
   ItalicIcon,
   UnderlineIcon,
   ListIcon,
+  Eraser,
   ListOrderedIcon,
   QuoteIcon,
   MinusIcon,
   TextIcon,
   Heading1Icon,
   Heading2Icon,
-  Heading3Icon
+  Heading3Icon,
+  LinkIcon
 } from "lucide-vue-next"
 import Underline from "@tiptap/extension-underline"
 import HorizontalRule from "@tiptap/extension-horizontal-rule"
+import Link from "@tiptap/extension-link"
 
 const props = defineProps({
   modelValue: {
@@ -27,7 +30,7 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"])
 
 const selectedHeading = ref(null)
-const initialContent = ref(null) // Store initial content here
+const initialContent = ref(null)
 
 const editor = useEditor({
   extensions: [
@@ -38,7 +41,10 @@ const editor = useEditor({
       horizontalRule: false
     }),
     Underline,
-    HorizontalRule
+    HorizontalRule,
+    Link.configure({
+      openOnClick: false
+    })
   ],
   editorProps: {
     attributes: {
@@ -46,7 +52,6 @@ const editor = useEditor({
     }
   },
   onBeforeCreate: ({ editor }) => {
-    // Store the initial modelValue.  Don't call setContent yet.
     initialContent.value = props.modelValue
   },
   onUpdate: ({ editor }) => {
@@ -58,7 +63,7 @@ const editor = useEditor({
 
 onMounted(() => {
   if (editor.value && initialContent.value) {
-    editor.value.commands.setContent(initialContent.value, true) // Now it's safe!
+    editor.value.commands.setContent(initialContent.value, true)
     const { level } = editor.value.getAttributes("heading")
     selectedHeading.value = level ? `h${level}` : null
   }
@@ -82,7 +87,6 @@ onBeforeUnmount(() => {
   editor.value?.destroy()
 })
 
-// --- Helper Functions (no changes needed here) ---
 const setHeading = (level) => {
   if (!editor.value) return
   const numericLevel = parseInt(level.slice(1), 10)
@@ -123,9 +127,18 @@ const getButtonIcon = (type) => {
     case "horizontalRule":
       return MinusIcon
     case "clearFormatting":
-      return TextIcon
+      return Eraser
+    case "link":
+      return LinkIcon
     default:
       return null
+  }
+}
+
+const setLink = () => {
+  const url = window.prompt("URL:")
+  if (url) {
+    editor.value.chain().focus().setLink({ href: url }).run()
   }
 }
 </script>
@@ -139,7 +152,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleBold().run()"
         :title="'Bold'"
-        :class="{ 'bg-gray-200': editor?.isActive('bold') }"
+        :class="{ 'bg-neutral-subtle': editor?.isActive('bold') }"
       />
 
       <DButton
@@ -148,7 +161,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleItalic().run()"
         :title="'Italic'"
-        :class="{ 'bg-gray-200': editor?.isActive('italic') }"
+        :class="{ 'bg-neutral-subtle': editor?.isActive('italic') }"
       />
 
       <DButton
@@ -157,7 +170,7 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleUnderline().run()"
         :title="'Underline'"
-        :class="{ 'bg-gray-200': editor?.isActive('underline') }"
+        :class="{ 'bg-neutral-subtle': editor?.isActive('underline') }"
       />
 
       <!-- Headings Dropdown (using d-select) -->
@@ -175,7 +188,7 @@ const getButtonIcon = (type) => {
         @click="editor.chain().focus().toggleBulletList().run()"
         size="sm"
         :title="'Bullet List'"
-        :class="{ 'bg-gray-200': editor?.isActive('bulletList') }"
+        :class="{ 'bg-neutral-subtle': editor?.isActive('bulletList') }"
       />
 
       <DButton
@@ -184,7 +197,7 @@ const getButtonIcon = (type) => {
         @click="editor.chain().focus().toggleOrderedList().run()"
         size="sm"
         :title="'Ordered List'"
-        :class="{ 'bg-gray-200': editor?.isActive('orderedList') }"
+        :class="{ 'bg-neutra-subtle': editor?.isActive('orderedList') }"
       />
 
       <DButton
@@ -193,16 +206,16 @@ const getButtonIcon = (type) => {
         size="sm"
         @click="editor.chain().focus().toggleBlockquote().run()"
         :title="'Blockquote'"
-        :class="{ 'bg-gray-200': editor?.isActive('blockquote') }"
+        :class="{ 'bg-neutral-subtle': editor?.isActive('blockquote') }"
       />
 
       <DButton
-        :icon-left="getButtonIcon('horizontalRule')"
+        :icon-left="getButtonIcon('link')"
         variant="secondary"
         size="sm"
-        @click="editor.chain().focus().setHorizontalRule().run()"
-        :title="'Horizontal Rule'"
-        :class="{ 'bg-gray-200': editor?.isActive('horizontalRule') }"
+        @click="setLink"
+        :title="'Add Link'"
+        :class="{ 'bg-neutral-subtle': editor?.isActive('link') }"
       />
       <DButton
         :icon-left="getButtonIcon('clearFormatting')"
@@ -228,6 +241,10 @@ const getButtonIcon = (type) => {
 
 .ProseMirror {
   outline: none;
+}
+
+.ProseMirror a {
+  color: var(--color-blue-600);
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
