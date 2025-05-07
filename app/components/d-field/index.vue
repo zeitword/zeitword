@@ -30,7 +30,9 @@ const emit = defineEmits<{
 const labelText = computed(() => field.displayName || field.fieldKey)
 
 const modelValue = computed({
-  get: () => value,
+  get: () => {
+    return value === undefined || value === null ? field.defaultValue : value
+  },
   set: (newValue) => emit("update:value", newValue)
 })
 
