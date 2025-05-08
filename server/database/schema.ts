@@ -110,6 +110,7 @@ export const componentFields = pgTable(
     defaultValue: text(),
     minValue: integer(),
     maxValue: integer(),
+    config: jsonb(),
     componentWhitelist: jsonb(),
     siteId: uuid()
       .notNull()
@@ -168,7 +169,7 @@ export const sites = pgTable("sites", {
 })
 
 export const languages = pgTable("languages", {
-  code: text().primaryKey().default("en"),
+  code: text().primaryKey(),
   name: text().notNull(),
   nativeName: text().notNull(),
   ...timestamps

@@ -2,8 +2,16 @@ import { z } from "zod"
 import { and, eq } from "drizzle-orm"
 import { componentFields, fieldOptions } from "~~/server/database/schema"
 
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
+type Literal = z.infer<typeof literalSchema>
+type Json = Literal | { [key: string]: Json } | Json[]
+
+const jsonSchema: z.ZodType<Json> = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
+)
+
 const optionSchema = z.object({
-  id: z.string().uuid().optional(), // Optional because it might be new
+  id: z.string().uuid().optional(),
   optionName: z.string().min(1),
   optionValue: z.string().min(1)
 })
@@ -34,7 +42,8 @@ const bodySchema = z.object({
   minValue: z.number().min(0).nullable(),
   maxValue: z.number().min(0).nullable(),
   componentWhitelist: z.array(z.string()).optional(),
-  options: z.array(optionSchema).optional()
+  options: z.array(optionSchema).optional(),
+  config: jsonSchema.optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -74,7 +83,8 @@ export default defineEventHandler(async (event) => {
         defaultValue: data.defaultValue,
         componentWhitelist: data.componentWhitelist,
         minValue: data.minValue,
-        maxValue: data.maxValue
+        maxValue: data.maxValue,
+        config: data.config
       })
       .where(
         and(

@@ -51,12 +51,12 @@ onFileDialogChange(async (selectedFiles) => {
 })
 
 function onDrop(files: File[] | null) {
+  console.log(files)
   isAddingDragging.value = false
   if (!files || files.length === 0) return
 
-  const imageFiles = files.filter((file) => file.type.startsWith("image/"))
-  if (imageFiles.length > 0) {
-    handleFileUploads(imageFiles)
+  if (files.length > 0) {
+    handleFileUploads(files)
   } else {
     console.warn("No image files dropped.")
   }
@@ -80,7 +80,6 @@ async function handleFileUploads(files: File[]) {
     : files.length
   if (availableSlots <= 0 && props.field.maxValue) {
     console.warn("Cannot add more assets, limit reached.")
-    // Consider adding user feedback (toast)
     return
   }
 

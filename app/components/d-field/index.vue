@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DField, DComponent } from "~/types/models"
+import type { AssetConfig } from "~/types"
 import { computed } from "vue"
 
 type Props = {
@@ -51,6 +52,7 @@ function deleteBlock(id: string) {
 
 <template>
   <DFormGroup>
+    <pre>{{ field }}</pre>
     <DFormLabel :required="field.required">
       {{ labelText }}
     </DFormLabel>
@@ -99,6 +101,7 @@ function deleteBlock(id: string) {
     <DAsset
       v-else-if="field.type === 'asset'"
       :value="value"
+      :config="field.config as AssetConfig"
       @update:value="modelValue = $event"
     />
     <DFieldAssets

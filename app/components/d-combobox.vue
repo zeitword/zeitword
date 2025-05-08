@@ -27,7 +27,7 @@ interface Option {
 }
 
 const props = defineProps<Props>()
-const model = defineModel<Option | Option[] | null>() // Explicit type
+const model = defineModel<Option | Option[] | null>()
 const open = ref(false)
 
 const filteredOptions = computed(() => {

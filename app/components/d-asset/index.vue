@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon, ReplaceIcon, Trash2Icon } from "lucide-vue-next"
+import type { AssetConfig, AssetType } from "~/types"
 
 type AssetObject = { id: string; src: string; alt: string }
 
 type Props = {
   value: AssetObject | null | undefined
+  config: AssetConfig
   borderless?: boolean
 }
 const props = defineProps<Props>()
@@ -19,21 +21,67 @@ const isLoading = ref(false)
 const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 
+const assetTypeToMimeMap: { [key: string]: string[] } = {
+  image: ["image/*"],
+  video: ["video/*"],
+  audio: ["audio/*"],
+  pdf: ["application/pdf"],
+  other: []
+}
+
+const acceptedFileTypes = computed(() => {
+  if (!props.config?.assetTypes || props.config.assetTypes.length === 0) {
+    return ""
+  }
+  const mimeTypes: string[] = []
+  props.config.assetTypes.forEach((type: AssetType) => {
+    const mimeTypeArray = assetTypeToMimeMap[type.value]
+    if (mimeTypeArray) {
+      mimeTypes.push(...mimeTypeArray)
+    }
+  })
+  return mimeTypes.join(",")
+})
+
 const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
-  multiple: false
+  multiple: false,
+  accept: acceptedFileTypes.value
 })
 
 onFileDialogChange(async (selectedFiles) => {
   if (!selectedFiles || selectedFiles.length === 0) return
-  await uploadFile(selectedFiles[0])
+  if (selectedFiles[0]) await uploadFile(selectedFiles[0])
 })
 
 const { toast } = useToast()
 
+function isValidFileType(file: File): boolean {
+  if (!props.config?.assetTypes || props.config.assetTypes.length === 0) {
+    return true
+  }
+
+  const allowedMimeTypes: string[] = []
+  props.config.assetTypes.forEach((type: AssetType) => {
+    const mimeTypeArray = assetTypeToMimeMap[type.value]
+    if (mimeTypeArray) {
+      allowedMimeTypes.push(...mimeTypeArray)
+    }
+  })
+
+  return allowedMimeTypes.some((mimeType) => file.type.startsWith(mimeType.slice(0, -1)))
+}
+
 function onDrop(files: File[] | null) {
   isDragging.value = false
-  if (!files || files.length === 0) return
+  if (!files || files.length === 0 || !files[0]) return
   const file = files[0]
+  if (!isValidFileType(file)) {
+    toast.error({
+      description: `File type not allowed.`,
+      duration: 3000
+    })
+    return
+  }
   uploadFile(file)
 }
 

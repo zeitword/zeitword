@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon, Component } from "lucide-vue-next"
+import type { AssetConfig, RichTextConfig } from "~/types"
+import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon } from "lucide-vue-next"
 import { useSortable } from "@vueuse/integrations/useSortable"
 import { uuidv7 } from "uuidv7"
 
 const siteId = useRouteParams("siteId")
 const componentId = useRouteParams("componentId")
 const fieldKey = useRouteParams("fieldKey")
+
+type Config = AssetConfig | RichTextConfig | null
 
 type FormData = {
   fieldKey: string
@@ -22,6 +25,7 @@ type FormData = {
     optionValue: string
   }[]
   componentWhitelist?: string[]
+  config: Config
 }
 
 const formData = ref<FormData>({
@@ -34,7 +38,8 @@ const formData = ref<FormData>({
   minValue: 0,
   maxValue: 0,
   options: [],
-  componentWhitelist: []
+  componentWhitelist: [],
+  config: null
 })
 
 const optionsList = shallowRef<FormData["options"]>([])
@@ -73,7 +78,8 @@ watch(
         minValue: newField.minValue,
         maxValue: newField.maxValue,
         options: newOptions,
-        componentWhitelist: newField.componentWhitelist || []
+        componentWhitelist: newField.componentWhitelist || [],
+        config: newField.config || null
       }
       optionsList.value = [...newOptions]
     }
@@ -115,6 +121,27 @@ const { option } = useSortable(optionsContainer, optionsList, {
     nextTick(() => {})
   }
 })
+
+const selectedAssetTypes = computed({
+  get: () => {
+    const config = formData.value.config as AssetConfig
+    if (!config?.assetTypes) return []
+    return config.assetTypes
+  },
+  set: (newVal) => {
+    formData.value.config = {
+      assetTypes: newVal
+    }
+  }
+})
+
+const assetTypes = ref([
+  { value: "image", display: "Image" },
+  { value: "video", display: "Video" },
+  { value: "audio", display: "Audio" },
+  { value: "pdf", display: "PDF" },
+  { value: "other", display: "Other" }
+])
 
 const selectedComponentIds = computed({
   get: () => {
@@ -394,6 +421,20 @@ async function deleteField() {
               id="default-value"
               name="default-value"
               v-model="formData.defaultValue"
+            />
+          </DFormGroup>
+        </template>
+
+        <!-- specific fields for "asset(s)" -->
+        <template v-if="formData.fieldType === 'asset' || formData.fieldType === 'assets'">
+          <DFormGroup>
+            <DFormLabel name="asset-types">Allowed Asset-Types</DFormLabel>
+            <DCombobox
+              id="asset-types"
+              name="asset-types"
+              multiple
+              v-model="selectedAssetTypes"
+              :options="assetTypes"
             />
           </DFormGroup>
         </template>
