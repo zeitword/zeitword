@@ -46,9 +46,14 @@ const isMaxReached = computed(() => {
   return sortedAssets.value.length >= props.field.maxValue
 })
 
-const { allowedTypesString, isValidFileType } = useAssetValidation(
-  (props.field.config as AssetConfig).assetTypes
-)
+const assetConfig = props.field.config as AssetConfig
+let assetTypes = undefined
+
+if (assetConfig && assetConfig.assetTypes) {
+  assetTypes = assetConfig.assetTypes
+}
+
+const { allowedTypesString, isValidFileType } = useAssetValidation(assetTypes)
 
 const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
   accept: "image/*",
