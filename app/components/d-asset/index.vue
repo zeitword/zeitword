@@ -145,64 +145,66 @@ useDropZone(dropZoneRef, {
 </script>
 
 <template>
-  <div class="relative h-30">
-    <DAssetDisplay
-      v-if="props.value?.src"
-      :asset="props.value"
-      :borderless="props.borderless"
-      @clearAsset="clearAsset"
-      @changeAsset="changeAsset"
-      @assetDropped="
-        (file) => {
-          if (!isValidFileType(file)) {
-            toast.error({
-              description: `File type not allowed.`,
-              duration: 3000
-            })
-            return
+  <div class="border-neutral bg-neutral-subtle relative rounded-[10px] border p-0.5">
+    <div class="border-neutral overflow-hidden rounded-lg border">
+      <DAssetDisplay
+        v-if="props.value?.src"
+        :asset="props.value"
+        :borderless="props.borderless"
+        @clearAsset="clearAsset"
+        @changeAsset="changeAsset"
+        @assetDropped="
+          (file) => {
+            if (!isValidFileType(file)) {
+              toast.error({
+                description: `File type not allowed.`,
+                duration: 3000
+              })
+              return
+            }
+            replaceAsset(file)
           }
-          replaceAsset(file)
-        }
-      "
-    />
-    <button
-      v-else
-      ref="dropZoneRef"
-      class="border-neutral relative flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-xl border p-6 text-center transition-colors"
-      :class="[
-        isDragging ? 'bg-neutral-subtle' : 'border-neutral-soft bg-neutral-bg',
-        isLoading ? 'cursor-wait opacity-75' : ''
-      ]"
-      tabindex="0"
-      @click="!isLoading && openFileDialog()"
-    >
-      <div
-        v-if="isLoading"
-        class="absolute inset-0 z-10 flex items-center justify-center rounded-md"
+        "
+      />
+      <button
+        v-else
+        ref="dropZoneRef"
+        class="relative flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-xl p-6 text-center transition-colors"
+        :class="[
+          isDragging ? 'bg-neutral-subtle' : 'border-neutral-soft bg-neutral-bg',
+          isLoading ? 'cursor-wait opacity-75' : ''
+        ]"
+        tabindex="0"
+        @click="!isLoading && openFileDialog()"
       >
-        <LoaderCircleIcon class="text-neutral-subtle size-5 animate-spin" />
-        <span class="text-copy ml-2">Uploading...</span>
-      </div>
-
-      <div
-        v-if="!isLoading"
-        class="text-neutral pointer-events-none flex flex-col items-center"
-      >
-        <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
-        <p class="text-copy-sm text-neutral-subtle">
-          <span v-if="isDragging">Drop file to upload</span>
-          <span v-else>Drag & drop file here, or</span>
-        </p>
-        <p class="text-copy-sm text-neutral-subtle">({{ allowedTypesString }})</p>
-        <DButton
-          variant="secondary"
-          size="sm"
-          class="mt-2"
-          tabindex="-1"
+        <div
+          v-if="isLoading"
+          class="absolute inset-0 z-10 flex items-center justify-center rounded-md"
         >
-          Select file
-        </DButton>
-      </div>
-    </button>
+          <LoaderCircleIcon class="text-neutral-subtle size-5 animate-spin" />
+          <span class="text-copy ml-2">Uploading...</span>
+        </div>
+
+        <div
+          v-if="!isLoading"
+          class="text-neutral pointer-events-none flex flex-col items-center"
+        >
+          <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
+          <p class="text-copy-sm text-neutral-subtle">
+            <span v-if="isDragging">Drop file to upload</span>
+            <span v-else>Drag & drop file here, or</span>
+          </p>
+          <p class="text-copy-sm text-neutral-subtle">({{ allowedTypesString }})</p>
+          <DButton
+            variant="secondary"
+            size="sm"
+            class="mt-2"
+            tabindex="-1"
+          >
+            Select file
+          </DButton>
+        </div>
+      </button>
+    </div>
   </div>
 </template>

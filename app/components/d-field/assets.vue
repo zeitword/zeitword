@@ -349,17 +349,8 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
         v-for="asset in sortedAssets"
         :key="asset.id"
         :data-asset-id="asset.id"
-        class="group bg-neutral border-neutral bg-neutral-bg relative flex items-center gap-1 border-b p-2 last:border-none"
+        class="group bg-neutral border-neutral bg-neutral-bg relative flex items-center gap-1 border-b last:border-none"
       >
-        <DButton
-          class="drag-handle cursor-grab opacity-50 transition-all group-hover:opacity-100"
-          no-cursor
-          :icon-left="GripVertical"
-          size="sm"
-          variant="transparent"
-          aria-label="Drag to reorder asset"
-        />
-
         <div class="flex-grow">
           <DAssetDisplay
             :asset="asset"
@@ -368,7 +359,18 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
             @updateAlt="(newAlt) => handleUpdateAlt(asset.id, newAlt)"
             :allowedTypesString="allowedTypesString"
             borderless
-          />
+          >
+            <template #controls>
+              <DButton
+                class="drag-handle cursor-grab opacity-50 transition-all group-hover:opacity-100"
+                no-cursor
+                :icon-left="GripVertical"
+                size="sm"
+                variant="transparent"
+                aria-label="Drag to reorder asset"
+              />
+            </template>
+          </DAssetDisplay>
         </div>
       </div>
     </div>
@@ -460,6 +462,7 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
   background-color: var(--background-color-neutral-weak);
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .sortable-ghost {
