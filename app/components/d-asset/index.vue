@@ -121,6 +121,16 @@ async function replaceAsset(file: File) {
   await uploadFile(file)
 }
 
+function handleUpdateAlt(newAlt: string) {
+  const newValue = {
+    ...props.value,
+    alt: newAlt
+  }
+  if (!newValue) return
+
+  emit("update:value", newValue)
+}
+
 useDropZone(dropZoneRef, {
   onDrop: (files) => {
     isDragging.value = false
@@ -153,6 +163,7 @@ useDropZone(dropZoneRef, {
         :borderless="props.borderless"
         @clearAsset="clearAsset"
         @changeAsset="changeAsset"
+        @updateAlt="(newAlt) => handleUpdateAlt(newAlt)"
         @assetDropped="
           (file) => {
             if (!isValidFileType(file)) {

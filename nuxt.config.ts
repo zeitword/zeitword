@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
 
   css: ["@/app.css"],
-  modules: ["@vueuse/nuxt", "nuxt-auth-utils", "@nuxt/fonts"],
+  modules: ["@vueuse/nuxt", "nuxt-auth-utils", "@nuxt/fonts", "@nuxt/image"],
 
   fonts: { experimental: { processCSSVariables: true } },
 
@@ -59,6 +59,13 @@ export default defineNuxtConfig({
           media: "(prefers-color-scheme: light)"
         }
       ]
+    }
+  },
+
+  image: {
+    screens: {
+      small: 80,
+      medium: 500
     }
   }
 })

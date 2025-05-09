@@ -92,8 +92,10 @@ const fileIcon = computed(() => {
         <div
           class="bg-neutral-subtle border-neutral grid size-10 place-items-center overflow-hidden rounded-md border p-0.5 transition"
         >
-          <img
+          <NuxtImg
             v-if="props.asset.type === 'image'"
+            width="80"
+            height="80"
             :src="props.asset.src"
             :alt="props.asset.alt || 'Image'"
             class="bg-neutral-subtle block rounded-sm"
@@ -139,8 +141,10 @@ const fileIcon = computed(() => {
             class="group border-neutral relative w-full flex-1 overflow-hidden rounded-lg"
             :class="[borderless ? '' : 'border']"
           >
-            <img
+            <NuxtImg
               v-if="props.asset.type === 'image'"
+              width="500"
+              height="500"
               :src="props.asset.src"
               :alt="props.asset.alt || 'Image'"
               class="bg-neutral-subtle block h-full max-h-40 w-full object-contain"
