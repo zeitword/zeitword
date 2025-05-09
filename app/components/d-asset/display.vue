@@ -53,7 +53,7 @@ useDropZone(dropZoneRef, {
   }
 })
 
-const getFileIcon = computed(() => {
+const fileIcon = computed(() => {
   if (!props.asset) return FileIcon
 
   if (props.asset.type === "image") {
@@ -87,6 +87,21 @@ const getFileIcon = computed(() => {
           <ChevronDownIcon
             class="size-4 transition"
             :class="[isDetailsOpen ? 'rotate-180' : '']"
+          />
+        </div>
+        <div
+          class="bg-neutral-subtle border-neutral grid size-10 place-items-center overflow-hidden rounded-md border p-0.5 transition"
+        >
+          <img
+            v-if="props.asset.type === 'image'"
+            :src="props.asset.src"
+            :alt="props.asset.alt || 'Image'"
+            class="bg-neutral-subtle block rounded-sm"
+          />
+          <component
+            v-else
+            class="text-neutral-subtle size-5"
+            :is="fileIcon"
           />
         </div>
         <div
@@ -136,7 +151,7 @@ const getFileIcon = computed(() => {
             >
               <div class="bg-neutral-strong grid size-8 place-items-center rounded-lg">
                 <component
-                  :is="getFileIcon"
+                  :is="fileIcon"
                   class="text-neutral-subtle size-4"
                 />
               </div>
