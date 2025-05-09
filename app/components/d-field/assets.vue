@@ -6,12 +6,18 @@ import { LexoRank } from "lexorank"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
 import { useFileDialog, useDropZone } from "@vueuse/core"
+import DAssetDisplay from "../d-asset/display.vue"
+import { useAssetValidation } from "~/composables/useAssetValidation"
+import type { AssetConfig } from "~/types"
+
+const { toast } = useToast()
 
 type AssetObject = {
   id: string
   src: string
   alt: string
   order: string
+  type: string
 }
 
 type Props = {
@@ -40,6 +46,10 @@ const isMaxReached = computed(() => {
   return sortedAssets.value.length >= props.field.maxValue
 })
 
+const { allowedTypesString, isValidFileType } = useAssetValidation(
+  (props.field.config as AssetConfig).assetTypes
+)
+
 const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
   accept: "image/*",
   multiple: true
@@ -48,28 +58,6 @@ const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
 onFileDialogChange(async (selectedFiles) => {
   if (!selectedFiles || selectedFiles.length === 0) return
   await handleFileUploads(Array.from(selectedFiles))
-})
-
-function onDrop(files: File[] | null) {
-  console.log(files)
-  isAddingDragging.value = false
-  if (!files || files.length === 0) return
-
-  if (files.length > 0) {
-    handleFileUploads(files)
-  } else {
-    console.warn("No image files dropped.")
-  }
-}
-
-useDropZone(addDropZoneRef, {
-  onDrop,
-  onLeave: () => {
-    isAddingDragging.value = false
-  },
-  onEnter: () => {
-    isAddingDragging.value = true
-  }
 })
 
 async function handleFileUploads(files: File[]) {
@@ -92,12 +80,29 @@ async function handleFileUploads(files: File[]) {
       ? LexoRank.parse(sortedAssets.value[sortedAssets.value.length - 1].order)
       : LexoRank.middle()
 
-  const uploadPromises = filesToUpload.map(async (file) => {
+  const validatedFiles = filesToUpload.filter((file) => {
+    if (isValidFileType(file)) {
+      return file
+    } else {
+      console.log(file)
+      toast.error({
+        description: `${file.name} is not the correct file type`
+      })
+    }
+  })
+
+  const uploadPromises = validatedFiles.map(async (file) => {
     try {
       const formData = new FormData()
       formData.append("file", file)
-      const fileUrl = await $fetch<string>("/api/assets", { method: "POST", body: formData })
-      return fileUrl
+      const asset = await $fetch<{ id: string; src: string; type: string; fileName: string }>(
+        "/api/assets",
+        {
+          method: "POST",
+          body: formData
+        }
+      )
+      return { ...asset, fileName: file.name }
     } catch (error) {
       console.error("Upload failed for file:", file.name, error)
       return null
@@ -107,14 +112,15 @@ async function handleFileUploads(files: File[]) {
   const results = await Promise.all(uploadPromises)
   const newAssetObjects: AssetObject[] = []
 
-  results.forEach((assetSrc) => {
-    if (assetSrc) {
+  results.forEach((asset) => {
+    if (asset) {
       const newRank = lastRank.genNext()
       newAssetObjects.push({
         id: uuidv7(),
-        src: assetSrc,
-        alt: "",
-        order: newRank.toString()
+        src: asset.src,
+        alt: asset.fileName,
+        order: newRank.toString(),
+        type: asset.type
       })
       lastRank = newRank
     }
@@ -133,7 +139,7 @@ async function handleFileUploads(files: File[]) {
 // Handles updates from individual DAsset components (replace/clear)
 function handleAssetUpdate(
   listItemId: string,
-  newAssetValue: { id: string; src: string; alt: string } | null
+  newAssetValue: AssetObject | null // Changed type here
 ) {
   const currentAssets = [...sortedAssets.value]
   const index = currentAssets.findIndex((asset) => asset.id === listItemId)
@@ -146,14 +152,27 @@ function handleAssetUpdate(
   if (newAssetValue === null) {
     currentAssets.splice(index, 1)
   } else {
-    currentAssets[index] = {
-      ...currentAssets[index],
-      src: newAssetValue.src,
-      alt: newAssetValue.alt
-    }
+    currentAssets[index] = newAssetValue
   }
 
   emit("update:value", currentAssets.length > 0 ? currentAssets : null) // Emit null if list becomes empty
+}
+
+function handleClearAsset(assetId: string) {
+  const currentAssets = [...sortedAssets.value]
+  const index = currentAssets.findIndex((asset) => asset.id === assetId)
+
+  if (index === -1) {
+    console.error("Asset list item not found for delete:", assetId)
+    return
+  }
+
+  currentAssets.splice(index, 1)
+  emit("update:value", currentAssets.length > 0 ? currentAssets : null)
+}
+
+function handleChangeAsset(asset: AssetObject) {
+  openFileDialog()
 }
 
 function recalculateAssetOrders(assets: AssetObject[]): AssetObject[] {
@@ -279,6 +298,42 @@ onBeforeUnmount(() => {
     sortableInstance.value.destroy()
   }
 })
+
+useDropZone(addDropZoneRef, {
+  onDrop: (files) => {
+    isAddingDragging.value = false
+    if (!files || files.length === 0) return
+
+    if (files.length > 0) {
+      handleFileUploads(files)
+    } else {
+      console.warn("No image files dropped.")
+    }
+  },
+  onLeave: () => {
+    isAddingDragging.value = false
+  },
+  onEnter: () => {
+    isAddingDragging.value = true
+  }
+})
+
+function handleUpdateAlt(assetId: string, newAlt: string) {
+  const currentAssets = [...sortedAssets.value]
+  const index = currentAssets.findIndex((asset) => asset.id === assetId)
+
+  if (index === -1) {
+    console.error("Asset list item not found for update:", assetId)
+    return
+  }
+
+  currentAssets[index] = {
+    ...currentAssets[index],
+    alt: newAlt
+  }
+
+  emit("update:value", currentAssets.length > 0 ? currentAssets : null)
+}
 </script>
 
 <template>
@@ -306,9 +361,12 @@ onBeforeUnmount(() => {
         />
 
         <div class="flex-grow">
-          <DAsset
-            :value="{ id: asset.id, src: asset.src, alt: asset.alt }"
-            @update:value="(newAssetValue) => handleAssetUpdate(asset.id, newAssetValue)"
+          <DAssetDisplay
+            :asset="asset"
+            @clearAsset="handleClearAsset(asset.id)"
+            @changeAsset="handleChangeAsset(asset)"
+            @updateAlt="(newAlt) => handleUpdateAlt(asset.id, newAlt)"
+            :allowedTypesString="allowedTypesString"
             borderless
           />
         </div>
@@ -344,8 +402,14 @@ onBeforeUnmount(() => {
         >
           <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
           <p class="text-copy-sm">
-            <span v-if="isAddingDragging">Drop image(s) to upload</span>
-            <span v-else>Drag & drop images here, or click to select</span>
+            <span v-if="isAddingDragging">Drop files(s) to upload</span>
+            <span v-else>Drag & drop files here, or click to select</span>
+          </p>
+          <p
+            v-if="allowedTypesString"
+            class="text-copy-sm"
+          >
+            ({{ allowedTypesString }})
           </p>
           <DButton
             variant="secondary"

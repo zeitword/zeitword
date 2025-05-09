@@ -16,12 +16,20 @@ export default defineEventHandler(async (event) => {
 
     const blobFile = new Blob([arrayBuffer], { type: contentType })
 
-    const res = await useS3Storage().setItemRaw(fileId, blobFile, {
+    await useS3Storage().setItemRaw(fileId, blobFile, {
       CacheControl: "public, max-age=31536000"
     })
 
     const config = useRuntimeConfig()
-    return config.s3Endpoint + "/" + config.s3Bucket + "/" + fileId
+    const fileUrl = config.s3Endpoint + "/" + config.s3Bucket + "/" + fileId
+    const fileType = getAssetTypeFromMimeType(contentType)
+
+    return {
+      id: fileId,
+      src: fileUrl,
+      type: fileType,
+      fileName: file.name
+    }
   } catch (error) {
     console.error(error)
     throw createError({ statusCode: 400, message: "Invalid request body" })
@@ -42,4 +50,18 @@ function getContentTypeFromFileName(filename: string): string | null {
     docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   }
   return ext ? mimeTypes[ext] || null : null
+}
+
+function getAssetTypeFromMimeType(mimeType: string): string {
+  if (mimeType.startsWith("image/")) {
+    return "image"
+  } else if (mimeType.startsWith("video/")) {
+    return "video"
+  } else if (mimeType.startsWith("audio/")) {
+    return "audio"
+  } else if (mimeType === "application/pdf") {
+    return "pdf"
+  } else {
+    return "other"
+  }
 }

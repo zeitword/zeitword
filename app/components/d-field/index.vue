@@ -52,7 +52,6 @@ function deleteBlock(id: string) {
 
 <template>
   <DFormGroup>
-    <pre>{{ field }}</pre>
     <DFormLabel :required="field.required">
       {{ labelText }}
     </DFormLabel>

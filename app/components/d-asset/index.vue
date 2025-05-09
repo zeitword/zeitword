@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
-import { UploadCloudIcon, LoaderCircleIcon, ReplaceIcon, Trash2Icon } from "lucide-vue-next"
-import type { AssetConfig, AssetType } from "~/types"
-
-type AssetObject = { id: string; src: string; alt: string }
+import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
+import type { AssetConfig, AssetType, AssetObject } from "~/types"
+import DAssetDisplay from "./display.vue"
 
 type Props = {
   value: AssetObject | null | undefined
@@ -29,6 +28,13 @@ const assetTypeToMimeMap: { [key: string]: string[] } = {
   other: []
 }
 
+const allowedTypesString = computed(() => {
+  if (!props.config?.assetTypes || props.config.assetTypes.length === 0) {
+    return "all files"
+  }
+  return props.config.assetTypes.map((type) => type.display.toLowerCase()).join(", ")
+})
+
 const acceptedFileTypes = computed(() => {
   if (!props.config?.assetTypes || props.config.assetTypes.length === 0) {
     return ""
@@ -50,7 +56,16 @@ const { open: openFileDialog, onChange: onFileDialogChange } = useFileDialog({
 
 onFileDialogChange(async (selectedFiles) => {
   if (!selectedFiles || selectedFiles.length === 0) return
-  if (selectedFiles[0]) await uploadFile(selectedFiles[0])
+  if (selectedFiles[0]) {
+    if (!isValidFileType(selectedFiles[0])) {
+      toast.error({
+        description: `File type not allowed.`,
+        duration: 3000
+      })
+      return
+    }
+    await uploadFile(selectedFiles[0])
+  }
 })
 
 const { toast } = useToast()
@@ -71,42 +86,18 @@ function isValidFileType(file: File): boolean {
   return allowedMimeTypes.some((mimeType) => file.type.startsWith(mimeType.slice(0, -1)))
 }
 
-function onDrop(files: File[] | null) {
-  isDragging.value = false
-  if (!files || files.length === 0 || !files[0]) return
-  const file = files[0]
-  if (!isValidFileType(file)) {
-    toast.error({
-      description: `File type not allowed.`,
-      duration: 3000
-    })
-    return
-  }
-  uploadFile(file)
-}
-
-useDropZone(dropZoneRef, {
-  onDrop,
-  onLeave: () => {
-    isDragging.value = false
-  },
-  onEnter: () => {
-    isDragging.value = true
-  }
-})
-
 async function uploadFile(file: File) {
   isLoading.value = true
   try {
     const formData = new FormData()
     formData.append("file", file)
-    const fileIdOrUrl = await $fetch<string>("/api/assets", {
+    const asset = await $fetch<{ id: string; src: string; type: string }>("/api/assets", {
       method: "POST",
       body: formData
     })
-    emit("update:value", { id: fileIdOrUrl, src: fileIdOrUrl, alt: "" })
+    emit("update:value", { id: asset.id, src: asset.src, alt: file.name, type: asset.type })
   } catch (error) {
-    console.error("Upload failed:", error)
+    console.error(error)
     toast.error({
       description: "Upload failed",
       duration: 3000
@@ -124,64 +115,56 @@ function clearAsset() {
 function changeAsset() {
   openFileDialog()
 }
+
+async function replaceAsset(file: File) {
+  emit("update:value", null)
+  await uploadFile(file)
+}
+
+useDropZone(dropZoneRef, {
+  onDrop: (files) => {
+    isDragging.value = false
+    if (files && files[0]) {
+      if (!isValidFileType(files[0])) {
+        toast.error({
+          description: `File type not allowed.`,
+          duration: 3000
+        })
+        return
+      }
+      replaceAsset(files[0])
+    }
+  },
+  onEnter: () => {
+    isDragging.value = true
+  },
+  onLeave: () => {
+    isDragging.value = false
+  }
+})
 </script>
 
 <template>
   <div class="relative h-30">
-    <div
+    <DAssetDisplay
       v-if="props.value?.src"
-      ref="dropZoneRef"
-      class="relative flex h-full space-y-2"
-    >
-      <div
-        class="group border-neutral relative h-full w-full overflow-hidden rounded-xl"
-        :class="[borderless ? '' : 'border']"
-      >
-        <img
-          :src="props.value.src"
-          :alt="props.value.alt || 'Selected Asset'"
-          class="block h-full w-full object-contain"
-        />
-
-        <div
-          v-if="isLoading"
-          class="bg-neutral/50 absolute inset-0 z-10 flex items-center justify-center rounded-xl"
-        >
-          <LoaderCircleIcon class="text-neutral-subtle size-5 animate-spin" />
-          <span class="text-copy ml-2">Uploading...</span>
-        </div>
-
-        <div
-          v-else-if="isDragging"
-          class="bg-neutral/80 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl"
-        >
-          <div class="text-center">
-            <UploadCloudIcon class="text-neutral-subtle mx-auto mb-2 size-5" />
-            <p class="text-copy-sm">Drop to replace</p>
-          </div>
-        </div>
-      </div>
-      <div
-        class="absolute top-0 right-0 flex gap-1 p-2"
-        :class="borderless ? '' : 'p-2'"
-      >
-        <DButton
-          variant="secondary"
-          size="sm"
-          @click="changeAsset"
-          :icon-left="ReplaceIcon"
-        >
-          Replace
-        </DButton>
-        <DButton
-          variant="secondary"
-          size="sm"
-          @click="clearAsset"
-          :icon-left="Trash2Icon"
-        />
-      </div>
-    </div>
-
+      :asset="props.value"
+      :borderless="props.borderless"
+      @clearAsset="clearAsset"
+      @changeAsset="changeAsset"
+      @assetDropped="
+        (file) => {
+          if (!isValidFileType(file)) {
+            toast.error({
+              description: `File type not allowed.`,
+              duration: 3000
+            })
+            return
+          }
+          replaceAsset(file)
+        }
+      "
+    />
     <button
       v-else
       ref="dropZoneRef"
@@ -210,6 +193,7 @@ function changeAsset() {
           <span v-if="isDragging">Drop file to upload</span>
           <span v-else>Drag & drop file here, or</span>
         </p>
+        <p class="text-copy-sm text-neutral-subtle">({{ allowedTypesString }})</p>
         <DButton
           variant="secondary"
           size="sm"
