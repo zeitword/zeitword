@@ -88,7 +88,6 @@ function deleteBlock(id: string) {
       v-else-if="field.type === 'blocks'"
       :field="field"
       :path="path"
-      :blocks="components"
       :value="value"
       :target-block-id="targetBlockId"
       :current-language="currentLanguage"

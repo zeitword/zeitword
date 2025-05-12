@@ -70,12 +70,17 @@ const fileIcon = computed(() => {
 
   return FileIcon
 })
+
+function toUpperCase(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
 </script>
 
 <template>
   <div
     class="bg-neutral flex w-full flex-col"
     ref="dropZoneRef"
+    v-bind="$attrs"
   >
     <div class="flex w-full items-center gap-2 px-2 py-2">
       <slot name="controls" />
@@ -109,9 +114,9 @@ const fileIcon = computed(() => {
         <div
           class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none active:scale-98"
         >
-          <div class="text-nowrap">Asset</div>
+          <div class="text-nowrap">{{ toUpperCase(props.asset.type) ?? "Asset" }}</div>
           <div class="text-neutral-subtle line-clamp-1">
-            {{ props.asset.alt || "No alt text" }}
+            {{ props.asset.alt }}
           </div>
         </div>
       </button>
@@ -153,13 +158,15 @@ const fileIcon = computed(() => {
               v-else
               class="bg-neutral-subtle flex h-full items-center p-5"
             >
-              <div class="bg-neutral-strong grid size-8 place-items-center rounded-lg">
+              <div class="bg-neutral-strong grid size-8 min-w-8 place-items-center rounded-lg">
                 <component
                   :is="fileIcon"
                   class="text-neutral-subtle size-4"
                 />
               </div>
-              <span class="text-neutral-subtle ml-2 text-sm">{{ props.asset.alt }}</span>
+              <span class="text-neutral-subtle ml-2 text-sm">
+                {{ toUpperCase(props.asset.type) }}: {{ props.asset.id }}
+              </span>
             </div>
             <div
               v-if="isDragging"

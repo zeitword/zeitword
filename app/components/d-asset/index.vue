@@ -3,14 +3,16 @@ import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
-import DAssetDisplay from "./display.vue"
 
 type Props = {
   value: AssetObject | null | undefined
-  config: AssetConfig
+  config?: AssetConfig
   borderless?: boolean
 }
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  config: undefined,
+  borderless: false
+})
 
 const emit = defineEmits<{
   (e: "update:value", value: AssetObject | null): void
@@ -29,14 +31,14 @@ const assetTypeToMimeMap: { [key: string]: string[] } = {
 }
 
 const allowedTypesString = computed(() => {
-  if (!props.config?.assetTypes || props.config.assetTypes.length === 0) {
+  if (!props.config || !props.config?.assetTypes || props.config.assetTypes.length === 0) {
     return "all files"
   }
   return props.config.assetTypes.map((type) => type.display.toLowerCase()).join(", ")
 })
 
 const acceptedFileTypes = computed(() => {
-  if (!props.config?.assetTypes || props.config.assetTypes.length === 0) {
+  if (!props.config || !props.config?.assetTypes || props.config.assetTypes.length === 0) {
     return ""
   }
   const mimeTypes: string[] = []

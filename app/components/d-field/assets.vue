@@ -6,7 +6,6 @@ import { LexoRank } from "lexorank"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
 import { useFileDialog, useDropZone } from "@vueuse/core"
-import DAssetDisplay from "../d-asset/display.vue"
 import { useAssetValidation } from "~/composables/useAssetValidation"
 import type { AssetConfig } from "~/types"
 

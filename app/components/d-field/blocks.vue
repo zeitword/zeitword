@@ -187,9 +187,10 @@ watch(
   async ([newValue, mounted]) => {
     if (mounted) {
       if (Array.isArray(newValue)) {
-        sortedBlocks.value = [...newValue].sort((a: { order: string }, b: { order: string }) =>
-          a.order.localeCompare(b.order)
-        )
+        sortedBlocks.value = [...newValue].sort((a: { order: string }, b: { order: string }) => {
+          if (!a.order || !b.order) return
+          return a.order.localeCompare(b.order)
+        })
         await nextTick()
         initSortable()
       } else {
