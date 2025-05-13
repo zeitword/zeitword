@@ -193,6 +193,28 @@ export const waitlist = pgTable("waitlist", {
   ...timestamps
 })
 
+export const storyTranslatedSlugs = pgTable(
+  "story_translated_slugs",
+  {
+    storyId: uuid()
+      .notNull()
+      .references(() => stories.id),
+    languageCode: text()
+      .notNull()
+      .references(() => languages.code),
+    slug: text().notNull(),
+    siteId: uuid()
+      .notNull()
+      .references(() => sites.id),
+    ...organisationId,
+    ...timestamps
+  },
+  (t) => [
+    primaryKey({ columns: [t.storyId, t.languageCode] }),
+    uniqueIndex("translated_slug_site_lang_idx").on(t.slug, t.siteId, t.languageCode)
+  ]
+)
+
 // RELATIONS
 
 export const componentFieldsRelations = relations(componentFields, ({ one }) => ({
@@ -237,11 +259,32 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
     fields: [sites.organisationId],
     references: [organisations.id]
   }),
-  stories: many(stories)
+  stories: many(stories),
+  storyTranslatedSlugs: many(storyTranslatedSlugs)
+}))
+
+export const storyTranslatedSlugsRelations = relations(storyTranslatedSlugs, ({ one }) => ({
+  story: one(stories, {
+    fields: [storyTranslatedSlugs.storyId],
+    references: [stories.id]
+  }),
+  language: one(languages, {
+    fields: [storyTranslatedSlugs.languageCode],
+    references: [languages.code]
+  }),
+  site: one(sites, {
+    fields: [storyTranslatedSlugs.siteId],
+    references: [sites.id]
+  }),
+  organisation: one(organisations, {
+    fields: [storyTranslatedSlugs.organisationId],
+    references: [organisations.id]
+  })
 }))
 
 export const languagesRelations = relations(languages, ({ many }) => ({
-  sites: many(siteLanguages)
+  sites: many(siteLanguages),
+  storyTranslatedSlugs: many(storyTranslatedSlugs)
 }))
 
 export const siteLanguagesRelations = relations(siteLanguages, ({ one }) => ({
@@ -261,7 +304,8 @@ export const organisationsRelations = relations(organisations, ({ many }) => ({
   fieldOptions: many(fieldOptions),
   sites: many(sites),
   stories: many(stories),
-  users: many(users)
+  users: many(users),
+  storyTranslatedSlugs: many(storyTranslatedSlugs)
 }))
 
 export const fieldOptionsRelations = relations(fieldOptions, ({ one }) => ({
@@ -294,7 +338,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   })
 }))
 
-export const storiesRelations = relations(stories, ({ one }) => ({
+export const storiesRelations = relations(stories, ({ one, many }) => ({
   component: one(components, {
     fields: [stories.componentId],
     references: [components.id]
@@ -306,5 +350,6 @@ export const storiesRelations = relations(stories, ({ one }) => ({
   organisation: one(organisations, {
     fields: [stories.organisationId],
     references: [organisations.id]
-  })
+  }),
+  translatedSlugs: many(storyTranslatedSlugs)
 }))

@@ -1,5 +1,5 @@
 import { like, notLike, eq, and, or } from "drizzle-orm"
-import { stories, components, sites } from "~~/server/database/schema"
+import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
 import { mergeWithFallback } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
     parentSlugVariations.push(`${requestedParentSlug}/index`)
   }
 
-  const [parentStory] = await useDrizzle()
+  // Try to find parent story by default slug
+  let parentStory = await useDrizzle()
     .select({ slug: stories.slug })
     .from(stories)
     .innerJoin(components, eq(stories.componentId, components.id))
@@ -41,6 +42,37 @@ export default defineEventHandler(async (event) => {
       )
     )
     .limit(1)
+
+  // If not found and using non-default language, try to find by translated slug
+  if (!parentStory && requestedLang && requestedLang !== site.defaultLanguage) {
+    const translatedSlugEntry = await useDrizzle()
+      .select({ 
+        storyId: storyTranslatedSlugs.storyId
+      })
+      .from(storyTranslatedSlugs)
+      .where(
+        and(
+          eq(storyTranslatedSlugs.siteId, siteId),
+          eq(storyTranslatedSlugs.languageCode, requestedLang),
+          or(...parentSlugVariations.map(slug => eq(storyTranslatedSlugs.slug, slug)))
+        )
+      )
+      .limit(1)
+
+    if (translatedSlugEntry) {
+      parentStory = await useDrizzle()
+        .select({ slug: stories.slug })
+        .from(stories)
+        .innerJoin(components, eq(stories.componentId, components.id))
+        .where(
+          and(
+            eq(components.siteId, siteId),
+            eq(stories.id, translatedSlugEntry.storyId)
+          )
+        )
+        .limit(1)
+    }
+  }
 
   if (!parentStory) {
     console.error(

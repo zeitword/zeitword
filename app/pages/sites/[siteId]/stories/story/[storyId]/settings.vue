@@ -8,35 +8,58 @@ const siteId = route.params.siteId as string
 const storyId = route.params.storyId as string
 
 const { data: story, refresh } = await useFetch(`/api/sites/${siteId}/stories/${storyId}`)
+const { data: siteLanguages } = await useFetch(`/api/sites/${siteId}/languages`)
+const { data: translatedSlugs, refresh: refreshTranslatedSlugs } = await useFetch(
+  `/api/sites/${siteId}/stories/${storyId}/translated-slugs`
+)
 
 const showDeleteModal = ref(false)
 
 const formData = ref({ title: "", slug: "" })
+const translatedSlugData = ref({} as Record<string, string>)
 
 watchEffect(() => {
   if (story.value) {
     formData.value = { title: story.value.title, slug: story.value.slug || "" }
   }
+
+  if (translatedSlugs.value) {
+    translatedSlugData.value = { ...translatedSlugs.value }
+  }
 })
 
 const hasChanges = computed(() => {
-  return story.value?.title !== formData.value.title || story.value?.slug !== formData.value.slug
+  return (
+    story.value?.title !== formData.value.title ||
+    story.value?.slug !== formData.value.slug ||
+    JSON.stringify(translatedSlugs.value) !== JSON.stringify(translatedSlugData.value)
+  )
 })
 
 function resetChanges() {
   formData.value = { title: story.value?.title || "", slug: story.value?.slug || "" }
+  translatedSlugData.value = { ...(translatedSlugs.value || {}) }
 }
 
 const { toast } = useToast()
 
 const saveChanges = async () => {
   try {
+    // Save main story data
     await $fetch(`/api/sites/${siteId}/stories/${storyId}`, {
       method: "PUT",
       body: formData.value
     })
+
+    // Save translated slugs
+    await $fetch(`/api/sites/${siteId}/stories/${storyId}/translated-slugs`, {
+      method: "PUT",
+      body: translatedSlugData.value
+    })
+
     toast.success({ description: "Settings saved successfully" })
     refresh() // Refresh the story data after saving
+    refreshTranslatedSlugs() // Refresh translated slugs data
   } catch (error: any) {
     toast.error({ description: "Error saving settings" })
     console.error(error)
@@ -75,14 +98,50 @@ async function deleteStory() {
         </d-settings-row>
         <d-settings-row
           title="Slug"
-          subtitle="The URL-friendly identifier for your story"
+          subtitle="The URL-friendly identifier for your story in the default language"
         >
           <DInput
             v-model="formData.slug"
             class="w-full"
           />
         </d-settings-row>
-        <!- Add more story-specific settings here, e.g., status, author, etc. -->
+
+        <d-settings-row
+          title="Translated Slugs"
+          subtitle="Provide translated versions of your slug for each language"
+        >
+          <div class="space-y-3">
+            <template v-if="siteLanguages && siteLanguages.length > 0">
+              <template v-for="lang in siteLanguages" :key="lang.code">
+                <div 
+                  v-if="lang.code !== story.defaultLanguage"
+                  class="flex items-center gap-3"
+                >
+                  <div class="w-24 font-medium">{{ lang.name }}:</div>
+                  <DInput
+                    v-model="translatedSlugData[lang.code]"
+                    class="flex-1"
+                    :placeholder="`Translated slug for ${lang.name}`"
+                  />
+                </div>
+              </template>
+            </template>
+            
+            <div v-if="!siteLanguages || siteLanguages.length === 0 || !siteLanguages.some(l => l.code !== story.defaultLanguage)" class="text-sm text-gray-500">
+              No additional languages configured for this site
+            </div>
+            <div
+              v-if="
+                !siteLanguages ||
+                siteLanguages.length === 0 ||
+                !siteLanguages.some((l) => l.code !== story.defaultLanguage)
+              "
+              class="text-sm text-gray-500"
+            >
+              No additional languages configured for this site
+            </div>
+          </div>
+        </d-settings-row>
       </d-settings-container>
 
       <d-settings-container>
