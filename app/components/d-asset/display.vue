@@ -115,9 +115,6 @@ function toUpperCase(str: string) {
           class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none active:scale-98"
         >
           <div class="text-nowrap">{{ toUpperCase(props.asset.type) ?? "Asset" }}</div>
-          <div class="text-neutral-subtle line-clamp-1">
-            {{ props.asset.alt }}
-          </div>
         </div>
       </button>
       <div class="flex gap-1">
