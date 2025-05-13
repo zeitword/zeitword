@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Trash2, FolderIcon, LetterTextIcon, SearchIcon } from "lucide-vue-next"
+import { Trash2, FolderIcon, LetterTextIcon, SearchIcon, SettingsIcon } from "lucide-vue-next"
 
 export type Item = {
   id: string
@@ -18,6 +18,8 @@ type Props = {
 
 const props = defineProps<Props>()
 const emit = defineEmits(["delete-story", "create-story", "create-folder", "navigate"])
+
+const siteId = useRouteParams("siteId")
 
 function getDisplaySlug(itemSlug: string) {
   if (props.isSearching) {
@@ -45,6 +47,10 @@ function createFolder() {
 }
 function requestNavigation(item: Item) {
   emit("navigate", item)
+}
+
+function navigateToSettings(id: string) {
+  navigateTo(`/sites/${siteId.value}/stories/story/${id}/settings`)
 }
 </script>
 
@@ -86,14 +92,20 @@ function requestNavigation(item: Item) {
           </div>
         </div>
         <div
-          class="ml-2 flex shrink-0 gap-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          class="ml-2 flex shrink-0 gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
         >
-          <DButton
+          <!-- <DButton
             :icon-left="Trash2"
             size="sm"
             variant="secondary"
             @click.stop="showDeleteModal(item.id)"
             aria-label="Delete Item"
+          /> -->
+          <DButton
+            :icon-left="SettingsIcon"
+            size="sm"
+            variant="secondary"
+            @click.stop="navigateToSettings(item.id)"
           />
         </div>
       </div>

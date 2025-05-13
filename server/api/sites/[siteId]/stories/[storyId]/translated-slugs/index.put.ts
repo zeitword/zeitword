@@ -30,16 +30,15 @@ export default defineEventHandler(async (event) => {
   }
 
   // Parse the incoming translated slugs
-  const translatedSlugs = await readBody(event) as Record<string, string>
-  if (!translatedSlugs || typeof translatedSlugs !== 'object') {
+  const translatedSlugs = (await readBody(event)) as Record<string, string>
+  if (!translatedSlugs || typeof translatedSlugs !== "object") {
     throw createError({ statusCode: 400, statusMessage: "Invalid translated slugs format" })
   }
 
-  const db = useDrizzle()
   const langEntries = Object.entries(translatedSlugs)
 
   // Delete existing translations that are not in the new set
-  await db
+  await useDrizzle()
     .delete(storyTranslatedSlugs)
     .where(
       and(
@@ -61,7 +60,7 @@ export default defineEventHandler(async (event) => {
     }))
 
   if (slugsToInsert.length > 0) {
-    await db
+    await useDrizzle()
       .insert(storyTranslatedSlugs)
       .values(slugsToInsert)
       .onConflictDoUpdate({

@@ -58,8 +58,8 @@ const saveChanges = async () => {
     })
 
     toast.success({ description: "Settings saved successfully" })
-    refresh() // Refresh the story data after saving
-    refreshTranslatedSlugs() // Refresh translated slugs data
+    refresh()
+    refreshTranslatedSlugs()
   } catch (error: any) {
     toast.error({ description: "Error saving settings" })
     console.error(error)
@@ -71,7 +71,6 @@ async function deleteStory() {
     await $fetch(`/api/sites/${siteId}/stories/${storyId}`, {
       method: "DELETE"
     })
-    // Navigate back to the site's content list (or wherever appropriate)
     navigateTo(`/sites/${siteId}/stories`)
   } catch (error: any) {
     console.error(error)
@@ -110,33 +109,32 @@ async function deleteStory() {
           title="Translated Slugs"
           subtitle="Provide translated versions of your slug for each language"
         >
-          <div class="space-y-3">
+          <div class="flex w-full flex-col gap-3">
             <template v-if="siteLanguages && siteLanguages.length > 0">
-              <template v-for="lang in siteLanguages" :key="lang.code">
-                <div 
+              <template
+                v-for="lang in siteLanguages"
+                :key="lang.code"
+              >
+                <DFormGroup
                   v-if="lang.code !== story.defaultLanguage"
-                  class="flex items-center gap-3"
+                  class="w-full"
                 >
-                  <div class="w-24 font-medium">{{ lang.name }}:</div>
+                  <DLabel>{{ lang.name }} ({{ lang.code }})</DLabel>
                   <DInput
                     v-model="translatedSlugData[lang.code]"
-                    class="flex-1"
                     :placeholder="`Translated slug for ${lang.name}`"
                   />
-                </div>
+                </DFormGroup>
               </template>
             </template>
-            
-            <div v-if="!siteLanguages || siteLanguages.length === 0 || !siteLanguages.some(l => l.code !== story.defaultLanguage)" class="text-sm text-gray-500">
-              No additional languages configured for this site
-            </div>
+
             <div
               v-if="
                 !siteLanguages ||
                 siteLanguages.length === 0 ||
                 !siteLanguages.some((l) => l.code !== story.defaultLanguage)
               "
-              class="text-sm text-gray-500"
+              class="text-copy text-neutral-subtle"
             >
               No additional languages configured for this site
             </div>

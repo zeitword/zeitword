@@ -44,15 +44,14 @@ export default defineEventHandler(async (event) => {
     )
     .limit(1)
 
-  console.log("Default slug lookup result:", storyData.length > 0 ? "Found" : "Not found")
-
   // If not found and using non-default language, try to find by translated slug
   if (
     (!storyData || storyData.length === 0) &&
     requestedLang &&
     requestedLang !== site.defaultLanguage
   ) {
-    const query = useDrizzle()
+    // Step 1: Try direct lookup with the translated slug
+    const translatedSlugResult = await useDrizzle()
       .select({ storyId: storyTranslatedSlugs.storyId })
       .from(storyTranslatedSlugs)
       .where(
@@ -64,9 +63,7 @@ export default defineEventHandler(async (event) => {
       )
       .limit(1)
 
-    const translatedSlugEntry = await query
-
-    if (translatedSlugEntry.length > 0) {
+    if (translatedSlugResult.length > 0) {
       storyData = await useDrizzle()
         .select({
           id: stories.id,
@@ -77,8 +74,62 @@ export default defineEventHandler(async (event) => {
         })
         .from(stories)
         .innerJoin(components, eq(stories.componentId, components.id))
-        .where(and(eq(components.siteId, siteId), eq(stories.id, translatedSlugEntry[0].storyId)))
+        .where(and(eq(components.siteId, siteId), eq(stories.id, translatedSlugResult[0].storyId)))
         .limit(1)
+    } else if (requestedSlug.includes('/')) {
+      // Step 2: Handle nested paths - check if any part is translated
+      const parts = requestedSlug.split('/')
+      const firstPart = parts[0]
+      
+      // Try to find a translation for the first part
+      const firstPartTranslation = await useDrizzle()
+        .select({ 
+          storyId: storyTranslatedSlugs.storyId,
+          slug: storyTranslatedSlugs.slug
+        })
+        .from(storyTranslatedSlugs)
+        .where(
+          and(
+            eq(storyTranslatedSlugs.siteId, siteId),
+            eq(storyTranslatedSlugs.languageCode, requestedLang),
+            eq(storyTranslatedSlugs.slug, firstPart)
+          )
+        )
+        .limit(1)
+      
+      if (firstPartTranslation.length > 0) {
+        // Find the original slug for this story
+        const [originalStory] = await useDrizzle()
+          .select({ slug: stories.slug })
+          .from(stories)
+          .where(eq(stories.id, firstPartTranslation[0].storyId))
+          .limit(1)
+        
+        if (originalStory) {
+          // Replace the translated part with the original slug to construct the actual path
+          const remainingParts = parts.slice(1)
+          const reconstructedSlug = [originalStory.slug, ...remainingParts].join('/')
+          
+          // Try to find the story with the reconstructed slug
+          storyData = await useDrizzle()
+            .select({
+              id: stories.id,
+              slug: stories.slug,
+              title: stories.title,
+              content: stories.content,
+              componentId: stories.componentId
+            })
+            .from(stories)
+            .innerJoin(components, eq(stories.componentId, components.id))
+            .where(
+              and(
+                eq(components.siteId, siteId),
+                eq(stories.slug, reconstructedSlug)
+              )
+            )
+            .limit(1)
+        }
+      }
     }
   }
 
