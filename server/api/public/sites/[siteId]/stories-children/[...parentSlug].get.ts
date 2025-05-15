@@ -1,6 +1,6 @@
 import { like, notLike, eq, and, or } from "drizzle-orm"
 import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
-import { mergeWithFallback } from "~~/server/utils/content"
+import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -191,7 +191,7 @@ export default defineEventHandler(async (event) => {
     return {
       ...child,
       translatedSlug,
-      content: mergeWithFallback(defaultContent, requestedContent)
+      content: await mergeWithFallbackAndTransformLinks(defaultContent, requestedContent, requestedLang || site.defaultLanguage, siteId)
     }
   }))
 
