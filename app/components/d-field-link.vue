@@ -59,15 +59,12 @@ const open = ref(false)
 
 const inputValue = computed({
   get: () => {
-    // For internal links with story details, show the title
     if (isInternal.value && storyDetails.value) {
       return storyDetails.value.title
     }
-    // For external links, ensure we show the URL from the model
     else if (model.value?.type === "external") {
       return (model.value as ExternalLink).url
     }
-    // Show raw input (typed text) when editing
     return rawInputValue.value
   },
   set: (value: string) => {
@@ -91,33 +88,29 @@ onMounted(() => {
   if (model.value?.type === "external") {
     rawInputValue.value = (model.value as ExternalLink).url
   }
-  // No need to set for internal links as the computed getter will handle it
 })
 
-// Reka UI handles keyboard navigation automatically
 
 function handleInput() {
-  // If we had an internal link, convert back to external
   if (isInternal.value) {
     model.value = { url: rawInputValue.value, type: "external" }
     open.value = true
   } else if (rawInputValue.value) {
-    // Update external link - ensure URL is saved
     model.value = { url: rawInputValue.value, type: "external" }
   } else {
-    // Empty input, set empty external link
     model.value = { url: "", type: "external" }
-    // Show all stories when input is empty
     open.value = true
   }
 }
 
-// Handle blur to restore input based on model state
 function handleBlur() {
-  // Wait a moment to let any click handlers complete first
   if (model.value?.type === "external") {
     rawInputValue.value = (model.value as ExternalLink).url
   }
+}
+
+function closeDropdown() {
+  open.value = false
 }
 
 function handleClear(e: Event) {
@@ -126,21 +119,21 @@ function handleClear(e: Event) {
   model.value = { url: "", type: "external" }
   open.value = true
 }
+
 function selectStory(story: Story) {
   if (!story) return
-
   model.value = { storyId: story.id, type: "internal" }
-  // No need to set inputValue, computed getter will handle it
-  nextTick(() => {
-    open.value = false
-  })
+  open.value = false
 }
+
+
 </script>
 
 <template>
   <ComboboxRoot
     v-model:open="open"
     :disabled="props.disabled"
+
   >
     <ComboboxAnchor
       class="bg-neutral border-neutral flex h-9 w-full cursor-default items-center justify-between rounded-lg border px-2 py-1.5 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-300"
@@ -154,15 +147,22 @@ function selectStory(story: Story) {
         <ComboboxInput
           v-model="inputValue"
           :placeholder="placeholder"
-          class="flex-1 border-0 bg-transparent px-0 py-1.5 text-sm outline-none placeholder:text-neutral-500"
+          class="placeholder:text-neutral-subtle flex-1 border-0 bg-transparent px-0 py-1.5 text-sm outline-none"
           @input="handleInput"
           @focus="!isInternal && (open = true)"
           @blur="handleBlur"
+          @keydown.esc="closeDropdown"
           autocomplete="off"
         />
       </div>
 
       <div class="flex items-center gap-1">
+        <span
+          v-if="isInternal && storyDetails?.slug"
+          class="text-neutral-subtle text-xs"
+        >
+          /{{ storyDetails.slug }}
+        </span>
         <DButton
           variant="transparent"
           size="sm"
@@ -191,27 +191,27 @@ function selectStory(story: Story) {
         align="start"
         class="border-neutral bg-neutral z-[9999] w-[var(--reka-combobox-trigger-width)] rounded-lg border shadow-sm"
         :side-offset="5"
-      >
-        <ComboboxViewport
-          class="max-h-48 overflow-auto p-1"
-          v-if="searchResults && searchResults.length > 0"
-        >
-          <!-- <ComboboxEmpty class="px-2 py-1.5 text-sm text-neutral-500">
-            No results found
-          </ComboboxEmpty> -->
+        v-if="searchResults && searchResults.length > 0"
 
+      >
+
+        <ComboboxCancel class="hidden" />
+        <ComboboxViewport class="max-h-48 overflow-auto p-1">
           <ComboboxItem
-            v-for="story in searchResults"
+            v-for="story in searchResults.filter((s) => s.type !== 'folder')"
             :key="story.id"
             :value="story.id"
             @click="selectStory(story)"
             class="hover:bg-neutral-hover text-neutral data-[highlighted]:bg-neutral-hover flex cursor-pointer items-center justify-between rounded-md px-2.5 py-1.5 text-sm select-none data-[highlighted]:outline-none"
           >
             <span>{{ story.title }}</span>
-            <CheckIcon
-              v-if="isInternal && storyId === story.id"
-              class="size-4"
-            />
+            <div class="flex items-center gap-2">
+              <span class="text-neutral-subtle text-xs">/{{ story.slug }}</span>
+              <CheckIcon
+                v-if="isInternal && storyId === story.id"
+                class="size-4"
+              />
+            </div>
           </ComboboxItem>
         </ComboboxViewport>
       </ComboboxContent>
