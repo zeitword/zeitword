@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     .from(sites)
     .where(eq(sites.id, siteId))
     .limit(1)
-  
+
   if (!site) throw createError({ statusCode: 404, statusMessage: "Site not found" })
 
   // First try to find story by default slug
@@ -76,14 +76,14 @@ export default defineEventHandler(async (event) => {
         .innerJoin(components, eq(stories.componentId, components.id))
         .where(and(eq(components.siteId, siteId), eq(stories.id, translatedSlugResult[0].storyId)))
         .limit(1)
-    } else if (requestedSlug.includes('/')) {
+    } else if (requestedSlug.includes("/")) {
       // Step 2: Handle nested paths - check if any part is translated
-      const parts = requestedSlug.split('/')
+      const parts = requestedSlug.split("/")
       const firstPart = parts[0]
-      
-      // Try to find a translation for the first part
+
+      // Try to find a translation for the first part or first part with /index
       const firstPartTranslation = await useDrizzle()
-        .select({ 
+        .select({
           storyId: storyTranslatedSlugs.storyId,
           slug: storyTranslatedSlugs.slug
         })
@@ -92,11 +92,14 @@ export default defineEventHandler(async (event) => {
           and(
             eq(storyTranslatedSlugs.siteId, siteId),
             eq(storyTranslatedSlugs.languageCode, requestedLang),
-            eq(storyTranslatedSlugs.slug, firstPart)
+            or(
+              eq(storyTranslatedSlugs.slug, firstPart),
+              eq(storyTranslatedSlugs.slug, `${firstPart}/index`)
+            )
           )
         )
         .limit(1)
-      
+
       if (firstPartTranslation.length > 0) {
         // Find the original slug for this story
         const [originalStory] = await useDrizzle()
@@ -104,13 +107,22 @@ export default defineEventHandler(async (event) => {
           .from(stories)
           .where(eq(stories.id, firstPartTranslation[0].storyId))
           .limit(1)
-        
+
         if (originalStory) {
-          // Replace the translated part with the original slug to construct the actual path
           const remainingParts = parts.slice(1)
-          const reconstructedSlug = [originalStory.slug, ...remainingParts].join('/')
-          
-          // Try to find the story with the reconstructed slug
+
+          // Avoid duplicate /index/index in reconstructed slug
+          let reconstructedSlug
+          if (
+            originalStory.slug.endsWith("/index") &&
+            remainingParts.length > 0 &&
+            remainingParts[0] === "index"
+          ) {
+            reconstructedSlug = [originalStory.slug, ...remainingParts.slice(1)].join("/")
+          } else {
+            reconstructedSlug = [originalStory.slug, ...remainingParts].join("/")
+          }
+
           storyData = await useDrizzle()
             .select({
               id: stories.id,
@@ -121,21 +133,17 @@ export default defineEventHandler(async (event) => {
             })
             .from(stories)
             .innerJoin(components, eq(stories.componentId, components.id))
-            .where(
-              and(
-                eq(components.siteId, siteId),
-                eq(stories.slug, reconstructedSlug)
-              )
-            )
+            .where(and(eq(components.siteId, siteId), eq(stories.slug, reconstructedSlug)))
             .limit(1)
         }
       }
     }
   }
 
-  if (!storyData || storyData.length === 0) throw createError({ statusCode: 404, statusMessage: "Story not found" })
-  
-  const story = storyData[0];
+  if (!storyData || storyData.length === 0)
+    throw createError({ statusCode: 404, statusMessage: "Story not found" })
+
+  const story = storyData[0]
   if (!story.componentId)
     throw createError({ statusCode: 404, statusMessage: "Component not found" })
 

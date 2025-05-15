@@ -37,18 +37,7 @@ export default defineEventHandler(async (event) => {
 
   const langEntries = Object.entries(translatedSlugs)
 
-  // Delete existing translations that are not in the new set
-  await useDrizzle()
-    .delete(storyTranslatedSlugs)
-    .where(
-      and(
-        eq(storyTranslatedSlugs.storyId, storyId),
-        eq(storyTranslatedSlugs.siteId, siteId),
-        eq(storyTranslatedSlugs.organisationId, secure.organisationId)
-      )
-    )
-
-  // Skip empty values and insert new translations
+  // Skip empty values and prepare translations for insert
   const slugsToInsert = langEntries
     .filter(([_, slug]) => slug && slug.trim())
     .map(([languageCode, slug]) => ({
@@ -59,18 +48,34 @@ export default defineEventHandler(async (event) => {
       organisationId: secure.organisationId
     }))
 
-  if (slugsToInsert.length > 0) {
-    await useDrizzle()
-      .insert(storyTranslatedSlugs)
-      .values(slugsToInsert)
-      .onConflictDoUpdate({
-        target: [storyTranslatedSlugs.storyId, storyTranslatedSlugs.languageCode],
-        set: {
-          slug: sql`excluded.slug`,
-          updatedAt: sql`now()`
-        }
-      })
-  }
+  // Use a transaction to ensure atomicity of delete + insert operations
+  const db = useDrizzle()
+  await db.transaction(async (tx) => {
+    // Delete existing translations
+    await tx
+      .delete(storyTranslatedSlugs)
+      .where(
+        and(
+          eq(storyTranslatedSlugs.storyId, storyId),
+          eq(storyTranslatedSlugs.siteId, siteId),
+          eq(storyTranslatedSlugs.organisationId, secure.organisationId)
+        )
+      )
+
+    // Insert new translations if there are any
+    if (slugsToInsert.length > 0) {
+      await tx
+        .insert(storyTranslatedSlugs)
+        .values(slugsToInsert)
+        .onConflictDoUpdate({
+          target: [storyTranslatedSlugs.storyId, storyTranslatedSlugs.languageCode],
+          set: {
+            slug: sql`excluded.slug`,
+            updatedAt: sql`now()`
+          }
+        })
+    }
+  })
 
   return { success: true }
 })
