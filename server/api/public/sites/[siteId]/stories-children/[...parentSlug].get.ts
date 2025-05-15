@@ -38,7 +38,10 @@ export default defineEventHandler(async (event) => {
     })
     .from(stories)
     .where(
-      or(...parentSlugVariations.map((slug) => eq(stories.slug, slug)))
+      and(
+        eq(stories.siteId, siteId),
+        or(...parentSlugVariations.map((slug) => eq(stories.slug, slug)))
+      )
     )
     .limit(1)
   
