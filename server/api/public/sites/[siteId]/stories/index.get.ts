@@ -1,6 +1,6 @@
 import { stories, components, sites } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
-import { mergeWithFallback } from "~~/server/utils/content"
+import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
   const defaultContent = content[site.defaultLanguage] || {}
   const requestedContent = content[requestedLang || site.defaultLanguage] || {}
 
-  const mergedContent = mergeWithFallback(defaultContent, requestedContent)
+  const mergedContent = await mergeWithFallbackAndTransformLinks(defaultContent, requestedContent, requestedLang || site.defaultLanguage, siteId)
 
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")

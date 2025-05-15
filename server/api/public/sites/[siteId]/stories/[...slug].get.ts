@@ -1,6 +1,6 @@
-import { stories, components, sites } from "~~/server/database/schema"
+import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
 import { eq, and, or } from "drizzle-orm"
-import { mergeWithFallback } from "~~/server/utils/content"
+import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -25,7 +25,8 @@ export default defineEventHandler(async (event) => {
 
   if (!site) throw createError({ statusCode: 404, statusMessage: "Site not found" })
 
-  const [storyData] = await useDrizzle()
+  // First try to find story by default slug
+  let storyData = await useDrizzle()
     .select({
       id: stories.id,
       slug: stories.slug,
@@ -41,36 +42,127 @@ export default defineEventHandler(async (event) => {
         or(...slugVariations.map((slug) => eq(stories.slug, slug)))
       )
     )
+    .limit(1)
 
-  if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
-  if (!storyData.componentId)
+  // If not found and using non-default language, try to find by translated slug
+  if (
+    (!storyData || storyData.length === 0) &&
+    requestedLang &&
+    requestedLang !== site.defaultLanguage
+  ) {
+    // Step 1: Try direct lookup with the translated slug
+    const translatedSlugResult = await useDrizzle()
+      .select({ storyId: storyTranslatedSlugs.storyId })
+      .from(storyTranslatedSlugs)
+      .where(
+        and(
+          eq(storyTranslatedSlugs.siteId, siteId),
+          eq(storyTranslatedSlugs.languageCode, requestedLang),
+          or(...slugVariations.map((slug) => eq(storyTranslatedSlugs.slug, slug)))
+        )
+      )
+      .limit(1)
+
+    if (translatedSlugResult.length > 0) {
+      storyData = await useDrizzle()
+        .select({
+          id: stories.id,
+          slug: stories.slug,
+          title: stories.title,
+          content: stories.content,
+          componentId: stories.componentId
+        })
+        .from(stories)
+        .innerJoin(components, eq(stories.componentId, components.id))
+        .where(and(eq(components.siteId, siteId), eq(stories.id, translatedSlugResult[0].storyId)))
+        .limit(1)
+    } else if (requestedSlug.includes("/")) {
+      // Step 2: Handle nested paths - check if any part is translated
+      const parts = requestedSlug.split("/")
+      const firstPart = parts[0]
+
+      // Try to find a translation for the first part or first part with /index
+      const firstPartTranslation = await useDrizzle()
+        .select({
+          storyId: storyTranslatedSlugs.storyId,
+          slug: storyTranslatedSlugs.slug
+        })
+        .from(storyTranslatedSlugs)
+        .where(
+          and(
+            eq(storyTranslatedSlugs.siteId, siteId),
+            eq(storyTranslatedSlugs.languageCode, requestedLang),
+            or(
+              eq(storyTranslatedSlugs.slug, firstPart),
+              eq(storyTranslatedSlugs.slug, `${firstPart}/index`)
+            )
+          )
+        )
+        .limit(1)
+
+      if (firstPartTranslation.length > 0) {
+        // Find the original slug for this story
+        const [originalStory] = await useDrizzle()
+          .select({ slug: stories.slug })
+          .from(stories)
+          .where(eq(stories.id, firstPartTranslation[0].storyId))
+          .limit(1)
+
+        if (originalStory) {
+          const remainingParts = parts.slice(1)
+
+          // Avoid duplicate /index/index in reconstructed slug
+          let reconstructedSlug
+          if (
+            originalStory.slug.endsWith("/index") &&
+            remainingParts.length > 0 &&
+            remainingParts[0] === "index"
+          ) {
+            reconstructedSlug = [originalStory.slug, ...remainingParts.slice(1)].join("/")
+          } else {
+            reconstructedSlug = [originalStory.slug, ...remainingParts].join("/")
+          }
+
+          storyData = await useDrizzle()
+            .select({
+              id: stories.id,
+              slug: stories.slug,
+              title: stories.title,
+              content: stories.content,
+              componentId: stories.componentId
+            })
+            .from(stories)
+            .innerJoin(components, eq(stories.componentId, components.id))
+            .where(and(eq(components.siteId, siteId), eq(stories.slug, reconstructedSlug)))
+            .limit(1)
+        }
+      }
+    }
+  }
+
+  if (!storyData || storyData.length === 0)
+    throw createError({ statusCode: 404, statusMessage: "Story not found" })
+
+  const story = storyData[0]
+  if (!story.componentId)
     throw createError({ statusCode: 404, statusMessage: "Component not found" })
 
   const [component] = await useDrizzle()
     .select({ name: components.name })
     .from(components)
-    .where(eq(components.id, storyData.componentId))
+    .where(eq(components.id, story.componentId))
 
-  const content = storyData.content as Record<string, any>
+  const content = story.content as Record<string, any>
   const defaultContent = content[site.defaultLanguage] || {}
   const requestedContent = content[requestedLang || site.defaultLanguage] || {}
 
-  const mergedContent = mergeWithFallback(defaultContent, requestedContent)
+  const mergedContent = await mergeWithFallbackAndTransformLinks(defaultContent, requestedContent, requestedLang || site.defaultLanguage, siteId)
 
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
 
-  console.log(`Story ${storyData.id} (${storyData.slug}) content structure:`, {
-    defaultLang: site.defaultLanguage,
-    requestedLang: requestedLang,
-    raw: storyData.content,
-    defaultContent,
-    requestedContent,
-    merged: mergedContent
-  })
-
   return {
-    ...storyData,
+    ...story,
     content: mergedContent,
     componentName: component.name
   }
