@@ -109,10 +109,11 @@ function deleteBlock(id: string) {
       :value="value"
       @update:value="modelValue = $event"
     />
-    <DInput
+    <DFieldLink
       v-else-if="field.type === 'link'"
       v-model="modelValue"
-      placeholder="Enter link URL"
+      :site-id="$route.params.siteId as string"
+      placeholder="Enter link URL or search for a page"
     />
     <DInput
       v-else-if="field.type === 'number'"
