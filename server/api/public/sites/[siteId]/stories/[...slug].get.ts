@@ -1,6 +1,6 @@
 import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
 import { eq, and, or } from "drizzle-orm"
-import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
+import { mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -158,12 +158,36 @@ export default defineEventHandler(async (event) => {
 
   const mergedContent = await mergeWithFallbackAndTransformLinks(defaultContent, requestedContent, requestedLang || site.defaultLanguage, siteId)
 
+  // Get all translated slugs for this story
+  const translatedSlugs = await useDrizzle()
+    .select({
+      languageCode: storyTranslatedSlugs.languageCode,
+      slug: storyTranslatedSlugs.slug
+    })
+    .from(storyTranslatedSlugs)
+    .where(and(
+      eq(storyTranslatedSlugs.storyId, story.id),
+      eq(storyTranslatedSlugs.siteId, siteId)
+    ))
+
+  // Convert array of translated slugs to object format {en: "slug", de: "slug"}
+  const slugsMap: Record<string, string> = {}
+  
+  // Add the default language slug from the story
+  slugsMap[site.defaultLanguage] = story.slug
+  
+  // Add all translated slugs
+  translatedSlugs.forEach(translation => {
+    slugsMap[translation.languageCode] = translation.slug
+  })
+
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
 
   return {
     ...story,
     content: mergedContent,
-    componentName: component.name
+    componentName: component.name,
+    slugs: slugsMap
   }
 })
