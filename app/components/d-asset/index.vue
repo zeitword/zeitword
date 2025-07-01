@@ -3,6 +3,7 @@ import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
+import { usePresignedUpload } from "~/composables/usePresignedUpload"
 
 type Props = {
   value: AssetObject | null | undefined
@@ -21,6 +22,7 @@ const emit = defineEmits<{
 const isLoading = ref(false)
 const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
+const uploadProgress = ref(0)
 
 const assetTypeToMimeMap: { [key: string]: string[] } = {
   image: ["image/*"],
@@ -90,13 +92,20 @@ function isValidFileType(file: File): boolean {
 
 async function uploadFile(file: File) {
   isLoading.value = true
+  uploadProgress.value = 0
+
   try {
-    const formData = new FormData()
-    formData.append("file", file)
-    const asset = await $fetch<{ id: string; src: string; type: string }>("/api/assets", {
-      method: "POST",
-      body: formData
+    // Use pre-signed URL upload for all files
+    const { uploadFile: presignedUpload } = usePresignedUpload({
+      onProgress: (progress) => {
+        uploadProgress.value = progress.percentage
+      },
+      onError: (error) => {
+        console.error("Upload error:", error)
+      }
     })
+
+    const asset = await presignedUpload(file)
     emit("update:value", { id: asset.id, src: asset.src, alt: file.name, type: asset.type })
   } catch (error) {
     console.error(error)
@@ -107,6 +116,7 @@ async function uploadFile(file: File) {
     emit("update:value", null)
   } finally {
     isLoading.value = false
+    uploadProgress.value = 0
   }
 }
 
@@ -192,10 +202,21 @@ useDropZone(dropZoneRef, {
       >
         <div
           v-if="isLoading"
-          class="absolute inset-0 z-10 flex items-center justify-center rounded-md"
+          class="bg-neutral-bg/90 absolute inset-0 z-10 flex flex-col items-center justify-center rounded-md"
         >
           <LoaderCircleIcon class="text-neutral-subtle size-5 animate-spin" />
-          <span class="text-copy ml-2">Uploading...</span>
+          <span class="text-copy mt-2">
+            Uploading{{ uploadProgress > 0 ? ` ${uploadProgress}%` : "..." }}
+          </span>
+          <div
+            v-if="uploadProgress > 0"
+            class="bg-neutral-weak mt-2 h-1 w-32 overflow-hidden rounded-full"
+          >
+            <div
+              class="bg-neutral-inverse h-full transition-all duration-300"
+              :style="{ width: `${uploadProgress}%` }"
+            />
+          </div>
         </div>
 
         <div

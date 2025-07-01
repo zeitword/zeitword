@@ -8,6 +8,7 @@ import { uuidv7 } from "uuidv7"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { useAssetValidation } from "~/composables/useAssetValidation"
 import type { AssetConfig } from "~/types"
+import { usePresignedUpload } from "~/composables/usePresignedUpload"
 
 const { toast } = useToast()
 
@@ -35,6 +36,7 @@ const addDropZoneRef = ref<HTMLElement | null>(null)
 const isAddingDragging = ref(false)
 const isUploading = ref(false)
 const assetsContainer = ref<HTMLElement | null>(null)
+const uploadProgress = ref<Record<string, number>>({})
 
 const sortedAssets = ref<AssetObject[]>([])
 const sortableInstance = ref<Sortable | null>(null)
@@ -96,19 +98,30 @@ async function handleFileUploads(files: File[]) {
   })
 
   const uploadPromises = validatedFiles.map(async (file) => {
+    const fileId = uuidv7() // Generate unique ID for progress tracking
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      const asset = await $fetch<{ id: string; src: string; type: string; fileName: string }>(
-        "/api/assets",
-        {
-          method: "POST",
-          body: formData
+      uploadProgress.value[fileId] = 0
+
+      // Use pre-signed URL upload for all files
+      const { uploadFile: presignedUpload } = usePresignedUpload({
+        onProgress: (progress) => {
+          uploadProgress.value[fileId] = progress.percentage
+        },
+        onError: (error) => {
+          console.error("Upload error for file:", file.name, error)
+          delete uploadProgress.value[fileId]
         }
-      )
+      })
+
+      const asset = await presignedUpload(file)
+      delete uploadProgress.value[fileId]
+
       return { ...asset, fileName: file.name }
     } catch (error) {
       console.error("Upload failed for file:", file.name, error)
+      toast.error({
+        description: `Failed to upload ${file.name}`
+      })
       return null
     }
   })
@@ -396,10 +409,27 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
       >
         <div
           v-if="isUploading"
-          class="bg-neutral-bg/75 absolute inset-0 z-10 flex flex-col items-center justify-center rounded-md"
+          class="bg-neutral-bg/90 absolute inset-0 z-10 flex flex-col items-center justify-center rounded-md"
         >
           <LoaderCircleIcon class="text-neutral-subtle mb-2 h-6 w-6 animate-spin" />
-          <span class="text-copy-sm text-neutral">Uploading...</span>
+          <span class="text-copy-sm text-neutral">
+            Uploading{{
+              Object.keys(uploadProgress).length > 0
+                ? ` (${Math.round(Object.values(uploadProgress).reduce((a, b) => a + b, 0) / Object.keys(uploadProgress).length)}%)`
+                : "..."
+            }}
+          </span>
+          <div
+            v-if="Object.keys(uploadProgress).length > 0"
+            class="bg-neutral-weak mt-2 h-1 w-32 overflow-hidden rounded-full"
+          >
+            <div
+              class="bg-neutral-inverse h-full transition-all duration-300"
+              :style="{
+                width: `${Math.round(Object.values(uploadProgress).reduce((a, b) => a + b, 0) / Object.keys(uploadProgress).length)}%`
+              }"
+            />
+          </div>
         </div>
 
         <div
