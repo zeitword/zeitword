@@ -7,14 +7,18 @@ export interface UploadProgress {
 }
 
 export interface ChunkedUploadOptions {
-  chunkSize?: number // Default 4MB to stay under 5MB limit
+  chunkSize?: number
   maxRetries?: number
   onProgress?: (progress: UploadProgress) => void
   onError?: (error: Error) => void
 }
 
-const DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024 // 4MB
+// S3 requires minimum 5MB per part (except last part)
+// Using 5MB chunks to meet S3 requirements while staying under Vercel's limit
+const DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024 // 5MB
 const DEFAULT_MAX_RETRIES = 3
+// S3 multipart upload minimum size is 5MB
+const MULTIPART_THRESHOLD = 5 * 1024 * 1024
 
 export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
   const {
@@ -32,6 +36,13 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
   async function uploadFile(file: File) {
     isUploading.value = true
     uploadProgress.value = { loaded: 0, total: file.size, percentage: 0 }
+
+    // Check if file is too small for multipart upload
+    if (file.size < MULTIPART_THRESHOLD) {
+      throw new Error(
+        `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) is too small for chunked upload. Use regular upload for files under 5MB.`
+      )
+    }
 
     try {
       // Step 1: Initiate multipart upload

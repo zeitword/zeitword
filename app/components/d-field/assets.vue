@@ -37,7 +37,8 @@ const isAddingDragging = ref(false)
 const isUploading = ref(false)
 const assetsContainer = ref<HTMLElement | null>(null)
 const uploadProgress = ref<Record<string, number>>({})
-const CHUNK_UPLOAD_THRESHOLD = 5 * 1024 * 1024 // 5MB
+// Only use chunked upload for files that can be split into 5MB+ chunks
+const CHUNK_UPLOAD_THRESHOLD = 10 * 1024 * 1024 // 10MB
 
 const sortedAssets = ref<AssetObject[]>([])
 const sortableInstance = ref<Sortable | null>(null)
@@ -103,7 +104,7 @@ async function handleFileUploads(files: File[]) {
     try {
       let asset: { id: string; src: string; type: string; fileName: string }
 
-      // Use chunked upload for files larger than 5MB
+      // Use chunked upload for files larger than 10MB
       if (file.size > CHUNK_UPLOAD_THRESHOLD) {
         uploadProgress.value[fileId] = 0
 

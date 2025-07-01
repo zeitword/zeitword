@@ -24,7 +24,9 @@ const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 const uploadProgress = ref(0)
 
-const CHUNK_UPLOAD_THRESHOLD = 5 * 1024 * 1024 // 5MB - use chunked upload for files larger than this
+// Only use chunked upload for files that can be split into 5MB+ chunks
+// This means files need to be larger than 10MB to ensure we have at least two 5MB chunks
+const CHUNK_UPLOAD_THRESHOLD = 10 * 1024 * 1024 // 10MB
 
 const assetTypeToMimeMap: { [key: string]: string[] } = {
   image: ["image/*"],
@@ -99,7 +101,7 @@ async function uploadFile(file: File) {
   try {
     let asset: { id: string; src: string; type: string; fileName: string }
 
-    // Use chunked upload for files larger than 5MB
+    // Use chunked upload for files larger than 10MB
     if (file.size > CHUNK_UPLOAD_THRESHOLD) {
       const { uploadFile: chunkedUpload } = useChunkedUpload({
         onProgress: (progress) => {

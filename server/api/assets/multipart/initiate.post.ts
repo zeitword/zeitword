@@ -15,6 +15,15 @@ export default defineEventHandler(async (event) => {
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
+  // S3 multipart uploads require minimum 5MB file size
+  const MIN_MULTIPART_SIZE = 5 * 1024 * 1024
+  if (data.fileSize < MIN_MULTIPART_SIZE) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `File too small for multipart upload. Minimum size is 5MB, got ${(data.fileSize / 1024 / 1024).toFixed(2)}MB`
+    })
+  }
+
   const config = useRuntimeConfig()
   const s3Client = useS3Client()
   const fileId = uuidv7()
