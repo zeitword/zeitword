@@ -24,8 +24,8 @@ const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 const uploadProgress = ref(0)
 
-// Use chunked upload for files approaching or exceeding Vercel's 5MB limit
-// We'll use 4MB as the threshold to be safe
+// Use chunked upload for larger files
+// Regular upload works up to ~4MB safely on Vercel (leaving buffer)
 const CHUNK_UPLOAD_THRESHOLD = 4 * 1024 * 1024 // 4MB
 
 const assetTypeToMimeMap: { [key: string]: string[] } = {

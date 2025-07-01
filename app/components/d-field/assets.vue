@@ -37,7 +37,7 @@ const isAddingDragging = ref(false)
 const isUploading = ref(false)
 const assetsContainer = ref<HTMLElement | null>(null)
 const uploadProgress = ref<Record<string, number>>({})
-// Use chunked upload for files approaching Vercel's 5MB limit
+// Use chunked upload for larger files
 const CHUNK_UPLOAD_THRESHOLD = 4 * 1024 * 1024 // 4MB
 
 const sortedAssets = ref<AssetObject[]>([])

@@ -1,4 +1,5 @@
 import { ref, computed } from "vue"
+import { uuidv7 } from "uuidv7"
 
 export interface UploadProgress {
   loaded: number
@@ -13,12 +14,10 @@ export interface ChunkedUploadOptions {
   onError?: (error: Error) => void
 }
 
-// Vercel has a 5MB limit, so we use 4MB chunks to stay safely under
-// S3 requires minimum 5MB per part (except the last part)
-const DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024 // 4MB - stays under Vercel's 5MB limit
+// Use 2.5MB chunks to stay well under Vercel's 4.5MB limit
+// This allows us to combine 2 chunks into 5MB parts for S3
+const DEFAULT_CHUNK_SIZE = 2.5 * 1024 * 1024 // 2.5MB
 const DEFAULT_MAX_RETRIES = 3
-// S3 multipart upload minimum total size is 5MB
-const MULTIPART_THRESHOLD = 5 * 1024 * 1024
 
 export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
   const {
@@ -31,61 +30,25 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
   const isUploading = ref(false)
   const uploadProgress = ref<UploadProgress>({ loaded: 0, total: 0, percentage: 0 })
   const currentUploadId = ref<string | null>(null)
-  const currentFileId = ref<string | null>(null)
 
   async function uploadFile(file: File) {
     isUploading.value = true
     uploadProgress.value = { loaded: 0, total: file.size, percentage: 0 }
 
-    // Check if file is too small for multipart upload
-    if (file.size < MULTIPART_THRESHOLD) {
-      throw new Error(
-        `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) is too small for chunked upload. Use regular upload for files under 5MB.`
-      )
-    }
+    // Generate unique upload ID for this session
+    const uploadId = uuidv7()
+    currentUploadId.value = uploadId
 
     try {
-      // Step 1: Initiate multipart upload
-      const initResponse = await $fetch<{
-        fileId: string
-        uploadId: string
-        fileName: string
-        contentType: string
-        fileSize: number
-      }>("/api/assets/multipart/initiate", {
-        method: "POST",
-        body: {
-          fileName: file.name,
-          contentType: file.type || "application/octet-stream",
-          fileSize: file.size
-        }
-      })
+      // Step 1: Upload all chunks as temporary S3 objects
+      const totalChunks = Math.ceil(file.size / chunkSize)
+      console.log(
+        `Uploading ${totalChunks} chunks of ${(chunkSize / 1024 / 1024).toFixed(1)}MB each`
+      )
 
-      currentUploadId.value = initResponse.uploadId
-      currentFileId.value = initResponse.fileId
-
-      // Step 2: Upload chunks
-      // For S3 compatibility, we need to ensure parts are at least 5MB (except the last part)
-      // We'll use a smart chunking strategy
-      const parts: Array<{ ETag: string; PartNumber: number }> = []
-      let partNumber = 1
-      let start = 0
-
-      while (start < file.size) {
-        // Calculate chunk size
-        const remainingSize = file.size - start
-        let currentChunkSize: number
-
-        // If this is potentially the last chunk
-        if (remainingSize <= chunkSize * 2) {
-          // If remaining is less than 2x chunk size, make this the last chunk
-          currentChunkSize = remainingSize
-        } else {
-          // Otherwise use standard chunk size
-          currentChunkSize = chunkSize
-        }
-
-        const end = Math.min(start + currentChunkSize, file.size)
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize
+        const end = Math.min(start + chunkSize, file.size)
         const chunk = file.slice(start, end)
 
         let retries = 0
@@ -93,16 +56,16 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
 
         while (!uploaded && retries < maxRetries) {
           try {
-            const partResponse = await uploadChunk(
-              chunk,
-              initResponse.fileId,
-              initResponse.uploadId,
-              partNumber
-            )
-
-            parts.push({
-              ETag: partResponse.ETag,
-              PartNumber: partResponse.PartNumber
+            await $fetch("/api/assets/chunks/upload", {
+              method: "POST",
+              query: {
+                uploadId,
+                chunkIndex: i
+              },
+              body: chunk,
+              headers: {
+                "Content-Type": "application/octet-stream"
+              }
             })
 
             uploaded = true
@@ -114,50 +77,40 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
           } catch (error) {
             retries++
             if (retries >= maxRetries) {
-              throw new Error(`Failed to upload chunk ${partNumber} after ${maxRetries} retries`)
+              throw new Error(`Failed to upload chunk ${i} after ${maxRetries} retries`)
             }
             // Wait before retry
             await new Promise((resolve) => setTimeout(resolve, 1000 * retries))
           }
         }
-
-        start = end
-        partNumber++
       }
 
-      // Step 3: Complete multipart upload
+      // Step 2: Combine chunks on S3
+      console.log("All chunks uploaded, combining into final file...")
+
       const completeResponse = await $fetch<{
         id: string
         src: string
         type: string
         fileName: string
-      }>("/api/assets/multipart/complete", {
+      }>("/api/assets/chunks/combine", {
         method: "POST",
         body: {
-          fileId: initResponse.fileId,
-          uploadId: initResponse.uploadId,
+          uploadId,
           fileName: file.name,
           contentType: file.type || "application/octet-stream",
-          parts
+          totalChunks,
+          chunkSize
         }
       })
 
       isUploading.value = false
       currentUploadId.value = null
-      currentFileId.value = null
 
       return completeResponse
     } catch (error) {
       isUploading.value = false
-
-      // Try to abort the upload if it failed
-      if (currentUploadId.value && currentFileId.value) {
-        try {
-          await abortUpload()
-        } catch (abortError) {
-          console.error("Failed to abort upload:", abortError)
-        }
-      }
+      currentUploadId.value = null
 
       const err = error instanceof Error ? error : new Error("Upload failed")
       onError?.(err)
@@ -165,40 +118,13 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
     }
   }
 
-  async function uploadChunk(chunk: Blob, fileId: string, uploadId: string, partNumber: number) {
-    const response = await $fetch<{
-      ETag: string
-      PartNumber: number
-    }>(`/api/assets/multipart/upload-part`, {
-      method: "POST",
-      query: {
-        fileId,
-        uploadId,
-        partNumber
-      },
-      body: chunk,
-      // Ensure binary data is sent properly
-      headers: {
-        "Content-Type": "application/octet-stream"
-      }
-    })
-
-    return response
-  }
-
   async function abortUpload() {
-    if (!currentUploadId.value || !currentFileId.value) return
+    if (!currentUploadId.value) return
 
-    await $fetch("/api/assets/multipart/abort", {
-      method: "POST",
-      body: {
-        fileId: currentFileId.value,
-        uploadId: currentUploadId.value
-      }
-    })
-
+    // In the two-stage approach, we'd need to clean up temporary chunks
+    // This could be implemented as a separate endpoint
+    console.log("Aborting upload:", currentUploadId.value)
     currentUploadId.value = null
-    currentFileId.value = null
   }
 
   return {
