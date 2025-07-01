@@ -3,7 +3,7 @@ import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
-import { useChunkedUpload } from "~/composables/useChunkedUpload"
+import { usePresignedUpload } from "~/composables/usePresignedUpload"
 
 type Props = {
   value: AssetObject | null | undefined
@@ -23,10 +23,6 @@ const isLoading = ref(false)
 const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 const uploadProgress = ref(0)
-
-// Use chunked upload for larger files
-// Regular upload works up to ~4MB safely on Vercel (leaving buffer)
-const CHUNK_UPLOAD_THRESHOLD = 4 * 1024 * 1024 // 4MB
 
 const assetTypeToMimeMap: { [key: string]: string[] } = {
   image: ["image/*"],
@@ -99,33 +95,17 @@ async function uploadFile(file: File) {
   uploadProgress.value = 0
 
   try {
-    let asset: { id: string; src: string; type: string; fileName: string }
+    // Use pre-signed URL upload for all files
+    const { uploadFile: presignedUpload } = usePresignedUpload({
+      onProgress: (progress) => {
+        uploadProgress.value = progress.percentage
+      },
+      onError: (error) => {
+        console.error("Upload error:", error)
+      }
+    })
 
-    // Use chunked upload for files larger than 4MB
-    if (file.size > CHUNK_UPLOAD_THRESHOLD) {
-      const { uploadFile: chunkedUpload } = useChunkedUpload({
-        onProgress: (progress) => {
-          uploadProgress.value = progress.percentage
-        },
-        onError: (error) => {
-          console.error("Chunked upload error:", error)
-        }
-      })
-
-      asset = await chunkedUpload(file)
-    } else {
-      // Use regular upload for smaller files
-      const formData = new FormData()
-      formData.append("file", file)
-      asset = await $fetch<{ id: string; src: string; type: string; fileName: string }>(
-        "/api/assets",
-        {
-          method: "POST",
-          body: formData
-        }
-      )
-    }
-
+    const asset = await presignedUpload(file)
     emit("update:value", { id: asset.id, src: asset.src, alt: file.name, type: asset.type })
   } catch (error) {
     console.error(error)

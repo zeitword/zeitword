@@ -9,12 +9,13 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "s3:update-cors": "bun run scripts/update-s3-cors.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.11",
     "@aws-sdk/client-s3": "^3.840.0",
-    "@aws-sdk/lib-storage": "^3.840.0",
+    "@aws-sdk/s3-request-presigner": "^3.840.0",
     "@libsql/client": "^0.14.0",
     "@nuxt/fonts": "^0.10.3",
     "@nuxt/image": "1.10.0",
@@ -59,6 +60,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/bun": "^1.2.2",
     "@types/pg": "^8.11.11",
+    "dotenv": "^17.0.1",
     "drizzle-kit": "^0.30.4",
     "tsx": "^4.19.2"
   },

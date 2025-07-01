@@ -8,7 +8,7 @@ import { uuidv7 } from "uuidv7"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { useAssetValidation } from "~/composables/useAssetValidation"
 import type { AssetConfig } from "~/types"
-import { useChunkedUpload } from "~/composables/useChunkedUpload"
+import { usePresignedUpload } from "~/composables/usePresignedUpload"
 
 const { toast } = useToast()
 
@@ -37,8 +37,6 @@ const isAddingDragging = ref(false)
 const isUploading = ref(false)
 const assetsContainer = ref<HTMLElement | null>(null)
 const uploadProgress = ref<Record<string, number>>({})
-// Use chunked upload for larger files
-const CHUNK_UPLOAD_THRESHOLD = 4 * 1024 * 1024 // 4MB
 
 const sortedAssets = ref<AssetObject[]>([])
 const sortableInstance = ref<Sortable | null>(null)
@@ -102,36 +100,21 @@ async function handleFileUploads(files: File[]) {
   const uploadPromises = validatedFiles.map(async (file) => {
     const fileId = uuidv7() // Generate unique ID for progress tracking
     try {
-      let asset: { id: string; src: string; type: string; fileName: string }
+      uploadProgress.value[fileId] = 0
 
-      // Use chunked upload for files larger than 4MB
-      if (file.size > CHUNK_UPLOAD_THRESHOLD) {
-        uploadProgress.value[fileId] = 0
+      // Use pre-signed URL upload for all files
+      const { uploadFile: presignedUpload } = usePresignedUpload({
+        onProgress: (progress) => {
+          uploadProgress.value[fileId] = progress.percentage
+        },
+        onError: (error) => {
+          console.error("Upload error for file:", file.name, error)
+          delete uploadProgress.value[fileId]
+        }
+      })
 
-        const { uploadFile: chunkedUpload } = useChunkedUpload({
-          onProgress: (progress) => {
-            uploadProgress.value[fileId] = progress.percentage
-          },
-          onError: (error) => {
-            console.error("Chunked upload error for file:", file.name, error)
-            delete uploadProgress.value[fileId]
-          }
-        })
-
-        asset = await chunkedUpload(file)
-        delete uploadProgress.value[fileId]
-      } else {
-        // Use regular upload for smaller files
-        const formData = new FormData()
-        formData.append("file", file)
-        asset = await $fetch<{ id: string; src: string; type: string; fileName: string }>(
-          "/api/assets",
-          {
-            method: "POST",
-            body: formData
-          }
-        )
-      }
+      const asset = await presignedUpload(file)
+      delete uploadProgress.value[fileId]
 
       return { ...asset, fileName: file.name }
     } catch (error) {
