@@ -24,9 +24,9 @@ const dropZoneRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 const uploadProgress = ref(0)
 
-// Only use chunked upload for files that can be split into 5MB+ chunks
-// This means files need to be larger than 10MB to ensure we have at least two 5MB chunks
-const CHUNK_UPLOAD_THRESHOLD = 10 * 1024 * 1024 // 10MB
+// Use chunked upload for files approaching or exceeding Vercel's 5MB limit
+// We'll use 4MB as the threshold to be safe
+const CHUNK_UPLOAD_THRESHOLD = 4 * 1024 * 1024 // 4MB
 
 const assetTypeToMimeMap: { [key: string]: string[] } = {
   image: ["image/*"],
@@ -101,7 +101,7 @@ async function uploadFile(file: File) {
   try {
     let asset: { id: string; src: string; type: string; fileName: string }
 
-    // Use chunked upload for files larger than 10MB
+    // Use chunked upload for files larger than 4MB
     if (file.size > CHUNK_UPLOAD_THRESHOLD) {
       const { uploadFile: chunkedUpload } = useChunkedUpload({
         onProgress: (progress) => {

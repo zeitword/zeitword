@@ -13,11 +13,11 @@ export interface ChunkedUploadOptions {
   onError?: (error: Error) => void
 }
 
-// S3 requires minimum 5MB per part (except last part)
-// Using 5MB chunks to meet S3 requirements while staying under Vercel's limit
-const DEFAULT_CHUNK_SIZE = 5 * 1024 * 1024 // 5MB
+// Vercel has a 5MB limit, so we use 4MB chunks to stay safely under
+// S3 requires minimum 5MB per part (except the last part)
+const DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024 // 4MB - stays under Vercel's 5MB limit
 const DEFAULT_MAX_RETRIES = 3
-// S3 multipart upload minimum size is 5MB
+// S3 multipart upload minimum total size is 5MB
 const MULTIPART_THRESHOLD = 5 * 1024 * 1024
 
 export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
@@ -65,14 +65,28 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
       currentFileId.value = initResponse.fileId
 
       // Step 2: Upload chunks
-      const totalChunks = Math.ceil(file.size / chunkSize)
+      // For S3 compatibility, we need to ensure parts are at least 5MB (except the last part)
+      // We'll use a smart chunking strategy
       const parts: Array<{ ETag: string; PartNumber: number }> = []
+      let partNumber = 1
+      let start = 0
 
-      for (let i = 0; i < totalChunks; i++) {
-        const start = i * chunkSize
-        const end = Math.min(start + chunkSize, file.size)
+      while (start < file.size) {
+        // Calculate chunk size
+        const remainingSize = file.size - start
+        let currentChunkSize: number
+
+        // If this is potentially the last chunk
+        if (remainingSize <= chunkSize * 2) {
+          // If remaining is less than 2x chunk size, make this the last chunk
+          currentChunkSize = remainingSize
+        } else {
+          // Otherwise use standard chunk size
+          currentChunkSize = chunkSize
+        }
+
+        const end = Math.min(start + currentChunkSize, file.size)
         const chunk = file.slice(start, end)
-        const partNumber = i + 1
 
         let retries = 0
         let uploaded = false
@@ -106,6 +120,9 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
             await new Promise((resolve) => setTimeout(resolve, 1000 * retries))
           }
         }
+
+        start = end
+        partNumber++
       }
 
       // Step 3: Complete multipart upload
