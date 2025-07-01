@@ -138,9 +138,6 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
   }
 
   async function uploadChunk(chunk: Blob, fileId: string, uploadId: string, partNumber: number) {
-    const formData = new FormData()
-    formData.append("chunk", chunk)
-
     const response = await $fetch<{
       ETag: string
       PartNumber: number
@@ -151,7 +148,11 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
         uploadId,
         partNumber
       },
-      body: chunk
+      body: chunk,
+      // Ensure binary data is sent properly
+      headers: {
+        "Content-Type": "application/octet-stream"
+      }
     })
 
     return response

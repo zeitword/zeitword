@@ -25,6 +25,8 @@ export default defineEventHandler(async (event) => {
   const s3Client = useS3Client()
 
   try {
+    console.log(`Completing multipart upload for ${data.fileId} with ${data.parts.length} parts`)
+
     const command = new CompleteMultipartUploadCommand({
       Bucket: config.s3Bucket,
       Key: data.fileId,
@@ -34,9 +36,11 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    await s3Client.send(command)
+    const result = await s3Client.send(command)
+    console.log(`Upload completed: ${result.Location || data.fileId}`)
 
-    const fileUrl = config.s3Endpoint + "/" + config.s3Bucket + "/" + data.fileId
+    // Use the Location from S3 response if available, otherwise construct URL
+    const fileUrl = result.Location || `${config.s3Endpoint}/${config.s3Bucket}/${data.fileId}`
     const fileType = getAssetTypeFromMimeType(data.contentType)
 
     return {
