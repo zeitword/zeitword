@@ -6,46 +6,34 @@ export function useS3Client() {
   if (s3Client) return s3Client
 
   const config = useRuntimeConfig()
-
-  // Hetzner Object Storage expects the bucket name in the endpoint
-  // But AWS SDK will add it again, causing the duplicate bucket issue
-  // Solution: Extract the base endpoint and let SDK handle bucket name
   const endpoint = config.s3Endpoint as string
   const bucket = config.s3Bucket as string
 
-  // Extract base endpoint by removing the bucket name
-  let baseEndpoint = endpoint
-  if (endpoint.includes(bucket)) {
-    // Remove bucket from the beginning of the domain
-    baseEndpoint = endpoint.replace(`${bucket}.`, "")
-    // Also remove bucket from path if present
-    baseEndpoint = baseEndpoint.replace(`/${bucket}`, "")
+  // Clean the endpoint to ensure it doesn't include the bucket name
+  let cleanEndpoint = endpoint
+
+  // Check if endpoint has bucket name as subdomain (e.g., bucket.region.provider.com)
+  const urlParts = endpoint.replace(/^https?:\/\//, "").split(".")
+  if (urlParts.length > 2 && urlParts[0] === bucket) {
+    // Remove bucket subdomain and reconstruct URL
+    const protocol = endpoint.startsWith("https") ? "https://" : "http://"
+    cleanEndpoint = protocol + urlParts.slice(1).join(".")
   }
+
+  // Also remove bucket from path if present
+  if (cleanEndpoint.includes(`/${bucket}`)) {
+    cleanEndpoint = cleanEndpoint.replace(`/${bucket}`, "")
+  }
+
+  // Remove trailing slash
+  cleanEndpoint = cleanEndpoint.replace(/\/$/, "")
 
   console.log("S3 Client Configuration:", {
     originalEndpoint: endpoint,
-    baseEndpoint,
+    cleanEndpoint,
     bucket,
     region: config.s3Region
   })
-
-  s3Client = new S3Client({
-    endpoint: baseEndpoint,
-    region: config.s3Region,
-    credentials: {
-      accessKeyId: config.s3AccessKeyId,
-      secretAccessKey: config.s3SecretAccessKey
-    },
-    // Don't use forcePathStyle with Hetzner when bucket is in subdomain
-    forcePathStyle: false
-  })
-
-  // If endpoint includes the bucket name, remove it
-  let cleanEndpoint = endpoint
-  if (endpoint.includes(`/${config.s3Bucket}`)) {
-    console.warn(`S3_ENDPOINT includes bucket name, removing it: ${endpoint}`)
-    cleanEndpoint = endpoint.replace(`/${config.s3Bucket}`, "")
-  }
 
   s3Client = new S3Client({
     endpoint: cleanEndpoint,
