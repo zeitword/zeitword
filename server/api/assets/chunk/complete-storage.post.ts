@@ -53,8 +53,13 @@ export default defineEventHandler(async (event) => {
           buffer = Buffer.from(arrayBuffer)
         } else if (typeof chunkData === "string") {
           buffer = Buffer.from(chunkData)
+        } else if (chunkData instanceof ArrayBuffer) {
+          buffer = Buffer.from(chunkData)
+        } else if (chunkData instanceof Uint8Array) {
+          buffer = Buffer.from(chunkData)
         } else {
-          throw new Error(`Unknown chunk data type for ${chunkKey}`)
+          console.error(`Unknown chunk data type for ${chunkKey}:`, typeof chunkData, chunkData)
+          throw new Error(`Unknown chunk data type for ${chunkKey}: ${typeof chunkData}`)
         }
 
         chunks.push(buffer)
