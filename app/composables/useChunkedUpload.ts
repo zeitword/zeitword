@@ -87,6 +87,7 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
     chunk: ChunkInfo,
     uploadId: string
   ): Promise<ChunkUploadResponse> {
+    console.log(`Starting upload of chunk ${chunk.index} (${chunk.size} bytes)`)
     const chunkBlob = file.slice(chunk.start, chunk.end)
     const formData = new FormData()
     formData.append("chunk", chunkBlob)
@@ -115,16 +116,19 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText) as ChunkUploadResponse
+            console.log(`Chunk ${chunk.index} uploaded successfully`, response)
             resolve(response)
           } catch (error) {
             reject(new Error("Invalid response format"))
           }
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`))
+          console.error(`Chunk upload failed: ${xhr.status} ${xhr.statusText}`, xhr.responseText)
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.responseText}`))
         }
       })
 
       xhr.addEventListener("error", () => {
+        console.error(`Network error uploading chunk ${chunk.index}`)
         reject(new Error("Network error during chunk upload"))
       })
 
@@ -139,6 +143,7 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
       }
 
       xhr.open("POST", "/api/assets/chunk")
+      xhr.withCredentials = true // Include cookies for authentication
       xhr.send(formData)
     })
   }
