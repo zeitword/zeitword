@@ -38,6 +38,7 @@
     "auth-utils": "^1.0.0",
     "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.39.2",
+    "iso-639-1": "^3.1.5",
     "lexorank": "^1.0.5",
     "lucide-vue-next": "^0.475.0",
     "nanoid": "^5.1.0",

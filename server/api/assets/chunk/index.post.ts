@@ -59,6 +59,8 @@ export default defineEventHandler(async (event) => {
 
     await s3Client.send(command)
 
+    console.log(`Successfully uploaded chunk ${metadata.chunkIndex} with key: ${chunkKey}`)
+
     return {
       chunkId: metadata.chunkId,
       index: metadata.chunkIndex,

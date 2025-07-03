@@ -28,6 +28,9 @@ export default defineEventHandler(async (event) => {
   const s3Client = useS3Client()
   const finalAssetId = uuidv7()
 
+  // Add a small delay to ensure S3 consistency
+  await new Promise((resolve) => setTimeout(resolve, 1000))
+
   try {
     // Step 1: List all chunks for this upload
     const listCommand = new ListObjectsV2Command({
@@ -36,11 +39,45 @@ export default defineEventHandler(async (event) => {
       MaxKeys: 1000
     })
 
-    const listResponse = await s3Client.send(listCommand)
-    const chunks = listResponse.Contents || []
+    // Retry logic for S3 eventual consistency
+    let chunks: any[] = []
+    let retries = 0
+    const maxRetries = 10
+
+    while (retries < maxRetries) {
+      console.log(`[Attempt ${retries + 1}] Listing chunks with prefix: chunks/${data.uploadId}/`)
+      const listResponse = await s3Client.send(listCommand)
+      chunks = listResponse.Contents || []
+
+      console.log(`[Attempt ${retries + 1}] Found ${chunks.length} chunks`)
+
+      if (chunks.length === data.totalChunks) {
+        break
+      }
+
+      if (retries < maxRetries - 1) {
+        // Wait before retrying (exponential backoff)
+        const delay = Math.min(1000 * Math.pow(2, retries), 10000)
+        console.log(`Waiting ${delay}ms before retry...`)
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+
+      retries++
+    }
 
     if (chunks.length !== data.totalChunks) {
-      throw new Error(`Expected ${data.totalChunks} chunks but found ${chunks.length}`)
+      // List all objects to debug
+      const debugListCommand = new ListObjectsV2Command({
+        Bucket: config.s3Bucket as string,
+        Prefix: `chunks/`,
+        MaxKeys: 100
+      })
+      const debugResponse = await s3Client.send(debugListCommand)
+      console.log(`All chunks in bucket:`, debugResponse.Contents?.map((c) => c.Key) || [])
+
+      throw new Error(
+        `Expected ${data.totalChunks} chunks but found ${chunks.length} after ${maxRetries} attempts`
+      )
     }
 
     // Sort chunks by index
@@ -94,6 +131,10 @@ export default defineEventHandler(async (event) => {
 
       // Merge buffers
       const mergedBuffer = Buffer.concat(buffers)
+
+      // S3 requires minimum 5MB for multipart upload parts (except last part)
+      // Log the size for debugging
+      console.log(`Part ${partNumber} size: ${mergedBuffer.length} bytes`)
 
       // Upload merged chunk as a part
       const uploadPartCommand = new UploadPartCommand({
