@@ -3,7 +3,7 @@ import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
-import { usePresignedUpload } from "~/composables/usePresignedUpload"
+import { useChunkedUpload } from "~/composables/useChunkedUpload"
 
 type Props = {
   value: AssetObject | null | undefined
@@ -95,17 +95,19 @@ async function uploadFile(file: File) {
   uploadProgress.value = 0
 
   try {
-    // Use pre-signed URL upload for all files
-    const { uploadFile: presignedUpload } = usePresignedUpload({
+    // Use chunked upload for all files
+    const { uploadFile: chunkedUpload } = useChunkedUpload({
+      chunkSize: 2.5 * 1024 * 1024, // 2.5MB chunks
+      maxRetries: 3,
       onProgress: (progress) => {
-        uploadProgress.value = progress.percentage
+        uploadProgress.value = progress.overallProgress
       },
       onError: (error) => {
         console.error("Upload error:", error)
       }
     })
 
-    const asset = await presignedUpload(file)
+    const asset = await chunkedUpload(file)
     emit("update:value", { id: asset.id, src: asset.src, alt: file.name, type: asset.type })
   } catch (error) {
     console.error(error)
