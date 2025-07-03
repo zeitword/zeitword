@@ -31,7 +31,8 @@ const s3Client = new S3Client({
 // Define allowed origins
 const allowedOrigins: string[] = [
   // "http://localhost:3000",
-  "https://app.zeitword.com"
+  "https://app.zeitword.com",
+  "https://zeitword-git-feature-large-uploads-trail-group.vercel.app"
 ]
 
 // Add additional origins from environment if specified
@@ -46,11 +47,18 @@ if (process.env.ADDITIONAL_CORS_ORIGINS) {
 const corsConfiguration = {
   CORSRules: [
     {
-      AllowedHeaders: ["*"],
-      AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
+      AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
       AllowedOrigins: allowedOrigins,
-      ExposeHeaders: ["ETag", "x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2"],
-      MaxAgeSeconds: 3000
+      AllowedHeaders: [
+        "*"
+        // "Authorization",
+        // "Content-Type",
+        // "x-amz-date",
+        // "x-amz-content-sha256",
+        // "x-amz-user-agent"
+      ],
+      ExposeHeaders: ["x-amz-server-side-encryption", "x-amz-request-id", "x-amz-id-2", "ETag"],
+      MaxAgeSeconds: 600
     }
   ]
 }
