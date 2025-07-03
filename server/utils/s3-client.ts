@@ -14,7 +14,7 @@ export function useS3Client() {
       accessKeyId: config.s3AccessKeyId,
       secretAccessKey: config.s3SecretAccessKey
     },
-    forcePathStyle: true // Required for S3-compatible services like MinIO
+    forcePathStyle: false // Hetzner Object Storage doesn't use path-style
   })
 
   return s3Client
