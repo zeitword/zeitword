@@ -99,7 +99,7 @@ const emit = defineEmits<{
 const fileInput = ref<HTMLInputElement>()
 const error = ref<string>("")
 const uploadedAsset = ref<{ id: string; src: string; type: string; fileName: string } | null>(null)
-const { showToast } = useToast()
+const { toast } = useToast()
 
 const { uploadFile, cancelUpload, isUploading, uploadProgress } = useChunkedUpload({
   chunkSize: 2.5 * 1024 * 1024, // 2.5MB chunks
@@ -113,10 +113,8 @@ const { uploadFile, cancelUpload, isUploading, uploadProgress } = useChunkedUplo
   onError: (err) => {
     error.value = err.message
     emit("upload-error", err)
-    showToast({
-      title: "Upload Failed",
-      description: err.message,
-      variant: "danger"
+    toast.error({
+      description: err.message
     })
   }
 })
@@ -149,10 +147,8 @@ async function handleFileSelect(event: Event) {
     emit("upload-complete", asset)
     props.onUploadComplete?.(asset)
 
-    showToast({
-      title: "Upload Complete",
-      description: `${file.name} uploaded successfully`,
-      variant: "success"
+    toast.success({
+      description: `${file.name} uploaded successfully`
     })
 
     // Reset file input

@@ -8,7 +8,7 @@ import { uuidv7 } from "uuidv7"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { useAssetValidation } from "~/composables/useAssetValidation"
 import type { AssetConfig } from "~/types"
-import { usePresignedUpload } from "~/composables/usePresignedUpload"
+import { useChunkedUpload } from "~/composables/useChunkedUpload"
 
 const { toast } = useToast()
 
@@ -102,10 +102,12 @@ async function handleFileUploads(files: File[]) {
     try {
       uploadProgress.value[fileId] = 0
 
-      // Use pre-signed URL upload for all files
-      const { uploadFile: presignedUpload } = usePresignedUpload({
+      // Use chunked upload for all files
+      const { uploadFile: chunkedUpload } = useChunkedUpload({
+        chunkSize: 2.5 * 1024 * 1024, // 2.5MB chunks
+        maxRetries: 3,
         onProgress: (progress) => {
-          uploadProgress.value[fileId] = progress.percentage
+          uploadProgress.value[fileId] = progress.overallProgress
         },
         onError: (error) => {
           console.error("Upload error for file:", file.name, error)
@@ -113,7 +115,7 @@ async function handleFileUploads(files: File[]) {
         }
       })
 
-      const asset = await presignedUpload(file)
+      const asset = await chunkedUpload(file)
       delete uploadProgress.value[fileId]
 
       return { ...asset, fileName: file.name }
