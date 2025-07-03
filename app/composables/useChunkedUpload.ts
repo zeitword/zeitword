@@ -142,7 +142,7 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
         })
       }
 
-      xhr.open("POST", "/api/assets/chunk")
+      xhr.open("POST", "/api/assets/chunk/storage")
       xhr.withCredentials = true // Include cookies for authentication
       xhr.send(formData)
     })
@@ -200,18 +200,21 @@ export function useChunkedUpload(options: ChunkedUploadOptions = {}) {
         }
       }
 
-      // Complete the upload
-      const completeResponse = await $fetch<CompleteUploadResponse>("/api/assets/chunk/complete", {
-        method: "POST",
-        body: {
-          uploadId: uploadId.value,
-          fileName: file.name,
-          fileSize: file.size,
-          contentType: file.type || "application/octet-stream",
-          totalChunks: chunks.length,
-          chunkIds: chunks.map((c) => c.chunkId)
+      // Complete the upload using storage driver (works with Hetzner's bucket-in-endpoint setup)
+      const completeResponse = await $fetch<CompleteUploadResponse>(
+        "/api/assets/chunk/complete-storage",
+        {
+          method: "POST",
+          body: {
+            uploadId: uploadId.value,
+            fileName: file.name,
+            fileSize: file.size,
+            contentType: file.type || "application/octet-stream",
+            totalChunks: chunks.length,
+            chunkIds: chunks.map((c) => c.chunkId)
+          }
         }
-      })
+      )
 
       isUploading.value = false
       return completeResponse
