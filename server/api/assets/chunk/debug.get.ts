@@ -12,7 +12,16 @@ export default defineEventHandler(async (event) => {
   const s3Client = useS3Client()
 
   try {
-    // List all chunks
+    // First, list without prefix to see all objects
+    const allCommand = new ListObjectsV2Command({
+      Bucket: config.s3Bucket as string,
+      MaxKeys: 100
+    })
+
+    const allResponse = await s3Client.send(allCommand)
+    const allObjects = allResponse.Contents || []
+
+    // Then list with specific prefix
     const listCommand = new ListObjectsV2Command({
       Bucket: config.s3Bucket as string,
       Prefix: uploadId ? `chunks/${uploadId}/` : "chunks/",
@@ -24,9 +33,13 @@ export default defineEventHandler(async (event) => {
 
     return {
       bucket: config.s3Bucket,
+      endpoint: config.s3Endpoint,
+      region: config.s3Region,
       prefix: uploadId ? `chunks/${uploadId}/` : "chunks/",
       count: objects.length,
-      objects: objects.map((obj) => ({
+      totalObjectsInBucket: allObjects.length,
+      sampleKeys: allObjects.slice(0, 10).map((obj) => obj.Key),
+      matchingObjects: objects.map((obj) => ({
         key: obj.Key,
         size: obj.Size,
         lastModified: obj.LastModified

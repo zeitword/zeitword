@@ -13,9 +13,9 @@ import { uuidv7 } from "uuidv7"
 const completeUploadSchema = z.object({
   uploadId: z.string().min(1),
   fileName: z.string().min(1),
-  fileSize: z.number().int().positive(),
+  fileSize: z.coerce.number().int().positive(),
   contentType: z.string().min(1),
-  totalChunks: z.number().int().positive(),
+  totalChunks: z.coerce.number().int().positive(),
   chunkIds: z.array(z.string())
 })
 
@@ -28,8 +28,8 @@ export default defineEventHandler(async (event) => {
   const s3Client = useS3Client()
   const finalAssetId = uuidv7()
 
-  // Add a small delay to ensure S3 consistency
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  // Remove delay since chunks are confirmed to be in S3
+  // await new Promise((resolve) => setTimeout(resolve, 1000))
 
   try {
     // Step 1: List all chunks for this upload
@@ -46,11 +46,45 @@ export default defineEventHandler(async (event) => {
 
     while (retries < maxRetries) {
       console.log(`[Attempt ${retries + 1}] Listing chunks with prefix: chunks/${data.uploadId}/`)
+      console.log(`Bucket: ${config.s3Bucket}`)
       const listResponse = await s3Client.send(listCommand)
       chunks = listResponse.Contents || []
 
       console.log(`[Attempt ${retries + 1}] Found ${chunks.length} chunks`)
+      console.log(
+        `IsTruncated: ${listResponse.IsTruncated}, NextContinuationToken: ${listResponse.NextContinuationToken}`
+      )
+      if (chunks.length > 0) {
+        console.log(
+          `First few chunk keys:`,
+          chunks.slice(0, 3).map((c) => c.Key)
+        )
+      }
 
+      // If response is truncated, we need to get all pages
+      if (listResponse.IsTruncated && chunks.length < data.totalChunks) {
+        console.log("Response was truncated, fetching all chunks...")
+        const allChunks = [...chunks]
+        let continuationToken = listResponse.NextContinuationToken
+
+        while (continuationToken) {
+          const nextCommand = new ListObjectsV2Command({
+            Bucket: config.s3Bucket as string,
+            Prefix: `chunks/${data.uploadId}/`,
+            MaxKeys: 1000,
+            ContinuationToken: continuationToken
+          })
+
+          const nextResponse = await s3Client.send(nextCommand)
+          const nextChunks = nextResponse.Contents || []
+          allChunks.push(...nextChunks)
+          continuationToken = nextResponse.NextContinuationToken
+
+          console.log(`Fetched ${nextChunks.length} more chunks, total: ${allChunks.length}`)
+        }
+
+        chunks = allChunks
+      }
       if (chunks.length === data.totalChunks) {
         break
       }
