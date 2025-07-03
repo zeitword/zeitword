@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Return final asset information
-    const fileUrl = `${config.s3Endpoint as string}/${finalAssetId}`
+    const fileUrl = `${config.s3Endpoint as string}/${config.s3Bucket as string}/${finalAssetId}`
     const fileType = getAssetTypeFromMimeType(data.contentType)
 
     console.log(`[Complete-Storage] Upload completed successfully: ${fileUrl}`)
