@@ -31,3 +31,4 @@ database.sqlite3
 
 # Ignore storage
 storage/
+.vercel
