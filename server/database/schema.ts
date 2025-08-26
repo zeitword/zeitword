@@ -168,6 +168,17 @@ export const sites = pgTable("sites", {
   ...timestamps
 })
 
+export const siteApiKeys = pgTable("site_api_keys", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  name: text().notNull(),
+  hash: text().notNull().unique(),
+  siteId: uuid()
+    .notNull()
+    .references(() => sites.id),
+  ...organisationId,
+  ...timestamps
+})
+
 export const languages = pgTable("languages", {
   code: text().primaryKey(),
   name: text().notNull(),
@@ -178,8 +189,8 @@ export const languages = pgTable("languages", {
 export const siteLanguages = pgTable(
   "site_languages",
   {
-    siteId: uuid().references(() => sites.id),
-    languageCode: text().references(() => languages.code),
+    siteId: uuid().notNull().references(() => sites.id),
+    languageCode: text().notNull().references(() => languages.code),
     ...timestamps
   },
   (t) => [primaryKey({ columns: [t.siteId, t.languageCode] })]
@@ -251,6 +262,7 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   components: many(components),
   fieldOptions: many(fieldOptions),
   languages: many(siteLanguages),
+  apiKeys: many(siteApiKeys),
   defaultLang: one(languages, {
     fields: [sites.defaultLanguage],
     references: [languages.code]
@@ -278,6 +290,17 @@ export const storyTranslatedSlugsRelations = relations(storyTranslatedSlugs, ({ 
   }),
   organisation: one(organisations, {
     fields: [storyTranslatedSlugs.organisationId],
+    references: [organisations.id]
+  })
+}))
+
+export const siteApiKeysRelations = relations(siteApiKeys, ({ one }) => ({
+  site: one(sites, {
+    fields: [siteApiKeys.siteId],
+    references: [sites.id]
+  }),
+  organisation: one(organisations, {
+    fields: [siteApiKeys.organisationId],
     references: [organisations.id]
   })
 }))
