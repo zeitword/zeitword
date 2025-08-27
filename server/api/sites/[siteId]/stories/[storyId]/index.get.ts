@@ -22,6 +22,30 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "Invalid Site or Item ID" })
   }
 
+  try {
+    return await getStoryContent({
+      siteId,
+      storyId,
+      selectedLang,
+      organisationId: secure.organisationId
+    })
+  } catch (error) {
+    console.error(error)
+    throw createError({ statusCode: 500, statusMessage: "Internal Server Error" })
+  }
+})
+
+export async function getStoryContent({
+  siteId,
+  storyId,
+  selectedLang,
+  organisationId
+}: {
+  siteId: string
+  storyId: string
+  selectedLang: string
+  organisationId: string
+}) {
   // Get site's default language
   const [site] = await useDrizzle()
     .select({ defaultLanguage: sites.defaultLanguage })
@@ -56,7 +80,7 @@ export default defineEventHandler(async (event) => {
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, siteId),
-        eq(stories.organisationId, secure.organisationId)
+        eq(stories.organisationId, organisationId)
       )
     )
     .limit(1)
@@ -84,7 +108,7 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(componentFields.componentId, componentId),
-          eq(componentFields.organisationId, secure.organisationId)
+          eq(componentFields.organisationId, organisationId)
         )
       )
       .orderBy(componentFields.order)
@@ -95,7 +119,7 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(fieldOptions.componentId, componentId),
-          eq(fieldOptions.organisationId, secure.organisationId)
+          eq(fieldOptions.organisationId, organisationId)
         )
       )
 
@@ -149,4 +173,4 @@ export default defineEventHandler(async (event) => {
       component: null
     }
   }
-})
+}

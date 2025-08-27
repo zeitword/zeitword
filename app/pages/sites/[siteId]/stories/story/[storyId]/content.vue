@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileJsonIcon, FileWarningIcon } from "lucide-vue-next"
+import { ArrowUpIcon, FileJsonIcon, FileWarningIcon, SparklesIcon } from "lucide-vue-next"
 
 definePageMeta({ layout: "story" })
 
@@ -43,10 +43,12 @@ watch(
   { deep: true }
 )
 
+const contentStringified = computed(() => JSON.stringify(content.value))
+
 watch(
-  () => JSON.stringify(content.value),
+  () => contentStringified.value,
   () => {
-    hasChanges.value = JSON.stringify(content.value) !== JSON.stringify(originalContent.value)
+    hasChanges.value = contentStringified.value !== JSON.stringify(originalContent.value)
   },
   { deep: true }
 )
@@ -68,8 +70,8 @@ async function handleLanguageChange(newLang: string) {
 const languageOptions = computed(() => {
   if (!site.value?.languages) return []
   return site.value.languages.map((lang) => ({
-    value: lang.language.code,
-    display: `${lang.language.name} (${lang.language.nativeName})`
+    value: lang.language?.code || "",
+    display: `${lang.language?.name || ""} (${lang.language?.nativeName || ""})`
   }))
 })
 
@@ -78,8 +80,23 @@ const renderPreview = computed(() => {
   return story.value?.component?.renderPreview
 })
 
+const previewContent = computed(() => {
+  const langContent = content.value[selectedLanguage.value]
+  // Only return content if it exists and has data, otherwise return empty object
+  return langContent && Object.keys(langContent).length > 0 ? langContent : {}
+})
+
+const shouldShowPreview = computed(() => {
+  return (
+    renderPreview.value &&
+    site.value?.domain &&
+    story.value &&
+    Object.keys(previewContent.value).length > 0
+  )
+})
+
 async function save() {
-  if (!story.value) return
+  if (!story.value || !story.value.component) return
 
   try {
     await $fetch(`/api/sites/${siteId.value}/stories/${story.value.id}`, {
@@ -99,11 +116,9 @@ async function save() {
   }
 }
 
-function publish() {
-  toast.info({ description: "Publishing is not yet implemented" })
-}
-
 function updateNestedField(originalPath: string[], value: any) {
+  console.log("updateNestedField", { originalPath, value })
+
   if (!story.value) {
     return
   }
@@ -180,14 +195,6 @@ const sortedFields = computed(() => {
   return []
 })
 
-const iframeUrl = computed(() => {
-  if (!site.value?.domain || !story.value?.slug) return null
-  let slug = story.value.slug.replace("index", "")
-  let domain = site.value.domain
-  if (domain.endsWith("/")) domain = domain.slice(0, -1)
-  return `${domain}/${slug}`
-})
-
 type ComponentPayload = {
   blockId: string
   componentId: string
@@ -245,11 +252,26 @@ useEventListener(
   { passive: false }
 )
 
-whenever(meta_s || ctrl_s, () => {
-  if (hasChanges.value) {
-    save()
+whenever(
+  () => meta_s?.value || ctrl_s?.value,
+  () => {
+    if (hasChanges.value) {
+      save()
+    }
   }
+)
+
+onMounted(async () => {
+  await refresh()
 })
+
+const agentEditor = useSessionStorage("agentEditor", false)
+
+function toggleAgentEditor() {
+  agentEditor.value = !agentEditor.value
+}
+
+const agentEditorContent = ref("")
 </script>
 
 <template>
@@ -303,12 +325,11 @@ whenever(meta_s || ctrl_s, () => {
         @click="showJson = !showJson"
         :variant="showJson ? 'primary' : 'secondary'"
       />
-      <!-- <DButton
-        variant="primary"
-        @click="save"
-      >
-        Save
-      </DButton> -->
+      <DButton
+        :icon-left="SparklesIcon"
+        @click="toggleAgentEditor"
+        :variant="agentEditor ? 'primary' : 'secondary'"
+      />
     </div>
   </DPageTitle>
   <div
@@ -320,10 +341,10 @@ whenever(meta_s || ctrl_s, () => {
       v-if="renderPreview || showJson"
     >
       <DPreview
-        v-if="!showJson && site && story"
+        v-if="shouldShowPreview && !showJson"
         :site-domain="site.domain"
         :story-slug="story.slug"
-        :content="content[selectedLanguage]"
+        :content="previewContent"
         @ready="isPreviewReady = true"
         @componentClick="handleComponentClick"
       />
@@ -358,6 +379,21 @@ whenever(meta_s || ctrl_s, () => {
             @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
           />
         </template>
+      </div>
+    </div>
+
+    <div
+      v-if="agentEditor"
+      name="agent-editor"
+      class="border-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l"
+    >
+      <div class="mx-auto flex w-full max-w-4xl flex-col gap-2">
+        <d-agent-editor
+          :language="selectedLanguage"
+          :site-id="siteId as string"
+          :story-id="storyId as string"
+          @updateNestedField="updateNestedField"
+        />
       </div>
     </div>
   </div>
