@@ -28,6 +28,9 @@ export default defineNuxtConfig({
     //Resend
     resend: "",
 
+    // OpenAI
+    openaiApiKey: "",
+
     public: {
       siteUrl: ""
     }

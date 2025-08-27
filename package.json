@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.11",
+    "@ai-sdk/openai": "^2.0.22",
+    "@ai-sdk/vue": "^2.0.26",
     "@aws-sdk/client-s3": "^3.840.0",
     "@aws-sdk/s3-request-presigner": "^3.840.0",
     "@libsql/client": "^0.14.0",
@@ -34,7 +36,7 @@
     "@vueuse/integrations": "^12.7.0",
     "@vueuse/nuxt": "^12.5.0",
     "@vueuse/router": "^12.5.0",
-    "ai": "^4.1.32",
+    "ai": "^5.0.26",
     "auth-utils": "^1.0.0",
     "aws4fetch": "^1.0.20",
     "drizzle-orm": "^0.39.2",
@@ -55,7 +57,7 @@
     "vite": "^6.1.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
-    "zod": "^3.24.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
