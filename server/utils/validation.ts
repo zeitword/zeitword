@@ -1,6 +1,6 @@
-import { getTableColumns, inArray } from "drizzle-orm"
+import { and, eq, inArray } from "drizzle-orm"
 import { z } from "zod"
-import type { DComponent, DField } from "~~/app/types/models"
+import type { DField } from "~~/app/types/models"
 import { componentFields, components } from "~~/server/database/schema"
 
 const assetSchema = z.object({

@@ -1,5 +1,5 @@
 import { siteApiKeys, siteLanguages, sites } from "~~/server/database/schema"
-import { eq } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import type { H3Event } from "h3"
 
 export interface ApiKeyAuthResult {
