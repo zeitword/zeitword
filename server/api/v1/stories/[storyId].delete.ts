@@ -15,29 +15,12 @@ export default defineEventHandler(async (event) => {
     })
   }
   
-  // Check if story exists and belongs to the authenticated site
-  const [existingStory] = await useDrizzle()
-    .select({ id: stories.id })
-    .from(stories)
-    .where(
-      and(
-        eq(stories.id, storyId),
-        eq(stories.siteId, auth.siteId),
-        eq(stories.organisationId, auth.organisationId)
-      )
-    )
-    .limit(1)
-  
-  if (!existingStory) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "Story not found"
-    })
-  }
-  
   // Delete the story
   await useDrizzle()
-    .delete(stories)
+    .update(stories)
+    .set({
+      deletedAt: new Date()
+    })
     .where(
       and(
         eq(stories.id, storyId),

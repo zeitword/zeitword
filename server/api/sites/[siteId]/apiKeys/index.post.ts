@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
     const data = await readValidatedBody(event, bodySchema.parse)
 
-    const secret = nanoid(32)
+    const secret = nanoid(32).replaceAll("-", "").replaceAll("_", "")
     const hashedSecret = await hashPassword(secret)
 
     const [apiKey] = await useDrizzle()

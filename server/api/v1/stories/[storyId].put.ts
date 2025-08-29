@@ -1,19 +1,21 @@
 import { z } from "zod"
-import { stories } from "~~/server/database/schema"
+import { stories, storyTranslatedSlugs } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
 import { eq, and } from "drizzle-orm"
+import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const updateStorySchema = z.object({
   slug: z.string().min(1).optional(),
   title: z.string().min(1).optional(),
-  content: z.record(z.any()).optional(),
-  componentId: z.string().uuid().optional()
+  content: z.any().optional(),
+  language: z.string().optional(),
+  componentId: z.uuid().optional()
 })
 
 export default defineEventHandler(async (event) => {
   // Authenticate using API key
   const auth = await requireApiKey(event)
-  
+
   // Get story ID from route parameter
   const storyId = getRouterParam(event, "storyId")
   if (!storyId) {
@@ -22,13 +24,9 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Story ID is required"
     })
   }
-  
-  // Validate request body
-  const data = await readValidatedBody(event, updateStorySchema.parse)
-  
-  // Check if story exists and belongs to the authenticated site
-  const [existingStory] = await useDrizzle()
-    .select({ id: stories.id })
+
+  const [story] = await useDrizzle()
+    .select()
     .from(stories)
     .where(
       and(
@@ -38,41 +36,68 @@ export default defineEventHandler(async (event) => {
       )
     )
     .limit(1)
-  
-  if (!existingStory) {
+
+  if (!story.componentId) {
     throw createError({
-      statusCode: 404,
-      statusMessage: "Story not found"
+      statusCode: 400,
+      statusMessage: "Story has no component"
     })
   }
-  
-  // If slug is being updated, check for conflicts
-  if (data.slug && data.slug !== existingStory.id) {
-    const slugConflict = await useDrizzle()
+
+  // Validate request body
+  const schemaData = await readValidatedBody(event, updateStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse)
+  const schema = await getValidationSchemaForComponent(story.componentId, schemaData.content, auth.organisationId, auth.siteId)
+  const fullContentSchema = updateStorySchema.extend({
+    content: schema
+  })
+
+  const data = await readValidatedBody(event, fullContentSchema.parse)
+  const language = data.language || auth.site.defaultLanguage
+
+  // Check if slug is different
+  if (data.slug && data.slug !== story.slug) {
+    const existingStory = await useDrizzle()
       .select({ id: stories.id })
       .from(stories)
-      .where(
-        and(
-          eq(stories.slug, data.slug),
-          eq(stories.siteId, auth.siteId),
-          eq(stories.id, storyId) // Exclude current story
-        )
-      )
+      .where(and(eq(stories.slug, data.slug), eq(stories.siteId, auth.siteId), eq(stories.organisationId, auth.organisationId)))
       .limit(1)
-    
-    if (slugConflict.length > 0) {
+
+    if (existingStory.length > 0) {
       throw createError({
         statusCode: 409,
         statusMessage: "Story with this slug already exists"
       })
     }
+
+    // If slug changes and it's not the default language, add the translated slug
+    if (language !== auth.site.defaultLanguage) {
+      await useDrizzle().insert(storyTranslatedSlugs).values({
+        storyId,
+        languageCode: language,
+        slug: data.slug,
+        siteId: auth.siteId,
+        organisationId: auth.organisationId
+      }).onConflictDoUpdate({
+        target: [storyTranslatedSlugs.storyId, storyTranslatedSlugs.languageCode],
+        set: {
+          slug: data.slug,
+          updatedAt: new Date()
+        }
+      })
+
+      data.slug = story.slug // don't update default language slug
+    }
   }
-  
+
   // Update the story
   const [updatedStory] = await useDrizzle()
     .update(stories)
     .set({
       ...data,
+      content: {
+        ...(story.content || {}),
+        [data.language || auth.site.defaultLanguage]: data.content,
+      },
       updatedAt: new Date()
     })
     .where(
@@ -83,7 +108,7 @@ export default defineEventHandler(async (event) => {
       )
     )
     .returning()
-  
+
   return {
     id: updatedStory.id,
     slug: updatedStory.slug,
