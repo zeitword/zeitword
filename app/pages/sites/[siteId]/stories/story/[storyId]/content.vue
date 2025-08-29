@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { ArrowUpIcon, FileJsonIcon, FileWarningIcon, SparklesIcon } from "lucide-vue-next"
+import { merge, set } from "lodash-es"
+import { LexoRank } from "lexorank"
+import { useMagicKeys, whenever } from "@vueuse/core"
+import { uuidv7 } from "uuidv7"
 
 definePageMeta({ layout: "story" })
 
@@ -28,27 +32,17 @@ if (error.value) {
   toast.error({ description: "Failed to load story" })
 }
 
-const content = ref(story.value?.content || {})
-const originalContent = ref(JSON.parse(JSON.stringify(story.value?.content || {})))
+const content = ref(JSON.parse(JSON.stringify(story.value?.content || {})))
+const contentOriginal = ref(JSON.parse(JSON.stringify(content.value)))
 
 watch(
-  story,
-  (newStory) => {
-    if (newStory) {
-      content.value = newStory.content || {}
-      originalContent.value = JSON.parse(JSON.stringify(newStory.content || {}))
+  content,
+  (updated) => {
+    if (JSON.stringify(updated) === JSON.stringify(contentOriginal.value)) {
       hasChanges.value = false
+    } else {
+      hasChanges.value = true
     }
-  },
-  { deep: true }
-)
-
-const contentStringified = computed(() => JSON.stringify(content.value))
-
-watch(
-  () => contentStringified.value,
-  () => {
-    hasChanges.value = contentStringified.value !== JSON.stringify(originalContent.value)
   },
   { deep: true }
 )
@@ -116,10 +110,73 @@ async function save() {
   }
 }
 
+function updateNestedFieldRefined(path: string[], value: any) {
+  let target = JSON.parse(JSON.stringify(content.value))
+  let insert = set({}, path.join("."), value)
+
+  let result = merge(target, insert)
+
+  console.log("result", result)
+
+  content.value = result
+  hasChanges.value = true
+}
+
+const { data: availableComponents } = await useFetch(`/api/sites/${siteId.value}/components`)
+
+function addBlock({ componentId }: { componentId: string }) {
+  const component = availableComponents.value?.find((c) => c.id === componentId)
+  if (!component) {
+    console.error("Component not found:", componentId)
+    return
+  }
+
+  const currentBlocks = Array.isArray(content.value[selectedLanguage.value].blocks)
+    ? [...content.value[selectedLanguage.value].blocks]
+    : []
+
+  console.log("currentBlocks", currentBlocks)
+
+  let newRank: LexoRank
+  if (currentBlocks.length === 0) {
+    newRank = LexoRank.middle()
+  } else {
+    const lastBlock = currentBlocks.at(-1)
+    newRank = LexoRank.parse(lastBlock!.order).genNext()
+  }
+
+  const newBlockId = uuidv7()
+  const newBlock = {
+    id: newBlockId,
+    componentId: componentId,
+    componentName: component.name,
+    content: initializeBlockContent(component),
+    order: newRank.toString()
+  }
+
+  // Add block to current language's structure
+  currentBlocks.push(newBlock)
+
+  updateNestedField([selectedLanguage.value, "blocks"], currentBlocks)
+}
+
+function initializeBlockContent(component: any): any {
+  const content: any = {}
+  for (const field of component.fields) {
+    if (field.type === "blocks") {
+      content[field.fieldKey] = []
+    } else {
+      content[field.fieldKey] = undefined
+    }
+  }
+  return content
+}
+
 function updateNestedField(originalPath: string[], value: any) {
   console.log("updateNestedField", { originalPath, value })
 
   if (!story.value) {
+    console.warn("No story found")
     return
   }
 
@@ -127,6 +184,7 @@ function updateNestedField(originalPath: string[], value: any) {
   const lastKey = path.pop()
 
   if (!lastKey) {
+    console.warn("No last key found")
     return
   }
 
@@ -203,7 +261,7 @@ type ComponentPayload = {
 
 const targetBlockId = ref<string | null>(null)
 
-const openBlock = (blockId: string) => {
+function openBlock(blockId: string) {
   const findAndOpenBlock = (blocks: any[]) => {
     for (const block of blocks) {
       if (block.id === blockId) {
@@ -236,42 +294,38 @@ function resetChanges() {
 
 const isPreviewReady = ref(false)
 
-import { useMagicKeys, whenever } from "@vueuse/core"
-
 const { meta_s, ctrl_s } = useMagicKeys()
 
 // Prevent default browser save dialog
-useEventListener(
-  document,
-  "keydown",
-  (e) => {
-    if ((e.key === "s" || e.key === "S") && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault()
-    }
-  },
-  { passive: false }
-)
+// useEventListener(
+//   document,
+//   "keydown",
+//   (e) => {
+//     if ((e.key === "s" || e.key === "S") && (e.ctrlKey || e.metaKey)) {
+//       e.preventDefault()
+//     }
+//   },
+//   { passive: false }
+// )
 
-whenever(
-  () => meta_s?.value || ctrl_s?.value,
-  () => {
-    if (hasChanges.value) {
-      save()
-    }
-  }
-)
+// whenever(
+//   () => meta_s?.value || ctrl_s?.value,
+//   () => {
+//     if (hasChanges.value) {
+//       save()
+//     }
+//   }
+// )
 
-onMounted(async () => {
-  await refresh()
-})
+// onMounted(async () => {
+//   await refresh()
+// })
 
 const agentEditor = useSessionStorage("agentEditor", false)
 
 function toggleAgentEditor() {
   agentEditor.value = !agentEditor.value
 }
-
-const agentEditorContent = ref("")
 </script>
 
 <template>
@@ -387,14 +441,14 @@ const agentEditorContent = ref("")
       name="agent-editor"
       class="border-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l"
     >
-      <div class="mx-auto flex w-full max-w-4xl flex-col gap-2">
-        <d-agent-editor
-          :language="selectedLanguage"
-          :site-id="siteId as string"
-          :story-id="storyId as string"
-          @updateNestedField="updateNestedField"
-        />
-      </div>
+      <d-agent-editor
+        :language="selectedLanguage"
+        :site-id="siteId as string"
+        :story-id="storyId as string"
+        :content="content"
+        @updateNestedField="updateNestedFieldRefined"
+        @addBlock="addBlock"
+      />
     </div>
   </div>
   <DModal
