@@ -199,13 +199,18 @@ function listBlocks() {
 }
 
 const listedBlocks = computed(() => listBlocks())
+
+const { data: usageResult } = await useFetch("/api/ai/usage")
+
+const sufficientFunds = computed(() => usageResult.value?.sufficientFunds ?? false)
 </script>
 
 <template>
-  <div class="stretch mx-auto flex h-full w-full flex-1 flex-col p-4">
-    <div class="flex h-full flex-1 flex-col gap-2 overflow-auto">
-      <!-- <pre>{{ availableComponents }}</pre> -->
-      <!-- <pre>{{ listedBlocks }}</pre> -->
+  <div class="stretch mx-auto flex h-full w-full flex-1 flex-col">
+    <div class="text-neutral bg-neutral border-neutral gap-2 border-b p-4 text-center text-sm">
+      {{ sufficientFunds ? "Sufficient funds" : "Insufficient funds" }}
+    </div>
+    <div class="flex h-full flex-1 flex-col gap-2 overflow-auto p-4">
       <div
         v-for="message in messageList"
         :key="message.id"
@@ -254,7 +259,7 @@ const listedBlocks = computed(() => listBlocks())
 
     <form
       @submit="handleSubmit"
-      class="flex items-center gap-2"
+      class="flex items-center gap-2 p-4"
     >
       <textarea
         v-model="input"
