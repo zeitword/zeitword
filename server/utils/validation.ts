@@ -10,14 +10,14 @@ const assetSchema = z.object({
     type: z.enum(["image", "video", "audio", "pdf", "other"])
 })
 
-const linkTyoe = z.enum(["external", "internal"])
+const linkType = z.enum(["external", "internal"])
 const linkSchema = z.discriminatedUnion('type', [
     z.object({
-        type: linkTyoe.extract(['external']),
+        type: linkType.extract(['external']),
         url: z.string().min(1)
     }),
     z.object({
-        type: linkTyoe.extract(['internal']),
+        type: linkType.extract(['internal']),
         storyId: z.uuid().optional()
     })
 ])
