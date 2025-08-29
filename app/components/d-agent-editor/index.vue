@@ -2,19 +2,27 @@
 import { ArrowUpIcon } from "lucide-vue-next"
 import type { UIMessage } from "ai"
 import { Chat } from "@ai-sdk/vue"
-import { createIdGenerator, DefaultChatTransport } from "ai"
+import {
+  createIdGenerator,
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithToolCalls
+} from "ai"
 import { computed, ref } from "vue"
 
 interface Props {
   language: string
   siteId: string
   storyId: string
+  content: any
 }
 
 const props = defineProps<Props>()
 
+const content = computed(() => props.content)
+
 const emit = defineEmits<{
   (e: "updateNestedField", path: string[], value: any): void
+  (e: "addBlock", { componentId }: { componentId: string }): void
 }>()
 
 const messages = ref<UIMessage[]>([
@@ -24,7 +32,13 @@ const messages = ref<UIMessage[]>([
     parts: [
       {
         type: "text",
-        text: `You are a helpful assistant that can edit content. Helpful information: ${JSON.stringify(props)}`
+        text: `You are a helpful assistant that can edit content. Helpful information: ${JSON.stringify(
+          {
+            siteId: props.siteId,
+            storyId: props.storyId,
+            language: props.language
+          }
+        )}`
       }
     ]
   }
@@ -36,29 +50,120 @@ const chat = new Chat({
   }),
   generateId: createIdGenerator({ prefix: "msgc", size: 16 }),
   messages: messages.value,
+  sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
   onToolCall: async ({ toolCall }) => {
     if (toolCall.dynamic) {
       return
     }
 
-    console.log("toolCall", toolCall)
+    console.log(`[${toolCall.toolName}]`, toolCall)
 
-    if (toolCall.toolName === "updateNestedField") {
-      console.log("updateNestedField", toolCall)
-      emit("updateNestedField", toolCall.input.path, toolCall.input.value)
+    switch (toolCall.toolName) {
+      case "updateBlockField": {
+        console.log("updateBlockField", toolCall)
+        const { blockId, fieldKey, value } = toolCall.input as unknown as any
+        // we can call emit updateNestedField but to do that we need to construct the path first
+        let blockIndex = content.value[props.language].blocks.findIndex(
+          (block: any) => block.id === blockId
+        )
+
+        const path = [props.language, "blocks", blockIndex, "content", fieldKey]
+
+        emit("updateNestedField", path, value)
+
+        chat.addToolResult({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: "Block field updated"
+        })
+
+        break
+      }
+      case "listAvailableBlockTypes": {
+        console.log("listAvailableBlockTypes", toolCall)
+
+        const { data: availableComponents } = await useFetch(
+          `/api/sites/${props.siteId}/components`
+        )
+
+        // extract [{ id, name, displayName, fields: [{fieldKey, displayName, type, componentWhitelist}]}]
+        const blockTypes = availableComponents.value!.map((component: any) => ({
+          id: component.id,
+          name: component.name,
+          displayName: component.displayName,
+          fields: component.fields.map((field: any) => ({
+            fieldKey: field.fieldKey,
+            displayName: field.displayName,
+            type: field.type,
+            componentWhitelist: field.componentWhitelist
+          }))
+        }))
+        console.log("blockTypes", blockTypes)
+
+        chat.addToolResult({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: blockTypes
+        })
+
+        break
+      }
+      case "getBlock": {
+        const block = content.value[props.language].blocks.find(
+          (block: any) => block.id === toolCall.input.blockId
+        )
+        if (!block) {
+          chat.addToolResult({
+            tool: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+            output: "Block not found"
+          })
+        } else {
+          chat.addToolResult({
+            tool: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+            output: block
+          })
+        }
+        break
+      }
+      case "addBlock": {
+        console.log("addBlock", toolCall)
+        emit("addBlock", toolCall.input as unknown as { componentId: string })
+
+        chat.addToolResult({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: "Block added"
+        })
+
+        break
+      }
+      case "listBlocks": {
+        let blocks = content.value[props.language].blocks
+        // remove the content field from the blocks
+        blocks = blocks.map((block: any) => {
+          const { content, ...rest } = block
+          return rest
+        })
+
+        chat.addToolResult({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: blocks
+        })
+        break
+      }
+      default: {
+        console.log(`[${toolCall.toolName}] Not implemented`)
+        chat.addToolResult({
+          tool: toolCall.toolName,
+          toolCallId: toolCall.toolCallId,
+          output: "Not implemented"
+        })
+        break
+      }
     }
-
-    // if (toolCall.toolName === "getContent") {
-    //   let result = {
-    //     tool: toolCall.toolName,
-    //     toolCallId: toolCall.toolCallId,
-    //     output: props.content
-    //   }
-
-    //   console.log("result", result)
-
-    //   chat.addToolResult(result)
-    // }
   }
 })
 
@@ -73,25 +178,30 @@ const handleSubmit = (e: Event) => {
 </script>
 
 <template>
-  <div class="stretch mx-auto flex w-full max-w-md flex-1 flex-col p-4">
-    <div class="flex flex-1 flex-col overflow-auto">
+  <div class="stretch mx-auto flex h-full w-full flex-1 flex-col p-4">
+    <div class="flex h-full flex-1 flex-col gap-2 overflow-auto">
       <div
         v-for="message in messageList"
         :key="message.id"
-        class="flex flex-col whitespace-pre-wrap"
+        class="flex flex-col gap-2 whitespace-pre-wrap"
       >
         <template v-if="message.role === 'system'"></template>
         <template v-else>
           <strong>{{ `${message.role}: ` }}</strong>
           <div>
             <template v-for="part in message.parts">
-              <div v-if="part.type === 'tool-getContent'">
-                <div>Calling getContent tool</div>
+              <div v-if="part.type === 'tool-web_search_preview'">
+                <div class="text-neutral-subtle italic">searching the web...</div>
               </div>
-              <div v-else-if="part.type === 'tool-updateNestedField'">
-                <div>Calling updateNestedField tool</div>
+              <div v-else-if="part.type === 'tool-updateBlockFieldt'">
+                <div class="text-neutral-subtle italic">updating block field</div>
               </div>
-              <div v-else-if="part.type === 'step-start'">Thinking</div>
+              <div v-else-if="part.type === 'tool-addBlock'">
+                <div class="text-neutral-subtle italic">adding block</div>
+              </div>
+              <div v-else-if="part.type === 'step-start'">
+                <div class="text-neutral-subtle italic">considering</div>
+              </div>
               <div v-else-if="part.type === 'text'">
                 {{ part.text }}
               </div>
