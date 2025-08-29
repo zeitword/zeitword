@@ -10,8 +10,7 @@ export default defineEventHandler(async (event) => {
         .from(components)
         .where(and(
             eq(components.siteId, auth.siteId),
-            eq(components.organisationId, auth.organisationId),
-            eq(components.siteId, auth.siteId)
+            eq(components.organisationId, auth.organisationId)
         ))
 
     return siteComponents
