@@ -14,11 +14,14 @@ interface Props {
   siteId: string
   storyId: string
   content: any
+  sortedFields: any[]
 }
 
 const props = defineProps<Props>()
 
 const content = computed(() => props.content)
+
+const { data: availableComponents } = await useFetch(`/api/sites/${props.siteId}/components`)
 
 const emit = defineEmits<{
   (e: "updateNestedField", path: string[], value: any): void
@@ -82,10 +85,6 @@ const chat = new Chat({
       case "listAvailableBlockTypes": {
         console.log("listAvailableBlockTypes", toolCall)
 
-        const { data: availableComponents } = await useFetch(
-          `/api/sites/${props.siteId}/components`
-        )
-
         // extract [{ id, name, displayName, fields: [{fieldKey, displayName, type, componentWhitelist}]}]
         const blockTypes = availableComponents.value!.map((component: any) => ({
           id: component.id,
@@ -140,17 +139,10 @@ const chat = new Chat({
         break
       }
       case "listBlocks": {
-        let blocks = content.value[props.language].blocks
-        // remove the content field from the blocks
-        blocks = blocks.map((block: any) => {
-          const { content, ...rest } = block
-          return rest
-        })
-
         chat.addToolResult({
           tool: toolCall.toolName,
           toolCallId: toolCall.toolCallId,
-          output: blocks
+          output: listBlocks()
         })
         break
       }
@@ -175,11 +167,45 @@ const handleSubmit = (e: Event) => {
   chat.sendMessage({ text: input.value })
   input.value = ""
 }
+
+function listBlocks() {
+  let blocks = content.value[props.language].blocks
+  // remove the content field from the blocks
+  blocks = blocks.map((block: any) => {
+    const { content, ...rest } = block
+    return { blockId: block.id, blockName: block.componentName, componentId: block.componentId }
+  })
+
+  // using sortedfields ensure that if a "fieldKey" isn't present, that we populate it with an empty object
+  blocks = blocks.map((block: any) => {
+    const { content, ...rest } = block
+
+    const fields = availableComponents.value
+      ?.filter((field: any) => field.id === block.componentId)
+      .reduce((acc: any, field: any) => {
+        return field.fields.reduce((acc: any, subField: any) => {
+          acc.push(subField.fieldKey)
+          return acc
+        }, [])
+      }, [])
+
+    return {
+      ...rest,
+      fields: fields
+    }
+  })
+
+  return blocks
+}
+
+const listedBlocks = computed(() => listBlocks())
 </script>
 
 <template>
   <div class="stretch mx-auto flex h-full w-full flex-1 flex-col p-4">
     <div class="flex h-full flex-1 flex-col gap-2 overflow-auto">
+      <!-- <pre>{{ availableComponents }}</pre> -->
+      <!-- <pre>{{ listedBlocks }}</pre> -->
       <div
         v-for="message in messageList"
         :key="message.id"
@@ -193,8 +219,17 @@ const handleSubmit = (e: Event) => {
               <div v-if="part.type === 'tool-web_search_preview'">
                 <div class="text-neutral-subtle italic">searching the web...</div>
               </div>
-              <div v-else-if="part.type === 'tool-updateBlockFieldt'">
+              <div v-else-if="part.type === 'tool-updateBlockField'">
                 <div class="text-neutral-subtle italic">updating block field</div>
+              </div>
+              <div v-else-if="part.type === 'tool-listBlocks'">
+                <div class="text-neutral-subtle italic">listing blocks</div>
+              </div>
+              <div v-else-if="part.type === 'tool-listAvailableBlockTypes'">
+                <div class="text-neutral-subtle italic">listing available block types</div>
+              </div>
+              <div v-else-if="part.type === 'tool-getBlock'">
+                <div class="text-neutral-subtle italic">getting block</div>
               </div>
               <div v-else-if="part.type === 'tool-addBlock'">
                 <div class="text-neutral-subtle italic">adding block</div>

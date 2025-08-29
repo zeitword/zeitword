@@ -446,6 +446,7 @@ function toggleAgentEditor() {
         :site-id="siteId as string"
         :story-id="storyId as string"
         :content="content"
+        :sorted-fields="sortedFields"
         @updateNestedField="updateNestedFieldRefined"
         @addBlock="addBlock"
       />
