@@ -5,6 +5,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 ## Getting Started
 
 1. **Fork the repository**
+
    - Visit [Zeitword repository](https://github.com/zeitword/zeitword)
    - Click the "Fork" button in the top right
    - Clone your fork locally:
@@ -18,6 +19,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
      ```
 
 2. **Set up your development environment**
+
    ```bash
    # Install dependencies
    bun i
@@ -35,6 +37,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 ## Making Changes
 
 1. Create a new branch for your changes
+
    ```bash
    git checkout -b feature/your-feature
    ```
@@ -42,6 +45,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 2. Make your changes and test them locally
 
 3. Commit your changes using clear commit messages
+
    ```bash
    git commit -m "Add new feature"
    ```
@@ -55,6 +59,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 ## Pull Request Process
 
 1. Push changes to your fork
+
    ```bash
    git push origin feature/your-feature
    ```
@@ -66,6 +71,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 ## Need Help?
 
 If you have questions or need help, please:
+
 - Open an issue
 - Comment on the relevant issue or PR
 

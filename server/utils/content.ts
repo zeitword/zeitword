@@ -14,7 +14,7 @@ export async function transformLinks(obj: any, language: string, siteId: string)
         // First check for translated slug
         const db = useDrizzle()
         let slug = null
-        
+
         if (language) {
           const translatedSlugs = await db
             .select({ slug: storyTranslatedSlugs.slug })
@@ -27,12 +27,12 @@ export async function transformLinks(obj: any, language: string, siteId: string)
               )
             )
             .limit(1)
-            
+
           if (translatedSlugs.length > 0) {
             slug = translatedSlugs[0].slug
           }
         }
-        
+
         // Fall back to default slug if no translation found
         if (!slug) {
           const storyResults = await db
@@ -40,12 +40,12 @@ export async function transformLinks(obj: any, language: string, siteId: string)
             .from(stories)
             .where(eq(stories.id, obj.storyId))
             .limit(1)
-            
+
           if (storyResults.length > 0) {
             slug = storyResults[0].slug
           }
         }
-        
+
         return slug ? `/${slug}` : `#${obj.storyId}`
       } catch (error) {
         console.error("Error transforming internal link:", error)
@@ -53,7 +53,7 @@ export async function transformLinks(obj: any, language: string, siteId: string)
       }
     }
   }
-  
+
   // Process arrays
   if (Array.isArray(obj)) {
     const results = []
@@ -62,7 +62,7 @@ export async function transformLinks(obj: any, language: string, siteId: string)
     }
     return results
   }
-  
+
   // Process objects recursively
   if (obj && typeof obj === "object" && !Array.isArray(obj)) {
     const result: Record<string, any> = {}
@@ -71,22 +71,20 @@ export async function transformLinks(obj: any, language: string, siteId: string)
     }
     return result
   }
-  
+
   // Return primitive values as is
   return obj
 }
 
 export async function mergeWithFallbackAndTransformLinks(
-  defaultObj: any, 
-  requestedObj: any, 
+  defaultObj: any,
+  requestedObj: any,
   language: string,
   siteId: string
 ) {
   const merged = mergeWithFallback(defaultObj, requestedObj)
   return transformLinks(merged, language, siteId)
 }
-
-
 
 export function mergeWithFallback(defaultObj: any, requestedObj: any) {
   if (!defaultObj) return requestedObj

@@ -156,7 +156,12 @@ export default defineEventHandler(async (event) => {
   const defaultContent = content[site.defaultLanguage] || {}
   const requestedContent = content[requestedLang || site.defaultLanguage] || {}
 
-  const mergedContent = await mergeWithFallbackAndTransformLinks(defaultContent, requestedContent, requestedLang || site.defaultLanguage, siteId)
+  const mergedContent = await mergeWithFallbackAndTransformLinks(
+    defaultContent,
+    requestedContent,
+    requestedLang || site.defaultLanguage,
+    siteId
+  )
 
   // Get all translated slugs for this story
   const translatedSlugs = await useDrizzle()
@@ -165,19 +170,16 @@ export default defineEventHandler(async (event) => {
       slug: storyTranslatedSlugs.slug
     })
     .from(storyTranslatedSlugs)
-    .where(and(
-      eq(storyTranslatedSlugs.storyId, story.id),
-      eq(storyTranslatedSlugs.siteId, siteId)
-    ))
+    .where(and(eq(storyTranslatedSlugs.storyId, story.id), eq(storyTranslatedSlugs.siteId, siteId)))
 
   // Convert array of translated slugs to object format {en: "slug", de: "slug"}
   const slugsMap: Record<string, string> = {}
-  
+
   // Add the default language slug from the story
   slugsMap[site.defaultLanguage] = story.slug
-  
+
   // Add all translated slugs
-  translatedSlugs.forEach(translation => {
+  translatedSlugs.forEach((translation) => {
     slugsMap[translation.languageCode] = translation.slug
   })
 
