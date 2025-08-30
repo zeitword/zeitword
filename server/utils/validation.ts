@@ -4,7 +4,7 @@ import type { DField } from "~~/app/types/models"
 import { componentFields, components } from "~~/server/database/schema"
 
 const assetSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.uuid().optional(),
   alt: z.string().min(1),
   src: z.string().min(1),
   type: z.enum(["image", "video", "audio", "pdf", "other"])
@@ -22,12 +22,12 @@ const linkSchema = z.discriminatedUnion("type", [
   })
 ])
 
-const getValidationSchemaForField = async (
+async function getValidationSchemaForField(
   field: DField,
   data: unknown,
   organisationId: string,
   siteId: string
-) => {
+): Promise<z.ZodTypeAny> {
   switch (field.type) {
     case "assets":
       return z.array(assetSchema)
@@ -104,12 +104,12 @@ const getValidationSchemaForField = async (
   }
 }
 
-export const getValidationSchemaForComponent = async (
+export async function getValidationSchemaForComponent(
   componentId: string,
   data: { [key: string]: unknown },
   organisationId: string,
   siteId: string
-): Promise<z.ZodTypeAny> => {
+): Promise<z.ZodTypeAny> {
   let schema = z.object({})
 
   try {

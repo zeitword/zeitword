@@ -1,13 +1,18 @@
 import { stories } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
 import { eq, and } from "drizzle-orm"
+import z from "zod"
+
+const paramSchema = z.object({
+  storyId: z.uuid()
+})
 
 export default defineEventHandler(async (event) => {
   // Authenticate using API key
   const auth = await requireApiKey(event)
 
   // Get story ID from route parameter
-  const storyId = getRouterParam(event, "storyId")
+  const { storyId } = await getValidatedRouterParams(event, paramSchema.parse)
   if (!storyId) {
     throw createError({
       statusCode: 400,

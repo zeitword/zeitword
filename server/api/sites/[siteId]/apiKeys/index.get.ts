@@ -1,11 +1,16 @@
 import { siteApiKeys, sites } from "~~/server/database/schema"
 import { and, eq } from "drizzle-orm"
+import { z } from "zod"
+
+const paramSchema = z.object({
+  siteId: z.uuid()
+})
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-  const siteId = getRouterParam(event, "siteId")
+  const { siteId } = await getValidatedRouterParams(event, paramSchema.parse)
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const [site] = await useDrizzle()

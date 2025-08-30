@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid"
+import { customAlphabet } from "nanoid"
 import { z } from "zod"
 import { siteApiKeys, sites } from "~~/server/database/schema"
 import { and, eq } from "drizzle-orm"
@@ -7,16 +7,24 @@ const bodySchema = z.object({
   name: z.string()
 })
 
+const paramSchema = z.object({
+  siteId: z.uuid()
+})
+
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-  const siteId = getRouterParam(event, "siteId")
+  const { siteId } = await getValidatedRouterParams(event, paramSchema.parse)
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
-  const secret = nanoid(32).replaceAll("-", "").replaceAll("_", "")
+  const nanoid = customAlphabet(
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    32
+  )
+  const secret = nanoid()
   const hashedSecret = await hashPassword(secret)
 
   const [site] = await useDrizzle()

@@ -5,10 +5,18 @@ import { eq, and } from "drizzle-orm"
 import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const updateStorySchema = z.object({
-  slug: z.string().min(1).optional(),
+  slug: z
+    .stringFormat("slug", /^[a-z0-9\/-]+$/)
+    .min(1)
+    .lowercase()
+    .optional(),
   title: z.string().min(1).optional(),
   content: z.any().optional(),
   language: z.string().optional()
+})
+
+const paramSchema = z.object({
+  storyId: z.uuid()
 })
 
 export default defineEventHandler(async (event) => {
@@ -16,7 +24,7 @@ export default defineEventHandler(async (event) => {
   const auth = await requireApiKey(event)
 
   // Get story ID from route parameter
-  const storyId = getRouterParam(event, "storyId")
+  const { storyId } = await getValidatedRouterParams(event, paramSchema.parse)
   if (!storyId) {
     throw createError({
       statusCode: 400,

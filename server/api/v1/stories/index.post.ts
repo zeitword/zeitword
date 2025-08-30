@@ -4,7 +4,10 @@ import { requireApiKey } from "~~/server/utils/api-key-auth"
 import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const createStorySchema = z.object({
-  slug: z.string().min(1),
+  slug: z
+    .stringFormat("slug", /^[a-z0-9\/-]+$/)
+    .min(1)
+    .lowercase(),
   title: z.string().min(1),
   content: z.any(),
   language: z.string().optional(),
