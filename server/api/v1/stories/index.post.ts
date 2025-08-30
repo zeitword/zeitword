@@ -15,8 +15,16 @@ export default defineEventHandler(async (event) => {
   const auth = await requireApiKey(event)
 
   // Validate request body
-  const schemaData = await readValidatedBody(event, createStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse)
-  const schema = await getValidationSchemaForComponent(schemaData.componentId, schemaData.content, auth.organisationId, auth.siteId)
+  const schemaData = await readValidatedBody(
+    event,
+    createStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse
+  )
+  const schema = await getValidationSchemaForComponent(
+    schemaData.componentId,
+    schemaData.content,
+    auth.organisationId,
+    auth.siteId
+  )
   const fullContentSchema = createStorySchema.extend({
     content: schema
   })
@@ -50,7 +58,7 @@ export default defineEventHandler(async (event) => {
       slug: data.slug,
       title: data.title,
       content: {
-        [data.language || auth.site.defaultLanguage]: data.content,
+        [data.language || auth.site.defaultLanguage]: data.content
       },
       componentId: data.componentId,
       siteId: auth.siteId,

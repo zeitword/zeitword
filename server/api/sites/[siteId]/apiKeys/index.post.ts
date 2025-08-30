@@ -3,36 +3,36 @@ import { z } from "zod"
 import { siteApiKeys } from "~~/server/database/schema"
 
 const bodySchema = z.object({
-    name: z.string()
+  name: z.string()
 })
 
 export default defineEventHandler(async (event) => {
-    const { secure } = await requireUserSession(event)
-    if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
-  
-    const siteId = getRouterParam(event, "siteId")
-    if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
+  const { secure } = await requireUserSession(event)
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-    const data = await readValidatedBody(event, bodySchema.parse)
+  const siteId = getRouterParam(event, "siteId")
+  if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
-    const secret = nanoid(32).replaceAll("-", "").replaceAll("_", "")
-    const hashedSecret = await hashPassword(secret)
+  const data = await readValidatedBody(event, bodySchema.parse)
 
-    const [apiKey] = await useDrizzle()
-        .insert(siteApiKeys)
-        .values({
-            siteId: siteId,
-            organisationId: secure.organisationId,
-            hash: hashedSecret,
-            name: data.name
-        })
-        .returning()
+  const secret = nanoid(32).replaceAll("-", "").replaceAll("_", "")
+  const hashedSecret = await hashPassword(secret)
 
-    const completeKey = `zeitword_${apiKey.id}_${secret}`  
-    return {
-        id: apiKey.id,
-        name: apiKey.name,
-        organisationId: apiKey.organisationId,
-        key: completeKey
-    }
-})  
+  const [apiKey] = await useDrizzle()
+    .insert(siteApiKeys)
+    .values({
+      siteId: siteId,
+      organisationId: secure.organisationId,
+      hash: hashedSecret,
+      name: data.name
+    })
+    .returning()
+
+  const completeKey = `zeitword_${apiKey.id}_${secret}`
+  return {
+    id: apiKey.id,
+    name: apiKey.name,
+    organisationId: apiKey.organisationId,
+    key: completeKey
+  }
+})

@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm"
 export default defineEventHandler(async (event) => {
   // Authenticate using API key
   const auth = await requireApiKey(event)
-  
+
   // Get story ID from route parameter
   const storyId = getRouterParam(event, "storyId")
   if (!storyId) {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Story ID is required"
     })
   }
-  
+
   // Delete the story
   await useDrizzle()
     .update(stories)
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
         eq(stories.organisationId, auth.organisationId)
       )
     )
-  
+
   return {
     success: true,
     message: "Story deleted successfully"

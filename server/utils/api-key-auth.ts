@@ -16,8 +16,8 @@ export interface ApiKeyAuthResult {
 
 export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> {
   // API key format: zeitword_{id}_{secret}
-  const parts = apiKey.split('_')
-  if (parts.length !== 3 || parts[0] !== 'zeitword') {
+  const parts = apiKey.split("_")
+  if (parts.length !== 3 || parts[0] !== "zeitword") {
     throw createError({
       statusCode: 401,
       statusMessage: "Invalid API key format"
@@ -64,7 +64,12 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> 
         defaultLanguage: sites.defaultLanguage
       })
       .from(sites)
-      .where(and(eq(sites.id, apiKeyRecord.siteId), eq(sites.organisationId, apiKeyRecord.organisationId)))
+      .where(
+        and(
+          eq(sites.id, apiKeyRecord.siteId),
+          eq(sites.organisationId, apiKeyRecord.organisationId)
+        )
+      )
       .limit(1)
 
     if (!site) {
@@ -84,8 +89,8 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> 
       organisationId: apiKeyRecord.organisationId,
       site: {
         ...site,
-        availableLanguages: languages.map(l => l.languageCode)
-      },
+        availableLanguages: languages.map((l) => l.languageCode)
+      }
     }
   } catch (error) {
     throw createError({
@@ -96,8 +101,8 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> 
 }
 
 export function requireApiKey(event: H3Event): Promise<ApiKeyAuthResult> {
-  const authHeader = getHeader(event, 'authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const authHeader = getHeader(event, "authorization")
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw createError({
       statusCode: 401,
       statusMessage: "Missing or invalid Authorization header"

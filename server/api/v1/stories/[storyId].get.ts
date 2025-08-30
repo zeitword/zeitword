@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm"
 export default defineEventHandler(async (event) => {
   // Authenticate using API key
   const auth = await requireApiKey(event)
-  
+
   // Get story ID from route parameter
   const storyId = getRouterParam(event, "storyId")
   if (!storyId) {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Story ID is required"
     })
   }
-  
+
   // Get the story
   const [story] = await useDrizzle()
     .select({
@@ -36,13 +36,13 @@ export default defineEventHandler(async (event) => {
       )
     )
     .limit(1)
-  
+
   if (!story) {
     throw createError({
       statusCode: 404,
       statusMessage: "Story not found"
     })
   }
-  
+
   return story
 })

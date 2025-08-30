@@ -45,8 +45,16 @@ export default defineEventHandler(async (event) => {
   }
 
   // Validate request body
-  const schemaData = await readValidatedBody(event, updateStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse)
-  const schema = await getValidationSchemaForComponent(story.componentId, schemaData.content, auth.organisationId, auth.siteId)
+  const schemaData = await readValidatedBody(
+    event,
+    updateStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse
+  )
+  const schema = await getValidationSchemaForComponent(
+    story.componentId,
+    schemaData.content,
+    auth.organisationId,
+    auth.siteId
+  )
   const fullContentSchema = updateStorySchema.extend({
     content: schema
   })
@@ -59,7 +67,13 @@ export default defineEventHandler(async (event) => {
     const existingStory = await useDrizzle()
       .select({ id: stories.id })
       .from(stories)
-      .where(and(eq(stories.slug, data.slug), eq(stories.siteId, auth.siteId), eq(stories.organisationId, auth.organisationId)))
+      .where(
+        and(
+          eq(stories.slug, data.slug),
+          eq(stories.siteId, auth.siteId),
+          eq(stories.organisationId, auth.organisationId)
+        )
+      )
       .limit(1)
 
     if (existingStory.length > 0) {
@@ -71,19 +85,22 @@ export default defineEventHandler(async (event) => {
 
     // If slug changes and it's not the default language, add the translated slug
     if (language !== auth.site.defaultLanguage) {
-      await useDrizzle().insert(storyTranslatedSlugs).values({
-        storyId,
-        languageCode: language,
-        slug: data.slug,
-        siteId: auth.siteId,
-        organisationId: auth.organisationId
-      }).onConflictDoUpdate({
-        target: [storyTranslatedSlugs.storyId, storyTranslatedSlugs.languageCode],
-        set: {
+      await useDrizzle()
+        .insert(storyTranslatedSlugs)
+        .values({
+          storyId,
+          languageCode: language,
           slug: data.slug,
-          updatedAt: new Date()
-        }
-      })
+          siteId: auth.siteId,
+          organisationId: auth.organisationId
+        })
+        .onConflictDoUpdate({
+          target: [storyTranslatedSlugs.storyId, storyTranslatedSlugs.languageCode],
+          set: {
+            slug: data.slug,
+            updatedAt: new Date()
+          }
+        })
 
       data.slug = story.slug // don't update default language slug
     }
@@ -96,7 +113,7 @@ export default defineEventHandler(async (event) => {
       ...data,
       content: {
         ...(story.content || {}),
-        [data.language || auth.site.defaultLanguage]: data.content,
+        [data.language || auth.site.defaultLanguage]: data.content
       },
       updatedAt: new Date()
     })
