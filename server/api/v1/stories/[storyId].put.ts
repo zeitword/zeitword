@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
     auth.siteId
   )
   const fullContentSchema = updateStorySchema.extend({
-    content: schema
+    content: schema.optional()
   })
 
   const data = await readValidatedBody(event, fullContentSchema.parse)
