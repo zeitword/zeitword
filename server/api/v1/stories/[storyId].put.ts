@@ -8,8 +8,7 @@ const updateStorySchema = z.object({
   slug: z.string().min(1).optional(),
   title: z.string().min(1).optional(),
   content: z.any().optional(),
-  language: z.string().optional(),
-  componentId: z.uuid().optional()
+  language: z.string().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -36,6 +35,13 @@ export default defineEventHandler(async (event) => {
       )
     )
     .limit(1)
+
+  if (!story) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Story not found"
+    })
+  }
 
   if (!story.componentId) {
     throw createError({

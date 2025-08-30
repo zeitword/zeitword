@@ -20,5 +20,12 @@ export default defineEventHandler(async (event) => {
     )
     .limit(1)
 
+  if (!component) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Component not found"
+    })
+  }
+
   return component
 })

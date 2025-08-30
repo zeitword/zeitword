@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { stories } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
+import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const createStorySchema = z.object({
   slug: z.string().min(1),
