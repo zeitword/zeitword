@@ -61,8 +61,7 @@ const inputValue = computed({
   get: () => {
     if (isInternal.value && storyDetails.value) {
       return storyDetails.value.title
-    }
-    else if (model.value?.type === "external") {
+    } else if (model.value?.type === "external") {
       return (model.value as ExternalLink).url
     }
     return rawInputValue.value
@@ -89,7 +88,6 @@ onMounted(() => {
     rawInputValue.value = (model.value as ExternalLink).url
   }
 })
-
 
 function handleInput() {
   if (isInternal.value) {
@@ -125,15 +123,12 @@ function selectStory(story: Story) {
   model.value = { storyId: story.id, type: "internal" }
   open.value = false
 }
-
-
 </script>
 
 <template>
   <ComboboxRoot
     v-model:open="open"
     :disabled="props.disabled"
-
   >
     <ComboboxAnchor
       class="bg-neutral border-neutral flex h-9 w-full cursor-default items-center justify-between rounded-lg border px-2 py-1.5 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-300"
@@ -192,9 +187,7 @@ function selectStory(story: Story) {
         class="border-neutral bg-neutral z-[9999] w-[var(--reka-combobox-trigger-width)] rounded-lg border shadow-sm"
         :side-offset="5"
         v-if="searchResults && searchResults.length > 0"
-
       >
-
         <ComboboxCancel class="hidden" />
         <ComboboxViewport class="max-h-48 overflow-auto p-1">
           <ComboboxItem

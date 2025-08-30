@@ -42,6 +42,7 @@ Zeitword is built with modern and reliable technologies:
 ### Quick Start
 
 1. **Clone and Install**
+
    ```bash
    # Clone the repository
    git clone https://github.com/yourusername/zeitword.git
@@ -52,21 +53,27 @@ Zeitword is built with modern and reliable technologies:
    ```
 
 2. **Start the Infrastructure**
+
    ```bash
    docker compose up -d
    ```
+
    This will start:
+
    - PostgreSQL database on port 5432
    - MinIO S3-compatible storage on port 9000
    - MinIO Console on port 9001
 
 3. **Configure Environment**
+
    ```bash
    cp .env.example .env
    ```
+
    The example configuration includes default values for local development with PostgreSQL and MinIO.
 
 4. **Run Migrations**
+
    ```bash
    bunx drizzle-kit migrate
    ```
@@ -79,11 +86,13 @@ Zeitword is built with modern and reliable technologies:
 ### Local Development Services
 
 #### PostgreSQL
+
 - Host: `localhost:5432`
 - User: `postgres`
 - Password: `postgres`
 
 #### MinIO (S3-compatible storage)
+
 - API Endpoint: `http://localhost:9000`
 - Console UI: `http://localhost:9001`
 - Access Key: `admin`
@@ -111,14 +120,17 @@ For local development, the `.env.example` comes pre-configured for the included 
 ### Required Environment Variables
 
 1. **Database Configuration**
+
    ```env
    NUXT_DSN="postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
    NUXT_SESSION_PASSWORD="your-secure-session-password"
    ```
+
    - `NUXT_DSN`: PostgreSQL connection string
    - `NUXT_SESSION_PASSWORD`: Secret key for session encryption (this MUST be atleast 32 chars)
 
 2. **S3 Storage Configuration**
+
    ```env
    # Default values for local MinIO setup
    NUXT_S3_ACCESS_KEY_ID="admin"
@@ -127,6 +139,7 @@ For local development, the `.env.example` comes pre-configured for the included 
    NUXT_S3_BUCKET="zeitword"
    NUXT_S3_REGION="us-east-1"
    ```
+
    - For local development, these values work with the included MinIO service
    - For production, replace with your preferred S3-compatible service credentials
 
@@ -141,16 +154,19 @@ For local development, the `.env.example` comes pre-configured for the included 
 ### Setting Up Environment Variables
 
 1. Create your `.env` file:
+
    ```bash
    cp .env.example .env
    ```
 
 2. Generate a secure session password:
+
    ```bash
    openssl rand -base64 32
    ```
 
 3. For production S3 storage:
+
    - Create an S3 bucket or use an S3-compatible service
    - Configure CORS settings for your bucket
    - Add your credentials to the `.env` file
@@ -161,7 +177,6 @@ For local development, the `.env.example` comes pre-configured for the included 
 
 > [!NOTE]
 > Never commit your `.env` file to version control. It's included in `.gitignore` by default.
-
 
 ## Contributing
 

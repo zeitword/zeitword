@@ -45,10 +45,13 @@ export default defineEventHandler(async (event) => {
     )
 
   // Transform to a key-value object for easier consumption in the frontend
-  const slugsObject = translatedSlugs.reduce((acc, { languageCode, slug }) => {
-    acc[languageCode] = slug
-    return acc
-  }, {} as Record<string, string>)
+  const slugsObject = translatedSlugs.reduce(
+    (acc, { languageCode, slug }) => {
+      acc[languageCode] = slug
+      return acc
+    },
+    {} as Record<string, string>
+  )
 
   return slugsObject
 })

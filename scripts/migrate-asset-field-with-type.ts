@@ -20,18 +20,18 @@ function transformAssetFields(data: any, storyId: string, isDryRun: boolean): an
         const transformedAsset = {
           ...item,
           type: "image"
-        };
+        }
         if (isDryRun) {
           console.log(
             `[DRY RUN] Story ${storyId}: Would add 'type: image' to asset object in array: ${inspect(item, { depth: null })} -> ${inspect(transformedAsset, { depth: null })}`
-          );
+          )
         } else {
-          console.log(`Story ${storyId}: Added 'type: image' to asset object in array.`);
+          console.log(`Story ${storyId}: Added 'type: image' to asset object in array.`)
         }
-        return transformedAsset;
+        return transformedAsset
       }
-      return transformAssetFields(item, storyId, isDryRun);
-    });
+      return transformAssetFields(item, storyId, isDryRun)
+    })
   }
 
   if (typeof data === "object" && data !== null) {

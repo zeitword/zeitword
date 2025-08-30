@@ -43,7 +43,12 @@ export default defineEventHandler(async (event) => {
   const defaultContent = content[site.defaultLanguage] || {}
   const requestedContent = content[requestedLang || site.defaultLanguage] || {}
 
-  const mergedContent = await mergeWithFallbackAndTransformLinks(defaultContent, requestedContent, requestedLang || site.defaultLanguage, siteId)
+  const mergedContent = await mergeWithFallbackAndTransformLinks(
+    defaultContent,
+    requestedContent,
+    requestedLang || site.defaultLanguage,
+    siteId
+  )
 
   setHeader(event, "Access-Control-Allow-Origin", "*")
   setHeader(event, "Access-Control-Allow-Methods", "GET")
