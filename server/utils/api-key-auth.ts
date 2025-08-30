@@ -1,6 +1,7 @@
 import { siteApiKeys, siteLanguages, sites } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 import type { H3Event } from "h3"
+import { nanoid } from "nanoid"
 
 export interface ApiKeyAuthResult {
   siteId: string
@@ -13,6 +14,9 @@ export interface ApiKeyAuthResult {
     availableLanguages: string[]
   }
 }
+
+export const DUMMY_HASH =
+  "$scrypt$n=16384,r=8,p=1$16qaJvWM3W48DZjU94Xx0Q$18+E1xYZTkBnJ4wl4IIHo+M+DiyNy0T7C90LhUdiVkfdqb1Hep/m493OGjLDrQflzS4+oVl5LVZaYZ5lpzSwIA"
 
 export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> {
   // API key format: zeitword_{id}_{secret}
@@ -39,16 +43,9 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> 
       .where(eq(siteApiKeys.id, id))
       .limit(1)
 
-    if (!apiKeyRecord) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: "Invalid API key"
-      })
-    }
-
     // Verify the secret
-    const isValid = await verifyPassword(apiKeyRecord.hash, secret)
-    if (!isValid) {
+    const isValid = await verifyPassword(apiKeyRecord?.hash ?? DUMMY_HASH, secret)
+    if (!isValid || !apiKeyRecord) {
       throw createError({
         statusCode: 401,
         statusMessage: "Invalid API key"
