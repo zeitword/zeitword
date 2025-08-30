@@ -1,4 +1,5 @@
-import { siteApiKeys } from "~~/server/database/schema"
+import { siteApiKeys, sites } from "~~/server/database/schema"
+import { and, eq } from "drizzle-orm"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -6,6 +7,12 @@ export default defineEventHandler(async (event) => {
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
+
+  const [site] = await useDrizzle()
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.id, siteId), eq(sites.organisationId, secure.organisationId)))
+  if (!site) throw createError({ statusCode: 404, statusMessage: "Site not found" })
 
   const apiKeys = await useDrizzle()
     .select({

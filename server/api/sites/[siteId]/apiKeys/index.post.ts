@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid"
 import { z } from "zod"
-import { siteApiKeys } from "~~/server/database/schema"
+import { siteApiKeys, sites } from "~~/server/database/schema"
+import { and, eq } from "drizzle-orm"
 
 const bodySchema = z.object({
   name: z.string()
@@ -17,6 +18,12 @@ export default defineEventHandler(async (event) => {
 
   const secret = nanoid(32).replaceAll("-", "").replaceAll("_", "")
   const hashedSecret = await hashPassword(secret)
+
+  const [site] = await useDrizzle()
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.id, siteId), eq(sites.organisationId, secure.organisationId)))
+  if (!site) throw createError({ statusCode: 404, statusMessage: "Site not found" })
 
   const [apiKey] = await useDrizzle()
     .insert(siteApiKeys)
