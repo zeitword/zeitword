@@ -32,7 +32,11 @@ export default defineEventHandler(async (event) => {
     .select()
     .from(stories)
     .where(
-      and(eq(stories.id, storyId), eq(stories.siteId, siteId), eq(stories.organisationId, secure.organisationId))
+      and(
+        eq(stories.id, storyId),
+        eq(stories.siteId, siteId),
+        eq(stories.organisationId, secure.organisationId)
+      )
     )
     .limit(1)
 
@@ -43,7 +47,7 @@ export default defineEventHandler(async (event) => {
       title: data.title,
       content: {
         ...(currentStory?.content || {}),
-        ...(data?.content as object || {})
+        ...((data?.content as object) || {})
       },
       componentId: data.componentId,
       updatedAt: new Date()

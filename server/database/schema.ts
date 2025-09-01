@@ -189,8 +189,12 @@ export const languages = pgTable("languages", {
 export const siteLanguages = pgTable(
   "site_languages",
   {
-    siteId: uuid().notNull().references(() => sites.id),
-    languageCode: text().notNull().references(() => languages.code),
+    siteId: uuid()
+      .notNull()
+      .references(() => sites.id),
+    languageCode: text()
+      .notNull()
+      .references(() => languages.code),
     ...timestamps
   },
   (t) => [primaryKey({ columns: [t.siteId, t.languageCode] })]
