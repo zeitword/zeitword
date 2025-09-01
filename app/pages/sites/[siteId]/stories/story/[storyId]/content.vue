@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { LanguagesIcon, FileJsonIcon, FileWarningIcon, SparklesIcon, ArrowRightIcon } from "lucide-vue-next"
+import {
+  LanguagesIcon,
+  FileJsonIcon,
+  FileWarningIcon,
+  SparklesIcon,
+  ArrowRightIcon
+} from "lucide-vue-next"
 import { merge, set } from "lodash-es"
 import { LexoRank } from "lexorank"
 import { useMagicKeys, whenever } from "@vueuse/core"
@@ -357,23 +363,39 @@ async function autoTranslate() {
 </script>
 
 <template>
-  <DPageTitle v-if="story" :title="story.title" wide size="sm">
+  <DPageTitle
+    v-if="story"
+    :title="story.title"
+    wide
+    size="sm"
+  >
     <template #subtitle>
       <p class="text-copy-sm text-neutral-subtle">{{ story.slug }}</p>
     </template>
     <template #center>
       <Transition name="slide-fade-up">
-        <div v-if="hasChanges"
-          class="text-warn bg-warn-subtle border-warn text-copy flex h-9 min-w-lg items-center justify-between gap-3 rounded-xl border pr-1 pl-3">
+        <div
+          v-if="hasChanges"
+          class="text-warn bg-warn-subtle border-warn text-copy flex h-9 min-w-lg items-center justify-between gap-3 rounded-xl border pr-1 pl-3"
+        >
           <div class="flex items-center gap-1">
             <FileWarningIcon class="size-4" />
             <p>Unsaved story</p>
           </div>
           <div class="flex items-center gap-1">
-            <DButton variant="secondary" size="sm" @click="resetChanges">
+            <DButton
+              variant="secondary"
+              size="sm"
+              @click="resetChanges"
+            >
               Reset
             </DButton>
-            <DButton variant="primary" size="sm" @click="save" kbd="meta_s">
+            <DButton
+              variant="primary"
+              size="sm"
+              @click="save"
+              kbd="meta_s"
+            >
               Save
             </DButton>
           </div>
@@ -381,57 +403,128 @@ async function autoTranslate() {
       </Transition>
     </template>
     <div class="flex items-center gap-2">
-      <DButton v-if="site?.defaultLanguage !== selectedLanguage" :icon-left="LanguagesIcon"
-        @click="toggleTranslationModal" variant="secondary" />
-      <DSelect :model-value="selectedLanguage" :options="languageOptions"
-        @update:model-value="handleLanguageChange($event || '')" />
-      <DButton :icon-left="FileJsonIcon" @click="showJson = !showJson" :variant="showJson ? 'primary' : 'secondary'" />
-      <DButton :icon-left="SparklesIcon" @click="toggleAgentEditor" :variant="agentEditor ? 'primary' : 'secondary'" />
+      <DButton
+        v-if="site?.defaultLanguage !== selectedLanguage"
+        :icon-left="LanguagesIcon"
+        @click="toggleTranslationModal"
+        variant="secondary"
+      />
+      <DSelect
+        :model-value="selectedLanguage"
+        :options="languageOptions"
+        @update:model-value="handleLanguageChange($event || '')"
+      />
+      <DButton
+        :icon-left="FileJsonIcon"
+        @click="showJson = !showJson"
+        :variant="showJson ? 'primary' : 'secondary'"
+      />
+      <DButton
+        :icon-left="SparklesIcon"
+        @click="toggleAgentEditor"
+        :variant="agentEditor ? 'primary' : 'secondary'"
+      />
     </div>
   </DPageTitle>
-  <div v-if="story" class="flex min-h-0 flex-grow basis-2/3">
-    <div class="code-container flex-1 overflow-auto bg-white" v-if="renderPreview || showJson">
-      <DPreview v-if="shouldShowPreview && !showJson" :site-domain="site.domain" :story-slug="story.slug"
-        :content="previewContent" @ready="isPreviewReady = true" @componentClick="handleComponentClick" />
-      <div v-else="showJson" class="p-4">
+  <div
+    v-if="story"
+    class="flex min-h-0 flex-grow basis-2/3"
+  >
+    <div
+      class="code-container flex-1 overflow-auto bg-white"
+      v-if="renderPreview || showJson"
+    >
+      <DPreview
+        v-if="shouldShowPreview && !showJson"
+        :site-domain="site.domain"
+        :story-slug="story.slug"
+        :content="previewContent"
+        @ready="isPreviewReady = true"
+        @componentClick="handleComponentClick"
+      />
+      <div
+        v-else="showJson"
+        class="p-4"
+      >
         <pre
-          class="bg-neutral text-neutral border-neutral overflow-x-auto rounded-lg border p-4 break-all whitespace-pre-wrap">
-        {{ content }}</pre>
+          class="bg-neutral text-neutral border-neutral overflow-x-auto rounded-lg border p-4 break-all whitespace-pre-wrap"
+        >
+        {{ content }}</pre
+        >
       </div>
     </div>
 
-    <div class="border-neutral bg-neutral flex flex-1 flex-col gap-2 overflow-auto border-l p-5"
-      :class="!renderPreview && !showJson ? 'w-full' : 'max-w-[500px]'">
+    <div
+      class="border-neutral bg-neutral flex flex-1 flex-col gap-2 overflow-auto border-l p-5"
+      :class="!renderPreview && !showJson ? 'w-full' : 'max-w-[500px]'"
+    >
       <div class="mx-auto flex w-full max-w-4xl flex-col gap-2">
-        <template v-for="field in sortedFields" :key="field.fieldKey">
-          <DField :field="field" :value="content[selectedLanguage]?.[field.fieldKey]"
-            :target-block-id="targetBlockId || undefined" :current-language="selectedLanguage"
+        <template
+          v-for="field in sortedFields"
+          :key="field.fieldKey"
+        >
+          <DField
+            :field="field"
+            :value="content[selectedLanguage]?.[field.fieldKey]"
+            :target-block-id="targetBlockId || undefined"
+            :current-language="selectedLanguage"
             :default-language="story.defaultLanguage"
             :default-language-value="content[story.defaultLanguage]?.[field.fieldKey]"
             @update:value="updateNestedField([selectedLanguage, field.fieldKey], $event)"
-            @delete-block="(idToDelete) => openDeleteModal(idToDelete)" />
+            @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
+          />
         </template>
       </div>
     </div>
 
-    <div v-if="agentEditor" name="agent-editor"
-      class="border-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l">
-      <d-agent-editor :language="selectedLanguage" :site-id="siteId as string" :story-id="storyId as string"
-        :content="content" :sorted-fields="sortedFields" @updateNestedField="updateNestedFieldRefined"
-        @addBlock="addBlock" />
+    <div
+      v-if="agentEditor"
+      name="agent-editor"
+      class="border-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l"
+    >
+      <d-agent-editor
+        :language="selectedLanguage"
+        :site-id="siteId as string"
+        :story-id="storyId as string"
+        :content="content"
+        :sorted-fields="sortedFields"
+        @updateNestedField="updateNestedFieldRefined"
+        @addBlock="addBlock"
+      />
     </div>
   </div>
 
-  <DModal :open="isDeleteModalOpen" title="Delete Block" description="Do you really want to delete this block?"
-    confirm-text="Delete" danger @close="isDeleteModalOpen = false" @confirm="deleteBlock"></DModal>
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Block"
+    description="Do you really want to delete this block?"
+    confirm-text="Delete"
+    danger
+    @close="isDeleteModalOpen = false"
+    @confirm="deleteBlock"
+  ></DModal>
 
-  <DModal :open="isTranslationModalOpen" :loading="isTranslating" title="Auto Translate"
-    description="Use AI to translate this story:" confirm-text="Translate" @close="isTranslationModalOpen = false"
-    @confirm="autoTranslate">
-    <div class="flex gap-4 justify-center items-center">
-      <DSelect :model-value="site?.defaultLanguage" :disabled="true" :options="languageOptions" />
+  <DModal
+    :open="isTranslationModalOpen"
+    :loading="isTranslating"
+    title="Auto Translate"
+    description="Use AI to translate this story:"
+    confirm-text="Translate"
+    @close="isTranslationModalOpen = false"
+    @confirm="autoTranslate"
+  >
+    <div class="flex items-center justify-center gap-4">
+      <DSelect
+        :model-value="site?.defaultLanguage"
+        :disabled="true"
+        :options="languageOptions"
+      />
       <ArrowRightIcon class="size-4 text-neutral-50" />
-      <DSelect :model-value="selectedLanguage" :disabled="true" :options="languageOptions" />
+      <DSelect
+        :model-value="selectedLanguage"
+        :disabled="true"
+        :options="languageOptions"
+      />
     </div>
   </DModal>
 </template>
