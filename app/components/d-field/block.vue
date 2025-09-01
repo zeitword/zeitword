@@ -70,41 +70,80 @@ watch(
 
 <template>
   <div>
-    <div class="bg-neutral flex w-full flex-col" v-if="block" ref="blockRef"
-      :class="{ 'ring-primary ring-2': isTargeted }">
+    <div
+      class="bg-neutral flex w-full flex-col"
+      v-if="block"
+      ref="blockRef"
+      :class="{ 'ring-primary ring-2': isTargeted }"
+    >
       <div class="group flex w-full items-center gap-2 px-2 py-2 perspective-normal">
         <slot name="controls" />
-        <button class="flex flex-1 items-center gap-2 text-left" @click="isBlockOpen = !isBlockOpen">
+        <button
+          class="flex flex-1 items-center gap-2 text-left"
+          @click="isBlockOpen = !isBlockOpen"
+        >
           <div class="grid size-7 place-items-center rounded-md transition">
-            <ChevronDownIcon class="size-4 transition" :class="[isBlockOpen ? 'rotate-180' : '']" />
+            <ChevronDownIcon
+              class="size-4 transition"
+              :class="[isBlockOpen ? 'rotate-180' : '']"
+            />
           </div>
           <div
-            class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none group-active:scale-98">
+            class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none group-active:scale-98"
+          >
             <div class="text-nowrap">{{ block.displayName }}</div>
             <div class="text-neutral-subtle line-clamp-1">
               {{ blockContent.content[block.previewField] }}
             </div>
           </div>
         </button>
-        <div class="scale-50 opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100">
-          <DButton variant="secondary" size="sm" :icon-left="Trash2Icon" @click="deleteBlock"></DButton>
+        <div
+          class="scale-50 opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100"
+        >
+          <DButton
+            variant="secondary"
+            size="sm"
+            :icon-left="Trash2Icon"
+            @click="deleteBlock"
+          ></DButton>
         </div>
       </div>
-      <div class="grid overflow-hidden transition-[grid-template-rows]"
-        :class="isBlockOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+      <div
+        class="grid overflow-hidden transition-[grid-template-rows]"
+        :class="isBlockOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+      >
         <div class="min-h-0 min-w-0">
           <div class="bg-neutral border-neutral flex flex-col gap-2 border-t p-2">
-            <template v-if="block.fields.length > 0" v-for="field in sortedNestedFields" :key="field.id">
-              <DField :field="field" :path="[...path, 'content', field.fieldKey]"
+            <template
+              v-if="block.fields.length > 0"
+              v-for="field in sortedNestedFields"
+              :key="field.id"
+            >
+              <DField
+                :field="field"
+                :path="[...path, 'content', field.fieldKey]"
                 :value="blockContent.content ? blockContent.content[field.fieldKey] : undefined"
-                :current-language="currentLanguage" :default-language="defaultLanguage" :default-language-value="defaultLanguageValue?.content
+                :current-language="currentLanguage"
+                :default-language="defaultLanguage"
+                :default-language-value="
+                  defaultLanguageValue?.content
                     ? defaultLanguageValue.content[field.fieldKey]
                     : undefined
-                  " @update:value="updateNestedBlockField(field.fieldKey, $event)"
-                @delete-block="(nestedPath) => $emit('delete-block', nestedPath)" />
+                "
+                @update:value="updateNestedBlockField(field.fieldKey, $event)"
+                @delete-block="(nestedPath) => $emit('delete-block', nestedPath)"
+              />
             </template>
-            <DEmpty v-else title="No fields available" description="Add fields to the component">
-              <DButton variant="secondary" size="sm" :to="`/sites/${siteId}/components/${block.id}`">
+            <DEmpty
+              v-else
+              title="No fields available"
+              description="Add fields to the component"
+            >
+              <DButton
+                variant="secondary"
+                size="sm"
+                :to="`/sites/${siteId}/components/${block.id}`"
+              >
                 Edit component
               </DButton>
             </DEmpty>
