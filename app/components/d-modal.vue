@@ -12,13 +12,14 @@ import { X } from "lucide-vue-next"
 
 type Props = {
   open: boolean
+  loading?: boolean
   title: string
   description?: string
   confirmText?: string
   danger?: boolean
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
 }
-const { open, title, description, size = "md" } = defineProps<Props>()
+const { open, loading = false, title, description, size = "md" } = defineProps<Props>()
 
 const sizeClasses: { [key: string]: string } = {
   xs: "max-w-xs",
@@ -44,70 +45,42 @@ function confirm() {
 </script>
 
 <template>
-  <DialogRoot
-    :open="open"
-    @update:open="close"
-  >
+  <DialogRoot :open="open" @update:open="close">
     <DialogPortal>
       <!-- Conditionally render the overlay and content -->
-      <div
-        v-if="open"
-        class="fixed inset-0 z-50 flex justify-center overflow-y-auto pt-30"
-      >
+      <div v-if="open" class="fixed inset-0 z-50 flex justify-center overflow-y-auto pt-30">
         <DialogOverlay
-          class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 fixed inset-0 z-10 backdrop-blur-xs"
-        />
+          class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 fixed inset-0 z-10 backdrop-blur-xs" />
         <DialogContent
           class="data-[state=open]:animate-contentShow bg-neutral relative z-20 flex h-fit w-full flex-col rounded-lg shadow-lg outline-none"
-          :class="[sizeClasses[size], 'max-h-[80vh]']"
-        >
+          :class="[sizeClasses[size], 'max-h-[80vh]']">
           <!-- Header -->
           <div class="border-neutral flex items-center justify-between border-b p-5">
             <div>
               <DialogTitle class="text-neutral text-lg font-semibold">
                 {{ title }}
               </DialogTitle>
-              <DialogDescription
-                v-if="description"
-                class="text-neutral"
-              >
+              <DialogDescription v-if="description" class="text-neutral">
                 {{ description }}
               </DialogDescription>
             </div>
             <DialogClose as-child>
-              <DButton
-                variant="transparent"
-                size="sm"
-                :icon-left="X"
-              />
+              <DButton variant="transparent" size="sm" :icon-left="X" />
             </DialogClose>
           </div>
 
           <!-- Scrollable Content Area -->
-          <div
-            v-if="$slots.default"
-            class="flex-1 overflow-y-auto p-5"
-          >
+          <div v-if="$slots.default" class="flex-1 overflow-y-auto p-5">
             <slot />
           </div>
 
           <!-- Footer -->
-          <div
-            class="border-neutral p-4"
-            :class="[$slots.default ? 'border-t' : '']"
-          >
+          <div class="border-neutral p-4" :class="[$slots.default ? 'border-t' : '']">
             <div class="flex justify-end space-x-2">
-              <DButton
-                variant="secondary"
-                @click="close"
-              >
+              <DButton variant="secondary" @click="close">
                 Cancel
               </DButton>
-              <DButton
-                v-if="confirmText"
-                :variant="danger ? 'danger' : 'primary'"
-                @click="confirm"
-              >
+              <DButton v-if="confirmText" :variant="danger ? 'danger' : 'primary'" :loading="loading" @click="confirm">
                 {{ confirmText }}
               </DButton>
             </div>
