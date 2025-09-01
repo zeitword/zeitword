@@ -77,110 +77,55 @@ function toUpperCase(str: string) {
 </script>
 
 <template>
-  <div
-    class="bg-neutral flex w-full flex-col"
-    ref="dropZoneRef"
-    v-bind="$attrs"
-  >
+  <div class="bg-neutral flex w-full flex-col" ref="dropZoneRef" v-bind="$attrs">
     <div class="flex w-full items-center gap-2 px-2 py-2">
       <slot name="controls" />
-      <button
-        class="group flex flex-1 items-center gap-2 text-left"
-        @click="isDetailsOpen = !isDetailsOpen"
-      >
+      <button class="group flex flex-1 items-center gap-2 text-left" @click="isDetailsOpen = !isDetailsOpen">
         <div class="grid size-7 place-items-center rounded-md transition">
-          <ChevronDownIcon
-            class="size-4 transition"
-            :class="[isDetailsOpen ? 'rotate-180' : '']"
-          />
+          <ChevronDownIcon class="size-4 transition" :class="[isDetailsOpen ? 'rotate-180' : '']" />
         </div>
         <div
-          class="bg-neutral-subtle border-neutral grid size-10 place-items-center overflow-hidden rounded-md border p-0.5 transition"
-        >
-          <NuxtImg
-            v-if="props.asset.type === 'image'"
-            width="80"
-            height="80"
-            :src="props.asset.src"
-            :alt="props.asset.alt || 'Image'"
-            class="bg-neutral-subtle block rounded-sm"
-          />
-          <component
-            v-else
-            class="text-neutral-subtle size-5"
-            :is="fileIcon"
-          />
+          class="bg-neutral-subtle border-neutral grid size-10 place-items-center overflow-hidden rounded-md border p-0.5 transition">
+          <NuxtImg v-if="props.asset.type === 'image'" width="80" height="80" :src="props.asset.src"
+            :alt="props.asset.alt || 'Image'" class="bg-neutral-subtle block rounded-sm" />
+          <component v-else class="text-neutral-subtle size-5" :is="fileIcon" />
         </div>
         <div
-          class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none active:scale-98"
-        >
+          class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none active:scale-98">
           <div class="text-nowrap">{{ toUpperCase(props.asset.type) ?? "Asset" }}</div>
         </div>
       </button>
       <div class="flex gap-1">
-        <DButton
-          variant="secondary"
-          size="sm"
-          @click="$emit('changeAsset', asset)"
-          :icon-left="ReplaceIcon"
-        />
-        <DButton
-          variant="secondary"
-          size="sm"
-          @click="$emit('clearAsset')"
-          :icon-left="Trash2Icon"
-        />
+        <DButton variant="secondary" size="sm" @click="$emit('changeAsset', asset)" :icon-left="ReplaceIcon" />
+        <DButton variant="secondary" size="sm" @click="$emit('clearAsset')" :icon-left="Trash2Icon" />
       </div>
     </div>
 
-    <div
-      class="grid overflow-hidden transition-[grid-template-rows]"
-      :class="isDetailsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
-    >
-      <div class="min-h-0">
+    <div class="grid overflow-hidden transition-[grid-template-rows]"
+      :class="isDetailsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+      <div class="min-h-0 min-w-0">
         <div class="bg-neutral border-neutral flex flex-col gap-2 border-t p-2">
-          <div
-            class="group border-neutral relative w-full flex-1 overflow-hidden rounded-lg"
-            :class="[borderless ? '' : 'border']"
-          >
-            <NuxtImg
-              v-if="props.asset.type === 'image'"
-              width="500"
-              height="500"
-              :src="props.asset.src"
-              :alt="props.asset.alt || 'Image'"
-              class="bg-neutral-subtle block h-full max-h-40 w-full object-contain"
-            />
-            <div
-              v-else
-              class="bg-neutral-subtle flex h-full items-center p-5"
-            >
+          <div class="group border-neutral relative w-full flex-1 overflow-hidden rounded-lg"
+            :class="[borderless ? '' : 'border']">
+            <NuxtImg v-if="props.asset.type === 'image'" width="500" height="500" :src="props.asset.src"
+              :alt="props.asset.alt || 'Image'" class="bg-neutral-subtle block h-full max-h-40 w-full object-contain" />
+            <div v-else class="bg-neutral-subtle flex h-full items-center p-5">
               <div class="bg-neutral-strong grid size-8 min-w-8 place-items-center rounded-lg">
-                <component
-                  :is="fileIcon"
-                  class="text-neutral-subtle size-4"
-                />
+                <component :is="fileIcon" class="text-neutral-subtle size-4" />
               </div>
               <span class="text-neutral-subtle ml-2 text-sm">
                 {{ toUpperCase(props.asset.type) }}: {{ props.asset.id }}
               </span>
             </div>
-            <div
-              v-if="isDragging"
-              class="bg-neutral/80 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl"
-            >
+            <div v-if="isDragging"
+              class="bg-neutral/80 pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-xl">
               <div class="text-center">
                 <UploadCloudIcon class="text-neutral-subtle mx-auto mb-2 size-5" />
                 <p class="text-copy-sm">Drop to replace</p>
               </div>
             </div>
           </div>
-          <DInput
-            v-model="altText"
-            label="Alt Text"
-            @update:modelValue="emit('updateAlt', altText)"
-            leading="alt"
-          />
+          <DInput v-model="altText" label="Alt Text" @update:modelValue="emit('updateAlt', altText)" leading="alt" />
         </div>
       </div>
     </div>
