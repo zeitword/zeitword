@@ -10,7 +10,7 @@ const { data: site, refresh } = await useFetch(`/api/sites/${siteId.value}`)
 const { data: me } = await useFetch(`/api/me`)
 const { data: availableLanguages } = await useFetch("/api/languages")
 const { data: apiKeys, refresh: refreshApiKeys } = await useFetch(
-  `/api/sites/${siteId.value}/apiKeys`
+  `/api/sites/${siteId.value}/api-keys`
 )
 
 const showDeleteModal = ref(false)
@@ -136,7 +136,7 @@ function onCopyApiKey() {
 
 async function createApiKey() {
   try {
-    const apiKey = await $fetch(`/api/sites/${siteId.value}/apiKeys`, {
+    const apiKey = await $fetch(`/api/sites/${siteId.value}/api-keys`, {
       method: "POST",
       body: {
         name: apiKeyName.value
@@ -156,7 +156,7 @@ async function createApiKey() {
 
 async function deleteApiKey(apiKeyId: string) {
   try {
-    await $fetch(`/api/sites/${siteId.value}/apiKeys`, {
+    await $fetch(`/api/sites/${siteId.value}/api-keys`, {
       method: "DELETE",
       body: {
         id: apiKeyId
