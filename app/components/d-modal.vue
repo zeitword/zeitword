@@ -12,13 +12,14 @@ import { X } from "lucide-vue-next"
 
 type Props = {
   open: boolean
+  loading?: boolean
   title: string
   description?: string
   confirmText?: string
   danger?: boolean
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
 }
-const { open, title, description, size = "md" } = defineProps<Props>()
+const { open, loading = false, title, description, size = "md" } = defineProps<Props>()
 
 const sizeClasses: { [key: string]: string } = {
   xs: "max-w-xs",
@@ -106,6 +107,7 @@ function confirm() {
               <DButton
                 v-if="confirmText"
                 :variant="danger ? 'danger' : 'primary'"
+                :loading="loading"
                 @click="confirm"
               >
                 {{ confirmText }}

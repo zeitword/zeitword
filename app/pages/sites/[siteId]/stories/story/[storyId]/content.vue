@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { ArrowUpIcon, FileJsonIcon, FileWarningIcon, SparklesIcon } from "lucide-vue-next"
+import {
+  LanguagesIcon,
+  FileJsonIcon,
+  FileWarningIcon,
+  SparklesIcon,
+  ArrowRightIcon
+} from "lucide-vue-next"
 import { merge, set } from "lodash-es"
 import { LexoRank } from "lexorank"
 import { useMagicKeys, whenever } from "@vueuse/core"
@@ -331,6 +337,35 @@ const agentEditor = useSessionStorage("agentEditor", false)
 function toggleAgentEditor() {
   agentEditor.value = !agentEditor.value
 }
+
+const isTranslationModalOpen = ref(false)
+const isTranslating = ref(false)
+function toggleTranslationModal() {
+  isTranslationModalOpen.value = !isTranslationModalOpen.value
+}
+
+async function autoTranslate() {
+  isTranslating.value = true
+
+  try {
+    const response = await $fetch(`/api/ai/translate`, {
+      method: "POST",
+      body: {
+        storyId: storyId.value,
+        fromLanguage: site.value?.defaultLanguage,
+        toLanguage: selectedLanguage.value
+      }
+    })
+
+    content.value = response
+  } catch (error) {
+    console.error("Error translating story:", error)
+    toast.error({ description: "Error translating story" })
+  }
+
+  isTranslating.value = false
+  isTranslationModalOpen.value = false
+}
 </script>
 
 <template>
@@ -374,6 +409,12 @@ function toggleAgentEditor() {
       </Transition>
     </template>
     <div class="flex items-center gap-2">
+      <DButton
+        v-if="site?.defaultLanguage !== selectedLanguage"
+        :icon-left="LanguagesIcon"
+        @click="toggleTranslationModal"
+        variant="secondary"
+      />
       <DSelect
         :model-value="selectedLanguage"
         :options="languageOptions"
@@ -458,6 +499,7 @@ function toggleAgentEditor() {
       />
     </div>
   </div>
+
   <DModal
     :open="isDeleteModalOpen"
     title="Delete Block"
@@ -467,6 +509,30 @@ function toggleAgentEditor() {
     @close="isDeleteModalOpen = false"
     @confirm="deleteBlock"
   ></DModal>
+
+  <DModal
+    :open="isTranslationModalOpen"
+    :loading="isTranslating"
+    title="Auto Translate"
+    description="Use AI to translate this story:"
+    confirm-text="Translate"
+    @close="isTranslationModalOpen = false"
+    @confirm="autoTranslate"
+  >
+    <div class="flex items-center justify-center gap-4">
+      <DSelect
+        :model-value="site?.defaultLanguage"
+        :disabled="true"
+        :options="languageOptions"
+      />
+      <ArrowRightIcon class="size-4 text-neutral-50" />
+      <DSelect
+        :model-value="selectedLanguage"
+        :disabled="true"
+        :options="languageOptions"
+      />
+    </div>
+  </DModal>
 </template>
 
 <style scoped>
