@@ -32,8 +32,9 @@ export default defineEventHandler(async (event) => {
     .limit(1)
   if (!story) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
-  if (!story.componentId)
+  if (!story.componentId) {
     throw createError({ statusCode: 404, statusMessage: "Component not found" })
+  }
 
   const content = story.content as Record<string, any>
 
@@ -58,8 +59,9 @@ export default defineEventHandler(async (event) => {
     organisationId: secure.organisationId
   })
 
-  if (!translatedStory)
+  if (!translatedStory) {
     throw createError({ statusCode: 500, statusMessage: "Failed to translate story" })
+  }
 
   // Use fromLanguage as base to merge the translated fields into
   let result = JSON.parse(JSON.stringify(content[fromLanguage]))
