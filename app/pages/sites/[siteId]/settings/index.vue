@@ -129,7 +129,7 @@ const apiKeyName = ref("")
 const apiKeySecret = ref("")
 const { copy } = useClipboard()
 
-const onCopyApiKey = () => {
+function onCopyApiKey() {
   copy(apiKeySecret.value)
   toast.success({ description: "API key copied to clipboard" })
 }

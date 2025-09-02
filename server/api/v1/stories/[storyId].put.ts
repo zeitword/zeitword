@@ -32,6 +32,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Validate request body
+  const schemaData = await readValidatedBody(
+    event,
+    updateStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse
+  )
+
   const [story] = await useDrizzle()
     .select()
     .from(stories)
@@ -58,11 +64,6 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Validate request body
-  const schemaData = await readValidatedBody(
-    event,
-    updateStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse
-  )
   const schema = await getValidationSchemaForComponent(
     story.componentId,
     schemaData.content,
