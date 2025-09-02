@@ -43,7 +43,7 @@ export default defineLazyEventHandler(async () => {
   })
 })
 
-async function trackUsage({
+export async function trackUsage({
   usage,
   userId,
   modelId,
