@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { LucideKey } from "lucide-vue-next"
+
 definePageMeta({
   layout: "site"
 })
@@ -7,6 +9,9 @@ const siteId = useRouteParams("siteId")
 const { data: site, refresh } = await useFetch(`/api/sites/${siteId.value}`)
 const { data: me } = await useFetch(`/api/me`)
 const { data: availableLanguages } = await useFetch("/api/languages")
+const { data: apiKeys, refresh: refreshApiKeys } = await useFetch(
+  `/api/sites/${siteId.value}/api-keys`
+)
 
 const showDeleteModal = ref(false)
 const showAddLanguageModal = ref(false)
@@ -117,6 +122,53 @@ async function deleteLanguage(languageId: string) {
     console.error(error)
   }
 }
+
+const showAddApiKeyModal = ref(false)
+const showApiKeySuccessModal = ref(false)
+const apiKeyName = ref("")
+const apiKeySecret = ref("")
+const { copy } = useClipboard()
+
+function onCopyApiKey() {
+  copy(apiKeySecret.value)
+  toast.success({ description: "API key copied to clipboard" })
+}
+
+async function createApiKey() {
+  try {
+    const apiKey = await $fetch(`/api/sites/${siteId.value}/api-keys`, {
+      method: "POST",
+      body: {
+        name: apiKeyName.value
+      }
+    })
+    apiKeySecret.value = apiKey.key
+    showApiKeySuccessModal.value = true
+    refreshApiKeys()
+    toast.success({ description: "API key created successfully" })
+  } catch (error: any) {
+    toast.error({ description: "Error creating API key" })
+    console.error(error)
+  }
+
+  showAddApiKeyModal.value = false
+}
+
+async function deleteApiKey(apiKeyId: string) {
+  try {
+    await $fetch(`/api/sites/${siteId.value}/api-keys`, {
+      method: "DELETE",
+      body: {
+        id: apiKeyId
+      }
+    })
+    refreshApiKeys()
+    toast.success({ description: "API key deleted successfully" })
+  } catch (error: any) {
+    toast.error({ description: "Error deleting API key" })
+    console.error(error)
+  }
+}
 </script>
 
 <template>
@@ -222,6 +274,47 @@ async function deleteLanguage(languageId: string) {
           </DButton>
         </d-settings-row>
       </d-settings-container>
+
+      <d-settings-container>
+        <d-settings-row
+          title="API Keys"
+          subtitle="Manage the API keys for your site"
+        >
+          <div class="flex w-full flex-col gap-4">
+            <div class="flex items-center justify-end">
+              <DButton
+                @click="showAddApiKeyModal = true"
+                variant="secondary"
+              >
+                Add API Key
+              </DButton>
+            </div>
+            <DList v-if="apiKeys && apiKeys.length > 0">
+              <DListItem
+                v-for="apiKey in apiKeys"
+                :key="apiKey.id"
+                class="flex items-center justify-between"
+              >
+                <div>
+                  <div class="flex items-center gap-1 font-medium">
+                    <p class="text-copy">{{ apiKey.name }}</p>
+                  </div>
+                  <div class="text-sm text-gray-500">ID: {{ apiKey.id }}</div>
+                </div>
+                <div class="flex gap-2">
+                  <DButton
+                    variant="secondary"
+                    size="sm"
+                    @click="deleteApiKey(apiKey.id)"
+                  >
+                    Remove
+                  </DButton>
+                </div>
+              </DListItem>
+            </DList>
+          </div>
+        </d-settings-row>
+      </d-settings-container>
     </div>
 
     <DModal
@@ -255,6 +348,60 @@ async function deleteLanguage(languageId: string) {
             :options="filteredLanguages"
             placeholder="Search for a language..."
           />
+        </DFormGroup>
+      </div>
+    </DModal>
+
+    <DModal
+      :open="showAddApiKeyModal"
+      title="Add API Key"
+      confirm-text="Create"
+      @close="showAddApiKeyModal = false"
+      @confirm="createApiKey"
+    >
+      <div class="flex flex-col gap-4">
+        <DFormGroup>
+          <DLabel>Name</DLabel>
+          <DInput
+            v-model="apiKeyName"
+            placeholder="Enter a name for the API key"
+          />
+        </DFormGroup>
+      </div>
+    </DModal>
+
+    <DModal
+      :open="showApiKeySuccessModal"
+      title="Your API Key"
+      @close="showApiKeySuccessModal = false"
+      @confirm="showApiKeySuccessModal = false"
+    >
+      <div class="flex flex-col gap-4">
+        <DFormGroup>
+          <DLabel>API Key</DLabel>
+          <p class="text-sm text-gray-500">
+            This is your API key. Please copy it and keep it safe. You will not be able to access it
+            again.
+          </p>
+          <DInput
+            v-if="apiKeySecret"
+            v-model="apiKeySecret"
+            disabled
+            class="mt-2"
+          >
+            <template #leading>
+              <LucideKey class="h-4 w-4" />
+            </template>
+            <template #trailing>
+              <DButton
+                variant="transparent"
+                size="sm"
+                @click="onCopyApiKey"
+              >
+                Copy
+              </DButton>
+            </template>
+          </DInput>
         </DFormGroup>
       </div>
     </DModal>

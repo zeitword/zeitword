@@ -28,12 +28,27 @@ export default defineEventHandler(async (event) => {
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
+  const [currentStory] = await useDrizzle()
+    .select()
+    .from(stories)
+    .where(
+      and(
+        eq(stories.id, storyId),
+        eq(stories.siteId, siteId),
+        eq(stories.organisationId, secure.organisationId)
+      )
+    )
+    .limit(1)
+
   const [story] = await useDrizzle()
     .update(stories)
     .set({
       slug: data.slug,
       title: data.title,
-      content: data.content,
+      content: {
+        ...(currentStory?.content || {}),
+        ...((data?.content as object) || {})
+      },
       componentId: data.componentId,
       updatedAt: new Date()
     })
