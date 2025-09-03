@@ -112,7 +112,7 @@ watch(
         class="grid overflow-hidden transition-[grid-template-rows]"
         :class="isBlockOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
       >
-        <div class="min-h-0">
+        <div class="min-h-0 min-w-0">
           <div class="bg-neutral border-neutral flex flex-col gap-2 border-t p-2">
             <template
               v-if="block.fields.length > 0"

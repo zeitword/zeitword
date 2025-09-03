@@ -41,7 +41,6 @@ if (error.value) {
 const content = ref(JSON.parse(JSON.stringify(story.value?.content || {})))
 const contentOriginal = ref(JSON.parse(JSON.stringify(content.value)))
 
-// TODO: ask Tom why the entent needs to be stringified and parsed again
 watch(story, (updated) => {
   content.value = JSON.parse(JSON.stringify(updated?.content || {}))
   contentOriginal.value = JSON.parse(JSON.stringify(content.value))
@@ -300,7 +299,7 @@ function handleComponentClick(component: ComponentPayload) {
 }
 
 function resetChanges() {
-  content.value = JSON.parse(JSON.stringify(originalContent.value))
+  content.value = JSON.parse(JSON.stringify(contentOriginal.value))
   hasChanges.value = false
 }
 
