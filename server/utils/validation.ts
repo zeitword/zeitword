@@ -1,7 +1,14 @@
 import { and, eq, inArray } from "drizzle-orm"
 import { z } from "zod"
-import type { DField } from "~~/app/types/models"
 import { componentFields, components } from "~~/server/database/schema"
+
+// Types for data structures
+type BlockData = {
+  componentId: string
+  content: Record<string, unknown>
+}
+
+type ComponentData = Record<string, unknown>
 
 const assetSchema = z.object({
   id: z.uuid().optional(),
@@ -18,16 +25,15 @@ const linkSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: linkType.extract(["internal"]),
-    storyId: z.uuid().optional()
+    storyId: z.string().uuid().optional()
   })
 ])
 
-async function getValidationSchemaForField(
-  field: DField,
-  data: unknown,
-  organisationId: string,
-  siteId: string
-): Promise<z.ZodTypeAny> {
+function buildValidationSchemaForField(
+  field: ComponentDefinition,
+  componentData: ComponentData,
+  componentDefinitions: ComponentDefinitions
+): z.ZodTypeAny {
   switch (field.type) {
     case "assets":
       return z.array(assetSchema)
@@ -45,50 +51,41 @@ async function getValidationSchemaForField(
       const schemas = []
 
       try {
-        if (Array.isArray(data)) {
-          const blocks = data as { componentId: string; content: any }[]
-
-          const blockDefinitions = await useDrizzle()
-            .select({ name: components.name, id: components.id })
-            .from(components)
-            .where(
-              and(
-                inArray(
-                  components.id,
-                  blocks.map((b) => b.componentId)
-                ),
-                eq(components.organisationId, organisationId),
-                eq(components.siteId, siteId)
-              )
-            )
-
+        if (Array.isArray(componentData)) {
+          const blocks = componentData as BlockData[]
           const allowedBlockNames = (field.componentWhitelist || []) as string[]
 
-          for (const component of blocks) {
+          for (const block of blocks) {
+            const blockDefinition = componentDefinitions.find(
+              (c) => c.componentId === block.componentId
+            )
+            const isAllowed = allowedBlockNames.includes(
+              blockDefinition?.componentName.toLowerCase() || ""
+            )
+
             schemas.push(
               z.object({
                 id: z.uuid(),
                 componentId: z.uuid().refine(
-                  (id) => {
-                    const block = blockDefinitions.find((b) => b.id === id)
-                    const isAllowed = allowedBlockNames.includes(block?.name.toLowerCase() || "")
-                    return block && isAllowed
+                  (id: string) => {
+                    return blockDefinition && isAllowed
                   },
                   {
-                    message: `Invalid component ID: ${component.componentId}, types must be in whitelist`
+                    message: `Invalid component ID: ${block.componentId}, types must be in whitelist`
                   }
                 ),
-                content: await getValidationSchemaForComponent(
-                  component.componentId,
-                  component.content,
-                  organisationId,
-                  siteId
+                content: buildValidationSchemaForComponent(
+                  block.componentId,
+                  block.content,
+                  componentDefinitions
                 )
               })
             )
           }
         }
-      } catch (error) {}
+      } catch (error) {
+        // Silently handle errors and return fallback schema
+      }
 
       return schemas.length > 0
         ? z.array(z.union(schemas as any))
@@ -104,32 +101,23 @@ async function getValidationSchemaForField(
   }
 }
 
-export async function getValidationSchemaForComponent(
+function buildValidationSchemaForComponent(
   componentId: string,
-  data: { [key: string]: unknown },
-  organisationId: string,
-  siteId: string
-): Promise<z.ZodTypeAny> {
+  componentData: ComponentData,
+  componentDefinitions: ComponentDefinitions
+): z.ZodTypeAny {
   let schema = z.object({})
 
   try {
-    const fields = await useDrizzle()
-      .select()
-      .from(componentFields)
-      .where(
-        and(
-          eq(componentFields.componentId, componentId),
-          eq(componentFields.organisationId, organisationId),
-          eq(componentFields.siteId, siteId)
-        )
-      )
+    const fields = componentDefinitions.filter((c) => c.componentId === componentId) || []
 
     for (const field of fields) {
-      const fieldSchema = await getValidationSchemaForField(
+      if (!field.fieldKey) continue
+
+      const fieldSchema = buildValidationSchemaForField(
         field,
-        data[field.fieldKey],
-        organisationId,
-        siteId
+        componentData[field.fieldKey] as ComponentData,
+        componentDefinitions
       )
 
       schema = schema.extend({
@@ -139,4 +127,74 @@ export async function getValidationSchemaForComponent(
   } catch (error) {}
 
   return schema
+}
+
+/**
+ * Recursively collects all component IDs from nested data structures
+ */
+function collectComponentIds(data: unknown, componentIds: Set<string>): void {
+  if (Array.isArray(data)) {
+    data.forEach((item) => {
+      if (item && typeof item === "object") {
+        if ("componentId" in item && typeof item.componentId === "string") {
+          componentIds.add(item.componentId)
+        }
+        collectComponentIds(item, componentIds)
+      }
+    })
+  } else if (data && typeof data === "object") {
+    Object.values(data).forEach((value) => collectComponentIds(value, componentIds))
+  }
+}
+
+type ComponentDefinitions = Awaited<ReturnType<typeof getComponentDefinitions>>
+type ComponentDefinition = ComponentDefinitions[number]
+async function getComponentDefinitions(
+  componentIds: string[],
+  organisationId: string,
+  siteId: string
+) {
+  return await useDrizzle()
+    .select({
+      componentId: components.id,
+      componentName: components.name,
+      fieldKey: componentFields.fieldKey,
+      type: componentFields.type,
+      required: componentFields.required,
+      componentWhitelist: componentFields.componentWhitelist
+    })
+    .from(components)
+    .leftJoin(
+      componentFields,
+      and(
+        eq(components.id, componentFields.componentId),
+        eq(componentFields.organisationId, organisationId),
+        eq(componentFields.siteId, siteId)
+      )
+    )
+    .where(
+      and(
+        inArray(components.id, Array.from(componentIds)),
+        eq(components.organisationId, organisationId),
+        eq(components.siteId, siteId)
+      )
+    )
+}
+
+export async function getValidationSchemaForComponent(
+  componentId: string,
+  data: ComponentData,
+  organisationId: string,
+  siteId: string
+): Promise<z.ZodTypeAny> {
+  const componentIds = new Set<string>([componentId])
+  collectComponentIds(data, componentIds)
+
+  const componentDefinitions = await getComponentDefinitions(
+    Array.from(componentIds),
+    organisationId,
+    siteId
+  )
+
+  return buildValidationSchemaForComponent(componentId, data, componentDefinitions)
 }
