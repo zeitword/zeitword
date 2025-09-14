@@ -6,7 +6,7 @@ import {
   storyTypeEnum,
   sites
 } from "~~/server/database/schema"
-import { eq, and } from "drizzle-orm"
+import { eq, and, inArray } from "drizzle-orm"
 import { mergeWithFallback } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
@@ -23,12 +23,32 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    return await getStoryContent({
+    const story = await getStoryContent({
       siteId,
       storyId,
       selectedLang,
       organisationId: secure.organisationId
     })
+
+    const slugParts = story.slug.split("/")
+    const parentSlugs = slugParts
+      .slice(0, -1)
+      .map((_, index) => slugParts.slice(0, index + 1).join("/"))
+
+    const parentStories = await useDrizzle()
+      .select({
+        id: stories.id,
+        slug: stories.slug,
+        title: stories.title
+      })
+      .from(stories)
+      .where(inArray(stories.slug, parentSlugs))
+      .limit(parentSlugs.length)
+
+    return {
+      ...story,
+      parents: parentStories
+    }
   } catch (error) {
     console.error(error)
     throw createError({ statusCode: 500, statusMessage: "Internal Server Error" })
