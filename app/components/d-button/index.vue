@@ -69,22 +69,41 @@ const sizeClass = computed(() => {
 </script>
 
 <template>
-  <component :is="to ? RouterLink : 'button'" :type :to
+  <component
+    :is="to ? RouterLink : 'button'"
+    :type
+    :to
     class="relative inline-flex items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2"
     :class="[
       sizeClass,
       variantClasses[variant],
       disabled ? 'pointer-events-none opacity-50' : '',
       noCursor ? '' : 'cursor-pointer'
-    ]" :disabled>
-    <component v-if="iconLeft" :is="iconLeft" class="size-4" />
+    ]"
+    :disabled
+  >
+    <component
+      v-if="iconLeft"
+      :is="iconLeft"
+      class="size-4"
+    />
     <slot name="leading" />
-    <div v-if="$slots.default" class="inline" :class="{ 'opacity-0': loading }">
+    <div
+      v-if="$slots.default"
+      class="inline"
+      :class="{ 'opacity-0': loading }"
+    >
       <slot />
     </div>
-    <DKbd v-if="kbd" :combo="kbd" />
+    <DKbd
+      v-if="kbd"
+      :combo="kbd"
+    />
     <slot name="trailing" />
-    <div v-if="loading" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+    <div
+      v-if="loading"
+      class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform"
+    >
       <LoaderCircleIcon class="size-5 animate-spin" />
     </div>
   </component>

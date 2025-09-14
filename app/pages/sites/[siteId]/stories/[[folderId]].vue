@@ -46,9 +46,6 @@ if (folderError.value) {
   }
 }
 
-
-
-
 const {
   data: storiesData,
   refresh: refreshStories,
@@ -56,31 +53,40 @@ const {
 } = await useAsyncData<{ data: StoryListItem[]; pagination: Pagination }>(
   `stories-${siteId.value}-${folderId.value || "root"}-${debouncedSearchQuery.value}`,
   async (): Promise<{ data: StoryListItem[]; pagination: Pagination }> => {
-
     const params = {
       offset: offset.value,
       limit: 50
     }
 
     if (debouncedSearchQuery.value) {
-      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(`/api/sites/${siteId.value}/stories`, {
-        params: { search: debouncedSearchQuery.value, ...params }
-      })
+      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(
+        `/api/sites/${siteId.value}/stories`,
+        {
+          params: { search: debouncedSearchQuery.value, ...params }
+        }
+      )
     } else if (folderId.value) {
       return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(
-        `/api/sites/${siteId.value}/stories/${folderId.value}/children`, {
-        params
-      }
+        `/api/sites/${siteId.value}/stories/${folderId.value}/children`,
+        {
+          params
+        }
       )
     } else {
-      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(`/api/sites/${siteId.value}/stories`, {
-        params
-      })
+      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(
+        `/api/sites/${siteId.value}/stories`,
+        {
+          params
+        }
+      )
     }
   },
   {
     watch: [folderId, debouncedSearchQuery, offset],
-    default: () => ({ data: [], pagination: { offset: 0, limit: 0, total: 0, hasNext: false, hasPrev: false } })
+    default: () => ({
+      data: [],
+      pagination: { offset: 0, limit: 0, total: 0, hasNext: false, hasPrev: false }
+    })
   }
 )
 
@@ -280,11 +286,17 @@ function handleApiError(error: any, itemType: "story" | "folder") {
 
 <template>
   <DPageTitle :title="pageTitle">
-    <template #subtitle v-if="folderId && currentFolder">
+    <template
+      #subtitle
+      v-if="folderId && currentFolder"
+    >
       <p class="text-copy-sm text-neutral-subtle">/{{ currentFolder.slug }}</p>
     </template>
     <div class="flex gap-2">
-      <DButton variant="secondary" @click="openCreateModal('folder')">
+      <DButton
+        variant="secondary"
+        @click="openCreateModal('folder')"
+      >
         Add Folder
       </DButton>
       <DButton @click="openCreateModal('story')">Add Story</DButton>
@@ -294,59 +306,127 @@ function handleApiError(error: any, itemType: "story" | "folder") {
   <DPageWrapper>
     <div class="py-5">
       <div class="mb-4">
-        <DInput v-model="searchInput" placeholder="Search stories and folders..." :icon-left="SearchIcon" />
+        <DInput
+          v-model="searchInput"
+          placeholder="Search stories and folders..."
+          :icon-left="SearchIcon"
+        />
       </div>
 
-      <div v-if="listError" class="text-destructive p-4 text-center">
+      <div
+        v-if="listError"
+        class="text-destructive p-4 text-center"
+      >
         Failed to load items.
-        <DButton variant="secondary" size="sm" @click="refreshStories">
+        <DButton
+          variant="secondary"
+          size="sm"
+          @click="refreshStories"
+        >
           Retry
         </DButton>
       </div>
-      <DStoryList v-else :stories="sortedDisplayItems" :is-searching="isSearching" :parent-slug="parentSlugForDisplay"
-        @delete-story="openDeleteModal" @create-story="openCreateModal('story')"
-        @create-folder="openCreateModal('folder')" @navigate="handleNavigation" :search-term="debouncedSearchQuery" />
+      <DStoryList
+        v-else
+        :stories="sortedDisplayItems"
+        :is-searching="isSearching"
+        :parent-slug="parentSlugForDisplay"
+        @delete-story="openDeleteModal"
+        @create-story="openCreateModal('story')"
+        @create-folder="openCreateModal('folder')"
+        @navigate="handleNavigation"
+        :search-term="debouncedSearchQuery"
+      />
 
-      <DPagination v-bind="pagination" v-model:offset="offset" />
+      <DPagination
+        v-bind="pagination"
+        v-model:offset="offset"
+      />
     </div>
   </DPageWrapper>
 
-  <DModal :open="isCreateModalOpen" :title="`New ${itemTypeToCreate === 'story' ? 'Content Story' : 'Folder'}`"
-    :confirm-text="`Create ${itemTypeToCreate === 'story' ? 'Story' : 'Folder'}`" @close="closeCreateModal"
-    @confirm="createItem">
-    <form @submit.prevent="createItem" class="flex w-full flex-col gap-4">
+  <DModal
+    :open="isCreateModalOpen"
+    :title="`New ${itemTypeToCreate === 'story' ? 'Content Story' : 'Folder'}`"
+    :confirm-text="`Create ${itemTypeToCreate === 'story' ? 'Story' : 'Folder'}`"
+    @close="closeCreateModal"
+    @confirm="createItem"
+  >
+    <form
+      @submit.prevent="createItem"
+      class="flex w-full flex-col gap-4"
+    >
       <DFormGroup>
-        <DFormLabel name="name" required>
+        <DFormLabel
+          name="name"
+          required
+        >
           Name
         </DFormLabel>
-        <DInput id="name" name="name" v-model="name" required
-          :placeholder="`e.g. ${itemTypeToCreate === 'story' ? 'About Us' : 'Blog Posts'}`" />
+        <DInput
+          id="name"
+          name="name"
+          v-model="name"
+          required
+          :placeholder="`e.g. ${itemTypeToCreate === 'story' ? 'About Us' : 'Blog Posts'}`"
+        />
       </DFormGroup>
       <DFormGroup>
-        <DFormLabel name="slug" :required="itemTypeToCreate === 'folder' || !!folderId">
+        <DFormLabel
+          name="slug"
+          :required="itemTypeToCreate === 'folder' || !!folderId"
+        >
           Slug
         </DFormLabel>
-        <DInput id="slug" name="slug" v-model.slug="slug"
-          :leading="parentSlugForDisplay === '/' ? '/' : `/${parentSlugForDisplay}/`" :placeholder="itemTypeToCreate === 'folder' ? 'folder-name' : folderId ? 'sub-page-slug' : 'index'
-            " :required="itemTypeToCreate === 'folder' || !!folderId" />
-        <p v-if="itemTypeToCreate === 'story' && !folderId" class="text-copy-xs text-neutral-subtle mt-1">
+        <DInput
+          id="slug"
+          name="slug"
+          v-model.slug="slug"
+          :leading="parentSlugForDisplay === '/' ? '/' : `/${parentSlugForDisplay}/`"
+          :placeholder="
+            itemTypeToCreate === 'folder' ? 'folder-name' : folderId ? 'sub-page-slug' : 'index'
+          "
+          :required="itemTypeToCreate === 'folder' || !!folderId"
+        />
+        <p
+          v-if="itemTypeToCreate === 'story' && !folderId"
+          class="text-copy-xs text-neutral-subtle mt-1"
+        >
           Leave empty for the root page (slug will be "index").
         </p>
-        <p v-else class="text-copy-xs text-neutral-subtle mt-1">
+        <p
+          v-else
+          class="text-copy-xs text-neutral-subtle mt-1"
+        >
           Required. Lowercase letters, numbers, and hyphens only.
         </p>
       </DFormGroup>
       <DFormGroup v-if="itemTypeToCreate === 'story'">
-        <DFormLabel name="contentType" required>
+        <DFormLabel
+          name="contentType"
+          required
+        >
           Content Type
         </DFormLabel>
-        <DSelect id="contentType" name="contentType" v-model="contentType" required placeholder="Select Type"
-          :options="contentTypeOptions" />
+        <DSelect
+          id="contentType"
+          name="contentType"
+          v-model="contentType"
+          required
+          placeholder="Select Type"
+          :options="contentTypeOptions"
+        />
       </DFormGroup>
     </form>
   </DModal>
 
-  <DModal :open="isDeleteModalOpen" title="Delete Item"
+  <DModal
+    :open="isDeleteModalOpen"
+    title="Delete Item"
     description="Are you sure? This action cannot be undone. If it's a folder, all its contents will also be deleted."
-    confirm-text="Delete" danger @confirm="deleteStory" @close="isDeleteModalOpen = false"></DModal>
+    confirm-text="Delete"
+    danger
+    @confirm="deleteStory"
+    @close="isDeleteModalOpen = false"
+  ></DModal>
 </template>
