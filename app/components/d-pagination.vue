@@ -3,7 +3,6 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon,
     ArrowLeftIcon,
-    ArrowRight,
     ArrowRightIcon
 } from "lucide-vue-next"
 import {
