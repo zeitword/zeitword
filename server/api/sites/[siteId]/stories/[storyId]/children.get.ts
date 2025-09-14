@@ -1,5 +1,5 @@
 import { stories } from "~~/server/database/schema"
-import { eq, and, like, asc, count } from "drizzle-orm"
+import { eq, and, like, asc, count, desc } from "drizzle-orm"
 import { sql } from "drizzle-orm"
 import { z } from "zod"
 import { withPagination, withPaginationDecorator } from "~~/server/utils/pagination"
@@ -55,20 +55,19 @@ export default defineEventHandler(async (event) => {
     .where(whereCondition)
 
   // Get paginated children
-  const childrenList = await withPagination(
-    useDrizzle()
-      .select({
-        id: stories.id,
-        type: stories.type,
-        slug: stories.slug,
-        title: stories.title,
-        componentId: stories.componentId
-      })
-      .from(stories)
-      .where(whereCondition)
-      .orderBy(asc(stories.type), asc(stories.title)),
-    { offset, limit }
-  )
+  const childrenQuery = useDrizzle()
+    .select({
+      id: stories.id,
+      type: stories.type,
+      slug: stories.slug,
+      title: stories.title,
+      componentId: stories.componentId
+    })
+    .from(stories)
+    .where(whereCondition)
+    .orderBy(desc(stories.type), asc(stories.title))
+
+  const childrenList = await withPagination(childrenQuery.$dynamic(), { offset, limit })
 
   return withPaginationDecorator(childrenList, totalChildren, offset, limit)
 })
