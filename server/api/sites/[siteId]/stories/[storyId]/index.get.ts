@@ -51,12 +51,9 @@ export default defineEventHandler(async (event) => {
       )
       .limit(parentSlugs.length)
 
-    // Sort parents by depth
-    const sortedParentStories = parentStories.sort((a, b) => {
-      const aDepth = a.slug ? a.slug.split("/").length : 0
-      const bDepth = b.slug ? b.slug.split("/").length : 0
-      return aDepth - bDepth
-    })
+    // Map parents to the order of parentSlugs for correct depth order
+    const parentStoryMap = Object.fromEntries(parentStories.map(story => [story.slug, story]));
+    const sortedParentStories = parentSlugs.map(slug => parentStoryMap[slug]).filter(Boolean);
 
     return {
       ...story,
