@@ -52,8 +52,8 @@ export default defineEventHandler(async (event) => {
       .limit(parentSlugs.length)
 
     // Map parents to the order of parentSlugs for correct depth order
-    const parentStoryMap = Object.fromEntries(parentStories.map(story => [story.slug, story]));
-    const sortedParentStories = parentSlugs.map(slug => parentStoryMap[slug]).filter(Boolean);
+    const parentStoryMap = Object.fromEntries(parentStories.map((story) => [story.slug, story]))
+    const sortedParentStories = parentSlugs.map((slug) => parentStoryMap[slug]).filter(Boolean)
 
     return {
       ...story,

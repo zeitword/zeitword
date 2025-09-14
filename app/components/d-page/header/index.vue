@@ -56,8 +56,8 @@ const maxVisibleBreadcrumbItems = computed(() => {
 })
 
 const visibleBreadcrumbItems = computed(() => {
-  const breadcrumbLength = story.value?.parents.length || 0
   const breadcrumbItems = story.value?.parents || []
+  const breadcrumbLength = breadcrumbItems.length
 
   return breadcrumbItems.slice(Math.max(breadcrumbLength - maxVisibleBreadcrumbItems.value, 0))
 })
