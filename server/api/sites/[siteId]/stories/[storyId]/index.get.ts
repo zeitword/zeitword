@@ -42,7 +42,13 @@ export default defineEventHandler(async (event) => {
         title: stories.title
       })
       .from(stories)
-      .where(inArray(stories.slug, parentSlugs))
+      .where(
+        and(
+          inArray(stories.slug, parentSlugs),
+          eq(stories.organisationId, secure.organisationId),
+          eq(stories.siteId, siteId)
+        )
+      )
       .limit(parentSlugs.length)
 
     return {
