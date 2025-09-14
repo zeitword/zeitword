@@ -51,9 +51,16 @@ export default defineEventHandler(async (event) => {
       )
       .limit(parentSlugs.length)
 
+    // Sort parents by depth
+    const sortedParentStories = parentStories.sort((a, b) => {
+      const aDepth = a.slug ? a.slug.split("/").length : 0
+      const bDepth = b.slug ? b.slug.split("/").length : 0
+      return aDepth - bDepth
+    })
+
     return {
       ...story,
-      parents: parentStories
+      parents: sortedParentStories
     }
   } catch (error) {
     console.error(error)
