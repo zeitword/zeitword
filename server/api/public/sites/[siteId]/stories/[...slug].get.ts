@@ -35,12 +35,8 @@ export default defineEventHandler(async (event) => {
       componentId: stories.componentId
     })
     .from(stories)
-    .innerJoin(components, eq(stories.componentId, components.id))
     .where(
-      and(
-        eq(components.siteId, siteId),
-        or(...slugVariations.map((slug) => eq(stories.slug, slug)))
-      )
+      and(eq(stories.siteId, siteId), or(...slugVariations.map((slug) => eq(stories.slug, slug))))
     )
     .limit(1)
 
@@ -73,8 +69,7 @@ export default defineEventHandler(async (event) => {
           componentId: stories.componentId
         })
         .from(stories)
-        .innerJoin(components, eq(stories.componentId, components.id))
-        .where(and(eq(components.siteId, siteId), eq(stories.id, translatedSlugResult[0].storyId)))
+        .where(and(eq(stories.siteId, siteId), eq(stories.id, translatedSlugResult[0].storyId)))
         .limit(1)
     } else if (requestedSlug.includes("/")) {
       // Step 2: Handle nested paths - check if any part is translated
@@ -132,8 +127,7 @@ export default defineEventHandler(async (event) => {
               componentId: stories.componentId
             })
             .from(stories)
-            .innerJoin(components, eq(stories.componentId, components.id))
-            .where(and(eq(components.siteId, siteId), eq(stories.slug, reconstructedSlug)))
+            .where(and(eq(stories.siteId, siteId), eq(stories.slug, reconstructedSlug)))
             .limit(1)
         }
       }
@@ -144,24 +138,28 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
   const story = storyData[0]
-  if (!story.componentId)
-    throw createError({ statusCode: 404, statusMessage: "Component not found" })
 
-  const [component] = await useDrizzle()
-    .select({ name: components.name })
-    .from(components)
-    .where(eq(components.id, story.componentId))
+  let mergedContent = story.content
+  let componentName = null
 
-  const content = story.content as Record<string, any>
-  const defaultContent = content[site.defaultLanguage] || {}
-  const requestedContent = content[requestedLang || site.defaultLanguage] || {}
+  if (story.componentId) {
+    const [component] = await useDrizzle()
+      .select({ name: components.name })
+      .from(components)
+      .where(and(eq(components.id, story.componentId), eq(components.siteId, siteId)))
 
-  const mergedContent = await mergeWithFallbackAndTransformLinks(
-    defaultContent,
-    requestedContent,
-    requestedLang || site.defaultLanguage,
-    siteId
-  )
+    const content = story.content as Record<string, any>
+    const defaultContent = content[site.defaultLanguage] || {}
+    const requestedContent = content[requestedLang || site.defaultLanguage] || {}
+
+    mergedContent = await mergeWithFallbackAndTransformLinks(
+      defaultContent,
+      requestedContent,
+      requestedLang || site.defaultLanguage,
+      siteId
+    )
+    componentName = component.name
+  }
 
   // Get all translated slugs for this story
   const translatedSlugs = await useDrizzle()
@@ -189,7 +187,7 @@ export default defineEventHandler(async (event) => {
   return {
     ...story,
     content: mergedContent,
-    componentName: component.name,
+    componentName: componentName,
     slugs: slugsMap
   }
 })
