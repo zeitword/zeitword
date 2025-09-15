@@ -148,6 +148,10 @@ export default defineEventHandler(async (event) => {
       .from(components)
       .where(and(eq(components.id, story.componentId), eq(components.siteId, siteId)))
 
+    if (!component) {
+      throw createError({ statusCode: 404, statusMessage: "Component not found" })
+    }
+
     const content = story.content as Record<string, any>
     const defaultContent = content[site.defaultLanguage] || {}
     const requestedContent = content[requestedLang || site.defaultLanguage] || {}
