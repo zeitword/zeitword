@@ -1,5 +1,13 @@
 import { stories, components } from "~~/server/database/schema"
-import { eq, and, notLike, asc, or, ilike, type SQL } from "drizzle-orm"
+import { eq, and, notLike, asc, or, ilike, type SQL, count } from "drizzle-orm"
+import { z } from "zod"
+import { withPagination, withPaginationDecorator } from "~~/server/utils/pagination"
+
+const querySchema = z.object({
+  search: z.string().optional(),
+  offset: z.coerce.number().min(0).optional().default(0),
+  limit: z.coerce.number().min(1).max(100).optional().default(50)
+})
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -8,7 +16,7 @@ export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
 
-  const query = getQuery(event)?.query as string | undefined
+  const { search, offset, limit } = await getValidatedQuery(event, querySchema.parse)
 
   try {
     const conditions: (SQL | undefined)[] = [
@@ -16,26 +24,39 @@ export default defineEventHandler(async (event) => {
       eq(stories.organisationId, secure.organisationId)
     ]
 
-    if (query) {
-      conditions.push(or(ilike(stories.title, `%${query}%`), ilike(stories.slug, `%${query}%`)))
+    if (search) {
+      conditions.push(or(ilike(stories.title, `%${search}%`), ilike(stories.slug, `%${search}%`)))
     } else {
       conditions.push(notLike(stories.slug, "%/%"))
     }
 
-    const storiesData = await useDrizzle()
-      .select({
-        id: stories.id,
-        type: stories.type,
-        slug: stories.slug,
-        title: stories.title,
-        componentId: stories.componentId,
-        componentDisplayName: components.displayName
-      })
-      .from(stories)
-      .leftJoin(components, eq(stories.componentId, components.id))
-      .where(and(...conditions))
+    const whereCondition = and(...conditions)
 
-    const mappedStories = storiesData.map((row) => ({
+    // Get total count for pagination
+    const [{ count: totalStories }] = await useDrizzle()
+      .select({ count: count() })
+      .from(stories)
+      .where(whereCondition)
+
+    // Get paginated data with components
+    const storiesWithComponents = await withPagination(
+      useDrizzle()
+        .select({
+          id: stories.id,
+          type: stories.type,
+          slug: stories.slug,
+          title: stories.title,
+          componentId: stories.componentId,
+          componentDisplayName: components.displayName
+        })
+        .from(stories)
+        .leftJoin(components, eq(stories.componentId, components.id))
+        .where(whereCondition)
+        .orderBy(asc(stories.slug)),
+      { offset, limit }
+    )
+
+    const mappedStories = storiesWithComponents.map((row: any) => ({
       id: row.id,
       type: row.type,
       slug: row.slug,
@@ -44,7 +65,7 @@ export default defineEventHandler(async (event) => {
       component: row.componentDisplayName ? { displayName: row.componentDisplayName } : null
     }))
 
-    return mappedStories
+    return withPaginationDecorator(mappedStories, totalStories, offset, limit)
   } catch (error: any) {
     console.error("Error fetching stories:", error)
     throw createError({

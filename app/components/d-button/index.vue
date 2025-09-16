@@ -28,7 +28,7 @@ const variantClasses: { [key: string]: string } = {
   primary:
     "bg-neutral-inverse text-neutral-inverse hover:bg-neutral-inverse-hover hover:shadow-button hover:inset-shadow-sm hover:inset-shadow-white/20 active:inset-shadow active:inset-shadow-black/30",
   secondary:
-    "text-neutra border border-neutral hover:bg-neutral-weak hover:shadow-button active:inset-shadow bg-neutral",
+    "text-neutral border border-neutral hover:bg-neutral-weak hover:shadow-button active:inset-shadow bg-neutral",
   danger:
     "bg-danger text-danger-onsurface hover:bg-danger-hover hover:shadow-button hover:inset-shadow-sm active:inset-shadow active:inset-shadow-black/30",
   success:
