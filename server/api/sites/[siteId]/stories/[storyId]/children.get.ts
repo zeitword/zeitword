@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
     eq(stories.siteId, siteId),
     eq(stories.organisationId, secure.organisationId),
     like(stories.slug, childSlugPattern),
-    sql`${stories.slug} NOT LIKE ${grandChildSlugPattern}`
+    not(like(stories.slug, grandChildSlugPattern))
   )
 
   // Get total count for pagination
