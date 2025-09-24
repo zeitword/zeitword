@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue"
 import { useDebounceFn } from "@vueuse/core"
 import type { Item as StoryListItem } from "~/components/d-story-list/index.vue"
 import { SearchIcon } from "lucide-vue-next"
+import type { Pagination } from "~/types/pagination"
 
 definePageMeta({
   layout: "site"
@@ -17,9 +18,11 @@ const { toast } = useToast()
 const searchInput = ref("")
 const debouncedSearchQuery = ref("")
 const isSearching = computed(() => !!debouncedSearchQuery.value)
+const offset = ref(0)
 
 const updateSearchQuery = useDebounceFn((value: string) => {
   debouncedSearchQuery.value = value
+  offset.value = 0
 }, 300)
 
 watch(searchInput, (newValue) => {
@@ -44,29 +47,51 @@ if (folderError.value) {
 }
 
 const {
-  data: stories,
+  data: storiesData,
   refresh: refreshStories,
   error: listError
-} = await useAsyncData<StoryListItem[]>(
+} = await useAsyncData<{ data: StoryListItem[]; pagination: Pagination }>(
   `stories-${siteId.value}-${folderId.value || "root"}-${debouncedSearchQuery.value}`,
-  async (): Promise<StoryListItem[]> => {
+  async (): Promise<{ data: StoryListItem[]; pagination: Pagination }> => {
+    const params = {
+      offset: offset.value,
+      limit: 50
+    }
+
     if (debouncedSearchQuery.value) {
-      return await $fetch<StoryListItem[]>(`/api/sites/${siteId.value}/stories`, {
-        params: { query: debouncedSearchQuery.value }
-      })
+      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(
+        `/api/sites/${siteId.value}/stories`,
+        {
+          params: { search: debouncedSearchQuery.value, ...params }
+        }
+      )
     } else if (folderId.value) {
-      return await $fetch<StoryListItem[]>(
-        `/api/sites/${siteId.value}/stories/${folderId.value}/children`
+      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(
+        `/api/sites/${siteId.value}/stories/${folderId.value}/children`,
+        {
+          params
+        }
       )
     } else {
-      return await $fetch<StoryListItem[]>(`/api/sites/${siteId.value}/stories`)
+      return await $fetch<{ data: StoryListItem[]; pagination: Pagination }>(
+        `/api/sites/${siteId.value}/stories`,
+        {
+          params
+        }
+      )
     }
   },
   {
-    watch: [folderId, debouncedSearchQuery],
-    default: () => []
+    watch: [folderId, debouncedSearchQuery, offset],
+    default: () => ({
+      data: [],
+      pagination: { offset: 0, limit: 0, total: 0, hasNext: false, hasPrev: false }
+    })
   }
 )
+
+const stories = computed(() => storiesData.value.data)
+const pagination = computed(() => storiesData.value.pagination)
 
 if (listError.value) {
   toast.error({ description: "Failed to load content list." })
@@ -311,6 +336,11 @@ function handleApiError(error: any, itemType: "story" | "folder") {
         @create-folder="openCreateModal('folder')"
         @navigate="handleNavigation"
         :search-term="debouncedSearchQuery"
+      />
+
+      <DPagination
+        v-bind="pagination"
+        v-model:offset="offset"
       />
     </div>
   </DPageWrapper>

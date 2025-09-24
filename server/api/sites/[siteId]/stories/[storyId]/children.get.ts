@@ -1,6 +1,13 @@
 import { stories } from "~~/server/database/schema"
-import { eq, and, like, asc } from "drizzle-orm"
+import { eq, and, like, asc, count, desc } from "drizzle-orm"
 import { sql } from "drizzle-orm"
+import { z } from "zod"
+import { withPagination, withPaginationDecorator } from "~~/server/utils/pagination"
+
+const querySchema = z.object({
+  offset: z.coerce.number().min(0).optional().default(0),
+  limit: z.coerce.number().min(1).max(100).optional().default(50)
+})
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -11,6 +18,8 @@ export default defineEventHandler(async (event) => {
 
   const storyId = getRouterParam(event, "storyId")
   if (!storyId) throw createError({ statusCode: 400, statusMessage: "Invalid Story ID" })
+
+  const { offset, limit } = await getValidatedQuery(event, querySchema.parse)
 
   // Get the slug of the parent story/folder.
   const [parent] = await useDrizzle()
@@ -32,7 +41,21 @@ export default defineEventHandler(async (event) => {
   const childSlugPattern = `${parentSlug}/%`
   const grandChildSlugPattern = `${parentSlug}/%/%`
 
-  const childrenList = await useDrizzle()
+  const whereCondition = and(
+    eq(stories.siteId, siteId),
+    eq(stories.organisationId, secure.organisationId),
+    like(stories.slug, childSlugPattern),
+    not(like(stories.slug, grandChildSlugPattern))
+  )
+
+  // Get total count for pagination
+  const [{ count: totalChildren }] = await useDrizzle()
+    .select({ count: count() })
+    .from(stories)
+    .where(whereCondition)
+
+  // Get paginated children
+  const childrenQuery = useDrizzle()
     .select({
       id: stories.id,
       type: stories.type,
@@ -41,15 +64,10 @@ export default defineEventHandler(async (event) => {
       componentId: stories.componentId
     })
     .from(stories)
-    .where(
-      and(
-        eq(stories.siteId, siteId),
-        eq(stories.organisationId, secure.organisationId),
-        like(stories.slug, childSlugPattern),
-        sql`${stories.slug} NOT LIKE ${grandChildSlugPattern}`
-      )
-    )
-    .orderBy(asc(stories.type), asc(stories.title))
+    .where(whereCondition)
+    .orderBy(desc(stories.type), asc(stories.title))
 
-  return childrenList
+  const childrenList = await withPagination(childrenQuery.$dynamic(), { offset, limit })
+
+  return withPaginationDecorator(childrenList, totalChildren, offset, limit)
 })
