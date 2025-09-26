@@ -38,7 +38,6 @@ export default defineEventHandler(async (event) => {
     .where(
       and(eq(stories.siteId, siteId), or(...slugVariations.map((slug) => eq(stories.slug, slug))))
     )
-    .limit(1)
 
   // If not found and using non-default language, try to find by translated slug
   if (
@@ -137,7 +136,8 @@ export default defineEventHandler(async (event) => {
   if (!storyData || storyData.length === 0)
     throw createError({ statusCode: 404, statusMessage: "Story not found" })
 
-  const story = storyData[0]
+  // return story ending on index or first story if no index
+  const story = storyData.find((story) => story.slug.endsWith("/index")) || storyData[0]
 
   let mergedContent = story.content
   let componentName = null
