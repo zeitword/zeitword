@@ -2,6 +2,7 @@ import { users } from "../database/schema"
 import { nanoid } from "nanoid"
 import { z } from "zod"
 import type { H3Event } from "h3"
+import { Resend } from "resend"
 
 const bodySchema = z.object({
   email: z.string().email()
@@ -54,7 +55,7 @@ async function backgroundProcessEmail({ email }: { email: string }) {
   // Process the user's password reset request
   const config = useRuntimeConfig()
 
-  const postmark = usePostmark({ serverToken: config.postmarkServerToken })
+  const resend = new Resend(config.resend)
 
   const passwordResetToken = nanoid(64)
   const resetLink = `https://app.zeitword.com/reset-password?token=${passwordResetToken}`
@@ -70,16 +71,16 @@ async function backgroundProcessEmail({ email }: { email: string }) {
     .where(eq(users.id, user.id))
 
   try {
-    const emailResult = await postmark.sendEmail({
+    const emailResult = await resend.emails.send({
       from: "Zeitword Support <support@zeitword.com>",
       to: user.email,
-      subject: "Passwort zurücksetzen",
-      htmlBody:
-        `<p>Hallo ${user.name},</p>` +
-        `<p>du hast eine Anfrage zum Zurücksetzen deines Passworts für Zeitword erhalten. Um dein Passwort zurückzusetzen, klicke bitte auf den folgenden Link:</p>` +
-        `<p><a href="${resetLink}">Passwort zurücksetzen</a></p>` +
-        `<p>Wenn du diese E-Mail nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>` +
-        `<p>Vielen Dank<br />Dein Zeitword Team</p>`
+      subject: "Reset Password",
+      html:
+        `<p>Hello ${user.name},</p>` +
+        `<p>You have received a request to reset your password for Zeitword. To reset your password, please click the following link:</p>` +
+        `<p><a href="${resetLink}">Reset Password</a></p>` +
+        `<p>If you didn't request this email, you can safely ignore it.</p>` +
+        `<p>Thank you<br />Your Zeitword Team</p>`
     })
 
     console.log(emailResult)

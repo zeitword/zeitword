@@ -4,7 +4,7 @@ import { z } from "zod"
 import type { H3Event } from "h3"
 
 const bodySchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8)
 })
 
@@ -42,7 +42,6 @@ export default defineEventHandler(async (event) => {
       id: user.id,
       name: user.name,
       email: user.email!,
-      role: user.role,
       organisationId: user.organisationId
     },
     secure: {

@@ -34,7 +34,6 @@ export default defineEventHandler(async (event) => {
         name: body.name,
         email: body.email,
         password: hashedPassword,
-        role: "admin",
         organisationId: org.id
       })
       .returning()
