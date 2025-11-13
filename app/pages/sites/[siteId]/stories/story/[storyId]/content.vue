@@ -454,8 +454,7 @@ async function autoTranslate() {
       >
         <pre
           class="bg-neutral text-neutral border-neutral overflow-x-auto rounded-lg border p-4 break-all whitespace-pre-wrap"
-        >
-        {{ content }}</pre
+          >{{ content }}</pre
         >
       </div>
     </div>

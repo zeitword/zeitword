@@ -4,7 +4,7 @@ import { createHash } from "crypto"
 import { Resend } from "resend"
 
 const bodySchema = z.object({
-  email: z.string().email()
+  email: z.email()
 })
 
 export default defineEventHandler(async (event) => {

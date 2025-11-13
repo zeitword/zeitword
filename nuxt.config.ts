@@ -2,8 +2,8 @@ import tailwindcss from "@tailwindcss/vite"
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2025-01-23",
-  future: { compatibilityVersion: 4 },
+  compatibilityDate: "latest",
+  future: { compatibilityVersion: 5 },
   vite: { plugins: [tailwindcss()] },
   ssr: false,
 
@@ -21,9 +21,6 @@ export default defineNuxtConfig({
     s3Endpoint: "",
     s3Bucket: "",
     s3Region: "",
-
-    // Postmark credentials
-    postmarkServerToken: "",
 
     //Resend
     resend: "",

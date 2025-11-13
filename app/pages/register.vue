@@ -57,14 +57,14 @@ async function login() {
         </div>
 
         <div class="flex flex-col gap-1">
-          <d-label for="email">E-Mail</d-label>
+          <d-label for="email">Email</d-label>
           <d-input
             v-model="email"
             type="email"
             id="email"
             name="email"
             required
-            placeholder="Your E-Mail Address"
+            placeholder="Your Email Address"
           />
         </div>
 

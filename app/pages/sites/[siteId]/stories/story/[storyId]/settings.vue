@@ -71,7 +71,7 @@ async function deleteStory() {
     await $fetch(`/api/sites/${siteId}/stories/${storyId}`, {
       method: "DELETE"
     })
-    navigateTo(`/sites/${siteId}/stories`)
+    await navigateTo(`/sites/${siteId}/stories`)
   } catch (error: any) {
     console.error(error)
   }
