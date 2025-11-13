@@ -29,7 +29,8 @@ export default defineNuxtConfig({
     openaiApiKey: "",
 
     public: {
-      siteUrl: ""
+      siteUrl: "",
+      appUrl: "https://app.zeitword.com"
     }
   },
 

@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
   // Send invitation email
   const config = useRuntimeConfig()
   const resend = new Resend(config.resend)
-  const acceptLink = `${config.public.siteUrl}/accept-invitation/${token}`
+  const acceptLink = `${config.public.appUrl}/accept-invitation/${token}`
 
   try {
     await resend.emails.send({
