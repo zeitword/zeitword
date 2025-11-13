@@ -65,6 +65,19 @@ export const users = pgTable("users", {
   ...timestamps
 })
 
+export const userInvitations = pgTable("user_invitations", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  email: text().notNull().unique(),
+  token: text().notNull().unique(),
+  invitedBy: uuid()
+    .notNull()
+    .references(() => users.id),
+  expiresAt: timestamp({ withTimezone: true }).notNull(),
+  acceptedAt: timestamp({ withTimezone: true }),
+  ...organisationId,
+  ...timestamps
+})
+
 export const sessions = pgTable(
   "sessions",
   {
@@ -354,7 +367,8 @@ export const organisationsRelations = relations(organisations, ({ many }) => ({
   sites: many(sites),
   stories: many(stories),
   users: many(users),
-  storyTranslatedSlugs: many(storyTranslatedSlugs)
+  storyTranslatedSlugs: many(storyTranslatedSlugs),
+  userInvitations: many(userInvitations)
 }))
 
 export const fieldOptionsRelations = relations(fieldOptions, ({ one }) => ({
@@ -383,6 +397,18 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   organisation: one(organisations, {
     fields: [users.organisationId],
+    references: [organisations.id]
+  }),
+  invitationsSent: many(userInvitations)
+}))
+
+export const userInvitationsRelations = relations(userInvitations, ({ one }) => ({
+  invitedByUser: one(users, {
+    fields: [userInvitations.invitedBy],
+    references: [users.id]
+  }),
+  organisation: one(organisations, {
+    fields: [userInvitations.organisationId],
     references: [organisations.id]
   })
 }))

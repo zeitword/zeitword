@@ -26,6 +26,11 @@ export default defineEventHandler(async (event) => {
   const isMatch = await verifyPassword(user.password, password)
   if (!isMatch) throw createError({ statusCode: 401, message: "Bad credentials" })
 
+  // Check if user is archived
+  if (user.deletedAt) {
+    throw createError({ statusCode: 401, message: "Account has been archived" })
+  }
+
   // Create a user session
   const created = await useDrizzle()
     .insert(sessions)

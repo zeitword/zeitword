@@ -5,7 +5,8 @@ const publicRoutes = [
   "/register",
   "/up",
   "/forgot-password",
-  "/reset-password"
+  "/reset-password",
+  "/accept-invitation"
 ]
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
@@ -16,7 +17,9 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo("/login")
   }
 
-  if (!publicRoutes.includes(to.path)) {
+  const isPublicRoute = publicRoutes.includes(to.path) || to.path.startsWith("/accept-invitation")
+
+  if (!isPublicRoute) {
     if (!useUserSession().loggedIn.value) {
       return navigateTo("/login")
     }

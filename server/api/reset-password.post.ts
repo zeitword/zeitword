@@ -1,11 +1,9 @@
 import { users } from "../database/schema"
-import { nanoid } from "nanoid"
 import { z } from "zod"
-import type { H3Event } from "h3"
 
 const bodySchema = z.object({
-  password: z.string(),
-  token: z.string()
+  token: z.string(),
+  password: z.string()
 })
 
 export default defineEventHandler(async (event) => {

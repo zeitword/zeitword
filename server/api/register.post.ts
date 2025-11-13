@@ -3,9 +3,9 @@ import { organisations, users } from "../database/schema"
 
 const bodySchema = z.object({
   name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
-  organisationName: z.string()
+  organisationName: z.string().min(1)
 })
 
 export default defineEventHandler(async (event) => {
@@ -16,31 +16,32 @@ export default defineEventHandler(async (event) => {
     const existing = await useDrizzle().select().from(users).where(eq(users.email, body.email))
     if (existing.length > 0) return {}
 
-    // Create organisation
-    const createdOrgs = await useDrizzle()
-      .insert(organisations)
-      .values({
-        name: body.organisationName
-      })
-      .returning()
-
-    const org = createdOrgs[0]
-
+    const db = useDrizzle()
     const hashedPassword = await hashPassword(body.password)
 
-    const user = await useDrizzle()
-      .insert(users)
-      .values({
-        name: body.name,
-        email: body.email,
-        password: hashedPassword,
-        organisationId: org.id
-      })
-      .returning()
+    return await db.transaction(async (tx) => {
+      // Create organisation
+      const [org] = await tx
+        .insert(organisations)
+        .values({
+          name: body.organisationName
+        })
+        .returning()
 
-    // TODO: log in the user immediately
+      const user = await tx
+        .insert(users)
+        .values({
+          name: body.name,
+          email: body.email,
+          password: hashedPassword,
+          organisationId: org.id
+        })
+        .returning()
 
-    return {}
+      // TODO: log in the user immediately
+
+      return {}
+    })
   } catch (error) {
     console.error(error)
     return {}
