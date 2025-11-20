@@ -93,25 +93,27 @@ export default defineEventHandler(async (event) => {
       .from(stories)
       .where(whereCondition)
 
-    const storiesData = await withPagination(
-      useDrizzle()
-        .select({
-          id: stories.id,
-          slug: stories.slug,
-          title: stories.title,
-          content: stories.content,
-          componentId: stories.componentId,
-          componentName: components.name,
-          siteId: stories.siteId,
-          createdAt: stories.createdAt,
-          updatedAt: stories.updatedAt
-        })
-        .from(stories)
-        .leftJoin(components, eq(stories.componentId, components.id))
-        .where(whereCondition)
-        .orderBy(desc(stories.updatedAt)) as any,
-      { offset: query.offset, limit: query.limit }
-    )
+    const storiesQuery = useDrizzle()
+      .select({
+        id: stories.id,
+        slug: stories.slug,
+        title: stories.title,
+        content: stories.content,
+        componentId: stories.componentId,
+        componentName: components.name,
+        siteId: stories.siteId,
+        createdAt: stories.createdAt,
+        updatedAt: stories.updatedAt
+      })
+      .from(stories)
+      .leftJoin(components, eq(stories.componentId, components.id))
+      .where(whereCondition)
+      .orderBy(desc(stories.updatedAt))
+
+    const storiesData = await withPagination(storiesQuery.$dynamic(), {
+      offset: query.offset,
+      limit: query.limit
+    })
 
     let translatedSlugs: { storyId: string; languageCode: string; slug: string }[] = []
     if (storiesData.length > 0) {
@@ -126,7 +128,7 @@ export default defineEventHandler(async (event) => {
           and(
             inArray(
               storyTranslatedSlugs.storyId,
-              storiesData.map((s: any) => s.id)
+              storiesData.map((s) => s.id)
             ),
             eq(storyTranslatedSlugs.siteId, auth.siteId),
             eq(storyTranslatedSlugs.organisationId, auth.organisationId)
@@ -134,7 +136,7 @@ export default defineEventHandler(async (event) => {
         )
     }
 
-    const storiesWithTranslatedSlugs = storiesData.map((story: any) => ({
+    const storiesWithTranslatedSlugs = storiesData.map((story) => ({
       ...story,
       translatedSlugs: translatedSlugs.filter((s) => s.storyId === story.id) || []
     }))
