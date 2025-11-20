@@ -1,6 +1,6 @@
 import { stories, components, storyTranslatedSlugs } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
-import { eq, and, inArray, gte, desc, like, type SQL, count, sql } from "drizzle-orm"
+import { eq, and, inArray, gte, desc, like, type SQL, count } from "drizzle-orm"
 import { z } from "zod"
 import { withPagination, withPaginationDecorator } from "~~/server/utils/pagination"
 
