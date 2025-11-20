@@ -1,4 +1,4 @@
-import { stories } from "~~/server/database/schema"
+import { stories, storyTranslatedSlugs, components } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
 import { eq, and } from "drizzle-orm"
 import z from "zod"
@@ -28,11 +28,13 @@ export default defineEventHandler(async (event) => {
       title: stories.title,
       content: stories.content,
       componentId: stories.componentId,
+      componentName: components.name,
       siteId: stories.siteId,
       createdAt: stories.createdAt,
       updatedAt: stories.updatedAt
     })
     .from(stories)
+    .leftJoin(components, eq(stories.componentId, components.id))
     .where(
       and(
         eq(stories.id, storyId),
@@ -49,5 +51,23 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return story
+  // Fetch translated slugs for the story
+  const translatedSlugsData = await useDrizzle()
+    .select({
+      languageCode: storyTranslatedSlugs.languageCode,
+      slug: storyTranslatedSlugs.slug
+    })
+    .from(storyTranslatedSlugs)
+    .where(
+      and(
+        eq(storyTranslatedSlugs.storyId, storyId),
+        eq(storyTranslatedSlugs.siteId, auth.siteId),
+        eq(storyTranslatedSlugs.organisationId, auth.organisationId)
+      )
+    )
+
+  return {
+    ...story,
+    translatedSlugs: translatedSlugsData
+  }
 })
