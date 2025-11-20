@@ -138,7 +138,7 @@ export default defineEventHandler(async (event) => {
 
     const storiesWithTranslatedSlugs = storiesData.map((story) => ({
       ...story,
-      translatedSlugs: translatedSlugs.filter((s) => s.storyId === story.id) || []
+      translatedSlugs: translatedSlugs.filter((s) => s.storyId === story.id)
     }))
 
     return withPaginationDecorator(
