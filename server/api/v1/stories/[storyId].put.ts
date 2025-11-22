@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { stories, storyTranslatedSlugs } from "~~/server/database/schema"
+import { components, stories, storyTranslatedSlugs } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
 import { eq, and } from "drizzle-orm"
 import { getValidationSchemaForComponent } from "~~/server/utils/validation"
@@ -141,14 +141,47 @@ export default defineEventHandler(async (event) => {
     )
     .returning()
 
+  // Fetch translated slugs for the story
+  const translatedSlugsData = await useDrizzle()
+    .select({
+      languageCode: storyTranslatedSlugs.languageCode,
+      slug: storyTranslatedSlugs.slug
+    })
+    .from(storyTranslatedSlugs)
+    .where(
+      and(
+        eq(storyTranslatedSlugs.storyId, storyId),
+        eq(storyTranslatedSlugs.siteId, auth.siteId),
+        eq(storyTranslatedSlugs.organisationId, auth.organisationId)
+      )
+    )
+
+  let componentName = null
+  if (updatedStory.componentId) {
+    const [component] = await useDrizzle()
+      .select({ name: components.name })
+      .from(components)
+      .where(
+        and(
+          eq(components.id, updatedStory.componentId),
+          eq(components.siteId, auth.siteId),
+          eq(components.organisationId, auth.organisationId)
+        )
+      )
+      .limit(1)
+    componentName = component?.name
+  }
+
   return {
     id: updatedStory.id,
     slug: updatedStory.slug,
     title: updatedStory.title,
     content: updatedStory.content,
     componentId: updatedStory.componentId,
+    componentName: componentName,
     siteId: updatedStory.siteId,
     createdAt: updatedStory.createdAt,
-    updatedAt: updatedStory.updatedAt
+    updatedAt: updatedStory.updatedAt,
+    translatedSlugs: translatedSlugsData
   }
 })
