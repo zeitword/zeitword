@@ -1,7 +1,6 @@
 import { z } from "zod"
-import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { AwsClient } from "aws4fetch"
 import { useS3Storage } from "~~/server/utils/storage"
-import { useS3Client } from "~~/server/utils/s3-client"
 // @ts-ignore
 import { uuidv7 } from "uuidv7"
 
@@ -77,17 +76,29 @@ export default defineEventHandler(async (event) => {
       `[Complete-Storage] Final file size: ${completeBuffer.length} bytes (expected: ${data.fileSize})`
     )
 
-    // Upload complete file using S3 client with cache headers
-    const s3Client = useS3Client()
-    const command = new PutObjectCommand({
-      Bucket: config.s3Bucket,
-      Key: finalAssetId,
-      Body: completeBuffer,
-      ContentType: data.contentType,
-      CacheControl: "public, max-age=31536000",
-      ACL: "public-read",
+    // Upload complete file using aws4fetch (matches original unstorage behavior + cache headers)
+    const awsClient = new AwsClient({
+      service: "s3",
+      accessKeyId: config.s3AccessKeyId,
+      secretAccessKey: config.s3SecretAccessKey,
+      region: config.s3Region,
     })
-    await s3Client.send(command)
+
+    const uploadUrl = `${config.s3Endpoint}/${config.s3Bucket}/${finalAssetId}`
+    const signedRequest = await awsClient.sign(uploadUrl, {
+      method: "PUT",
+      body: completeBuffer,
+      headers: {
+        "Content-Type": data.contentType,
+        "Cache-Control": "public, max-age=31536000",
+      },
+    })
+
+    const uploadResponse = await fetch(signedRequest)
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text()
+      throw new Error(`S3 upload failed: ${uploadResponse.status} ${errorText}`)
+    }
 
     // Delete chunks
     for (const chunkKey of chunkKeys) {
