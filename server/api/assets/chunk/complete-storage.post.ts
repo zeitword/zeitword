@@ -85,6 +85,7 @@ export default defineEventHandler(async (event) => {
       Body: completeBuffer,
       ContentType: data.contentType,
       CacheControl: "public, max-age=31536000",
+      ACL: "public-read",
     })
     await s3Client.send(command)
 
