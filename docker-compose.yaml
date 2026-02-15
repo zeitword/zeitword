@@ -26,4 +26,5 @@ services:
     entrypoint: >
       sh -c "sleep 5 &&
              mc alias set zeitword http://minio:9000 admin password &&
-             mc mb zeitword/zeitword || echo 'Bucket already exists'"
+             mc mb zeitword/zeitword || echo 'Bucket already exists' &&
+             mc anonymous set download zeitword/zeitword"

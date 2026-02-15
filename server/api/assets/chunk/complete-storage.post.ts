@@ -1,5 +1,7 @@
 import { z } from "zod"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { useS3Storage } from "~~/server/utils/storage"
+import { useS3Client } from "~~/server/utils/s3-client"
 // @ts-ignore
 import { uuidv7 } from "uuidv7"
 
@@ -75,13 +77,16 @@ export default defineEventHandler(async (event) => {
       `[Complete-Storage] Final file size: ${completeBuffer.length} bytes (expected: ${data.fileSize})`
     )
 
-    // Create blob with correct content type
-    const blob = new Blob([completeBuffer], { type: data.contentType })
-
-    // Upload complete file using storage driver
-    await storage.setItemRaw(finalAssetId, blob, {
-      CacheControl: "public, max-age=31536000"
+    // Upload complete file using S3 client with cache headers
+    const s3Client = useS3Client()
+    const command = new PutObjectCommand({
+      Bucket: config.s3Bucket,
+      Key: finalAssetId,
+      Body: completeBuffer,
+      ContentType: data.contentType,
+      CacheControl: "public, max-age=31536000",
     })
+    await s3Client.send(command)
 
     // Delete chunks
     for (const chunkKey of chunkKeys) {
