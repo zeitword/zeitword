@@ -49,17 +49,12 @@ export default defineEventHandler(async (event) => {
   const token = nanoid(64)
   const expiresAt = addDays(new Date(), 30)
 
-  // Check if there's already a pending invitation — if so, update it instead of creating a new one
+  // Look up any existing invitation for this email (pending, accepted, or deleted)
+  // Always update rather than insert to avoid the unique constraint on email
   const [existingInvitation] = await useDrizzle()
     .select()
     .from(userInvitations)
-    .where(
-      and(
-        eq(userInvitations.email, normalizedEmail),
-        isNull(userInvitations.acceptedAt),
-        isNull(userInvitations.deletedAt)
-      )
-    )
+    .where(eq(userInvitations.email, normalizedEmail))
     .limit(1)
 
   let invitation: typeof existingInvitation
@@ -70,6 +65,9 @@ export default defineEventHandler(async (event) => {
         token,
         expiresAt,
         invitedBy: secure.userId,
+        organisationId: secure.organisationId,
+        acceptedAt: null,
+        deletedAt: null,
         updatedAt: new Date()
       })
       .where(eq(userInvitations.id, existingInvitation.id))
