@@ -17,17 +17,26 @@ export default defineEventHandler(async (event) => {
   const normalizedEmail = email.toLowerCase()
 
   // Check if user already exists
-  const existingUser = await useDrizzle()
+  const [existingUser] = await useDrizzle()
     .select()
     .from(users)
     .where(eq(users.email, normalizedEmail))
     .limit(1)
 
-  if (existingUser.length > 0) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "Cannot invite user as they are already part of another organization"
-    })
+  if (existingUser) {
+    if (!existingUser.deletedAt) {
+      // Active user — cannot invite someone already in an org
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Cannot invite user as they are already part of another organization"
+      })
+    }
+
+    // Archived user — unarchive them and move to this org
+    await useDrizzle()
+      .update(users)
+      .set({ deletedAt: null, organisationId: secure.organisationId, updatedAt: new Date() })
+      .where(eq(users.id, existingUser.id))
   }
 
   // Get organization name for email
