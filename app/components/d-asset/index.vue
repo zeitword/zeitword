@@ -5,7 +5,7 @@ import { ref, computed } from "vue"
 
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
 
-import { useChunkedUpload } from "~/composables/useChunkedUpload"
+import { useUpload } from "~/composables/useUpload"
 
 type Props = {
   value: AssetObject | null | undefined
@@ -97,9 +97,7 @@ async function uploadFile(file: File) {
   uploadProgress.value = 0
 
   try {
-    // Use chunked upload for all files
-    const { uploadFile: chunkedUpload } = useChunkedUpload({
-      chunkSize: 2.5 * 1024 * 1024, // 2.5MB chunks
+    const { uploadFile: doUpload } = useUpload({
       maxRetries: 3,
       onProgress: (progress) => {
         uploadProgress.value = progress.overallProgress
@@ -109,7 +107,7 @@ async function uploadFile(file: File) {
       }
     })
 
-    const asset = await chunkedUpload(file)
+    const asset = await doUpload(file)
     emit("update:value", { id: asset.id, src: asset.src, alt: file.name, type: asset.type })
   } catch (error) {
     console.error(error)

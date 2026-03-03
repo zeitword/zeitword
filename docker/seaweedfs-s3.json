@@ -1,0 +1,27 @@
+{
+  "identities": [
+    {
+      "name": "anonymous",
+      "actions": ["Read", "Write", "List", "Tagging", "Admin"]
+    },
+    {
+      "name": "admin",
+      "credentials": [
+        {
+          "accessKey": "any",
+          "secretKey": "any"
+        }
+      ],
+      "actions": ["Read", "Write", "List", "Tagging", "Admin"]
+    }
+  ],
+  "cors": [
+    {
+      "allowedOrigins": ["*"],
+      "allowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
+      "allowedHeaders": ["*"],
+      "exposeHeaders": ["ETag", "x-amz-meta-*"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

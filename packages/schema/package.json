@@ -10,8 +10,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "drizzle-kit": "^0.30.5",
-    "drizzle-orm": "^0.40.0",
+    "drizzle-kit": "^1.0.0-beta.15-859cf75",
+    "drizzle-orm": "^1.0.0-beta.15-859cf75",
     "pg": "^8.13.3",
     "uuidv7": "^1.0.2"
   }

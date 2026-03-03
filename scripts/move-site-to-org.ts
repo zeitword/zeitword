@@ -11,7 +11,7 @@ async function moveSiteToOrganization(siteId: string, newOrganizationId: string)
   try {
     // First, verify the site exists
     const site = await db.query.sites.findFirst({
-      where: eq(tables.sites.id, siteId)
+      where: { id: siteId }
     })
 
     if (!site) {

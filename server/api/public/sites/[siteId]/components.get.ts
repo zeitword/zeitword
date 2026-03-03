@@ -1,6 +1,3 @@
-import { eq } from "drizzle-orm"
-import { components } from "~~/server/database/schema"
-
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
@@ -10,7 +7,7 @@ export default defineEventHandler(async (event) => {
       fields: {},
       fieldOptions: {}
     },
-    where: eq(components.siteId, siteId)
+    where: { siteId }
   })
 
   // set cors header

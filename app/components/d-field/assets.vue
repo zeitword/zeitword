@@ -10,7 +10,7 @@ import type { AssetConfig } from "~/types"
 import type { DField } from "~/types/models"
 
 import { useAssetValidation } from "~/composables/useAssetValidation"
-import { useChunkedUpload } from "~/composables/useChunkedUpload"
+import { useUpload } from "~/composables/useUpload"
 
 const { toast } = useToast()
 
@@ -104,9 +104,7 @@ async function handleFileUploads(files: File[]) {
     try {
       uploadProgress.value[fileId] = 0
 
-      // Use chunked upload for all files
-      const { uploadFile: chunkedUpload } = useChunkedUpload({
-        chunkSize: 2.5 * 1024 * 1024, // 2.5MB chunks
+      const { uploadFile: doUpload } = useUpload({
         maxRetries: 3,
         onProgress: (progress) => {
           uploadProgress.value[fileId] = progress.overallProgress
@@ -117,7 +115,7 @@ async function handleFileUploads(files: File[]) {
         }
       })
 
-      const asset = await chunkedUpload(file)
+      const asset = await doUpload(file)
       delete uploadProgress.value[fileId]
 
       return { ...asset, fileName: file.name }

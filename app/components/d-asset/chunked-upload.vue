@@ -37,8 +37,8 @@
     >
       <div class="flex justify-between text-sm text-neutral-600">
         <span>
-          Uploading chunk {{ uploadProgress.uploadedChunks + 1 }} of
-          {{ uploadProgress.totalChunks }}
+          Uploading part {{ uploadProgress.uploadedParts + 1 }} of
+          {{ uploadProgress.totalParts }}
         </span>
         <span>{{ uploadProgress.overallProgress }}%</span>
       </div>
@@ -77,8 +77,8 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import { useChunkedUpload } from "~~/app/composables/useChunkedUpload"
 import { useToast } from "~~/app/composables/useToast"
+import { useUpload } from "~~/app/composables/useUpload"
 
 interface Props {
   accept?: string
@@ -101,14 +101,13 @@ const error = ref<string>("")
 const uploadedAsset = ref<{ id: string; src: string; type: string; fileName: string } | null>(null)
 const { toast } = useToast()
 
-const { uploadFile, cancelUpload, isUploading, uploadProgress } = useChunkedUpload({
-  chunkSize: 2.5 * 1024 * 1024, // 2.5MB chunks
+const { uploadFile, cancelUpload, isUploading, uploadProgress } = useUpload({
   maxRetries: 3,
   onProgress: (progress) => {
     // Progress is automatically tracked by the composable
   },
-  onChunkComplete: (chunkIndex) => {
-    console.log(`Chunk ${chunkIndex + 1} uploaded successfully`)
+  onPartComplete: (partNumber) => {
+    console.log(`Part ${partNumber} uploaded successfully`)
   },
   onError: (err) => {
     error.value = err.message

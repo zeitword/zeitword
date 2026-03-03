@@ -1,6 +1,3 @@
-import { and, eq } from "drizzle-orm"
-import { sites, languages, siteLanguages } from "~~/server/database/schema"
-
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
@@ -9,7 +6,10 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const [site] = await useDrizzle().query.sites.findMany({
-    where: and(eq(sites.id, id), eq(sites.organisationId, secure.organisationId)),
+    where: {
+      id,
+      organisationId: secure.organisationId
+    },
     with: {
       languages: {
         with: {

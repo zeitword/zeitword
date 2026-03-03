@@ -6,7 +6,7 @@ import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const updateStorySchema = z.object({
   slug: z
-    .stringFormat("slug", /^[a-z0-9\/-]+$/)
+    .stringFormat("slug", /^[a-z0-9/-]+$/)
     .min(1)
     .lowercase()
     .optional(),
@@ -20,7 +20,6 @@ const paramSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  // Authenticate using API key
   const auth = await requireApiKey(event)
 
   // Get story ID from route parameter
@@ -140,6 +139,12 @@ export default defineEventHandler(async (event) => {
       )
     )
     .returning()
+  if (!updatedStory) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Could not update story"
+    })
+  }
 
   // Fetch translated slugs for the story
   const translatedSlugsData = await useDrizzle()

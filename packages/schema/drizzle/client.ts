@@ -1,9 +1,9 @@
 import { drizzle } from "drizzle-orm/node-postgres"
 
-import * as schema from "../schema"
+import { relations } from "./relations"
 
 const database = drizzle(process.env.DSN!, {
-  schema,
+  relations,
   casing: "snake_case"
 })
 

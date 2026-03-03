@@ -2,7 +2,7 @@ import tailwindcss from "@tailwindcss/vite"
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2026-02-15",
+  compatibilityDate: "latest",
   future: { compatibilityVersion: 5 },
   vite: { plugins: [tailwindcss()] },
   ssr: false,
@@ -36,10 +36,9 @@ export default defineNuxtConfig({
 
   nitro: {
     // preset: "bun",
-
-    experimental: {
-      openAPI: true
-    },
+    // experimental: {
+    //   openAPI: true
+    // },
     storage: { limiter: { driver: "memory" } }
   },
 

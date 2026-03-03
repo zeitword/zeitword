@@ -25,7 +25,7 @@ const linkSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: linkType.extract(["internal"]),
-    storyId: z.string().uuid().optional()
+    storyId: z.uuid().optional()
   })
 ])
 

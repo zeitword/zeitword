@@ -1,29 +1,17 @@
 name: "zeitword"
 
 services:
-  postgres:
-    image: postgres:17-alpine
+  db:
+    image: postgres:18-alpine
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+  s3:
+    image: chrislusf/seaweedfs
     ports:
-      - "5432:5432"
-  minio:
-    image: minio/minio:latest
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    # volumes:
-    # - minio-data:/data
-    command: server /data --console-address ":9001"
-  minio-setup:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      sh -c "sleep 5 &&
-             mc alias set zeitword http://minio:9000 admin password &&
-             mc mb zeitword/zeitword || echo 'Bucket already exists'"
+      - "8333:8333"
+    command: "server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data"
+    volumes:
+      - ./docker/seaweedfs-s3.json:/etc/seaweedfs/s3.json
