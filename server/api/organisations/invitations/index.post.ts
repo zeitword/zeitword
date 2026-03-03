@@ -30,8 +30,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check if there's already a pending invitation
-  const existingInvitation = await useDrizzle()
+  // Get organization name for email
+  const [org] = await useDrizzle()
+    .select({ name: organisations.name })
+    .from(organisations)
+    .where(eq(organisations.id, secure.organisationId))
+
+  // Generate token and set expiry to 30 days
+  const token = nanoid(64)
+  const expiresAt = addDays(new Date(), 30)
+
+  // Check if there's already a pending invitation — if so, update it instead of creating a new one
+  const [existingInvitation] = await useDrizzle()
     .select()
     .from(userInvitations)
     .where(
@@ -43,34 +53,30 @@ export default defineEventHandler(async (event) => {
     )
     .limit(1)
 
-  if (existingInvitation.length > 0) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "An invitation has already been sent to this email"
-    })
+  let invitation: typeof existingInvitation
+  if (existingInvitation) {
+    ;[invitation] = await useDrizzle()
+      .update(userInvitations)
+      .set({
+        token,
+        expiresAt,
+        invitedBy: secure.userId,
+        updatedAt: new Date()
+      })
+      .where(eq(userInvitations.id, existingInvitation.id))
+      .returning()
+  } else {
+    ;[invitation] = await useDrizzle()
+      .insert(userInvitations)
+      .values({
+        email: normalizedEmail,
+        token,
+        invitedBy: secure.userId,
+        organisationId: secure.organisationId,
+        expiresAt
+      })
+      .returning()
   }
-
-  // Get organization name for email
-  const [org] = await useDrizzle()
-    .select({ name: organisations.name })
-    .from(organisations)
-    .where(eq(organisations.id, secure.organisationId))
-
-  // Generate token and set expiry to 30 days
-  const token = nanoid(64)
-  const expiresAt = addDays(new Date(), 30)
-
-  // Create invitation
-  const [invitation] = await useDrizzle()
-    .insert(userInvitations)
-    .values({
-      email: normalizedEmail,
-      token,
-      invitedBy: secure.userId,
-      organisationId: secure.organisationId,
-      expiresAt
-    })
-    .returning()
 
   // Send invitation email
   const config = useRuntimeConfig()
