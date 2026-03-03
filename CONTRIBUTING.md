@@ -5,7 +5,6 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 ## Getting Started
 
 1. **Fork the repository**
-
    - Visit [Zeitword repository](https://github.com/zeitword/zeitword)
    - Click the "Fork" button in the top right
    - Clone your fork locally:

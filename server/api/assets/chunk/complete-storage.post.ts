@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
       service: "s3",
       accessKeyId: config.s3AccessKeyId,
       secretAccessKey: config.s3SecretAccessKey,
-      region: config.s3Region,
+      region: config.s3Region
     })
 
     const uploadUrl = `${config.s3Endpoint}/${config.s3Bucket}/${finalAssetId}`
@@ -90,8 +90,8 @@ export default defineEventHandler(async (event) => {
       body: completeBuffer,
       headers: {
         "Content-Type": data.contentType,
-        "Cache-Control": "public, max-age=31536000",
-      },
+        "Cache-Control": "public, max-age=31536000"
+      }
     })
 
     const uploadResponse = await fetch(signedRequest)

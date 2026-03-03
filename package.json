@@ -10,7 +10,9 @@
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "s3:update-cors": "bun run scripts/update-s3-cors.ts"
+    "s3:update-cors": "bun run scripts/update-s3-cors.ts",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.22",
@@ -68,6 +70,8 @@
     "@types/pg": "^8.15.6",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.6",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
     "tsx": "^4.20.6"
   },
   "trustedDependencies": [

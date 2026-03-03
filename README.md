@@ -59,7 +59,6 @@ Zeitword is built with modern and reliable technologies:
    ```
 
    This will start:
-
    - PostgreSQL database on port 5432
    - MinIO S3-compatible storage on port 9000
    - MinIO Console on port 9001
@@ -144,10 +143,12 @@ For local development, the `.env.example` comes pre-configured for the included 
    - For production, replace with your preferred S3-compatible service credentials
 
 3. **Waitlist Configuration**
+
    ```env
    NUXT_RESEND="your-resend-api-key"
    NUXT_PUBLIC_SITE_URL="https://your-site-url.com"
    ```
+
    - `NUXT_RESEND`: API key for email service
    - `NUXT_PUBLIC_SITE_URL`: Your site's public URL
 
@@ -166,7 +167,6 @@ For local development, the `.env.example` comes pre-configured for the included 
    ```
 
 3. For production S3 storage:
-
    - Create an S3 bucket or use an S3-compatible service
    - Configure CORS settings for your bucket
    - Add your credentials to the `.env` file
