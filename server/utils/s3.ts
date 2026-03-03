@@ -14,8 +14,6 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 let _client: S3Client | null = null
-let _bucket: string | null = null
-let _endpoint: string | null = null
 
 interface PutItemOptions {
   contentType?: string
@@ -35,45 +33,26 @@ interface MultipartPart {
 }
 
 function init() {
-  if (_client) return { client: _client, bucket: _bucket!, endpoint: _endpoint! }
+  if (_client) return { client: _client }
 
   const config = useRuntimeConfig()
-  const endpoint = config.s3Endpoint as string
-  const bucket = config.s3Bucket as string
-
-  // Clean the endpoint to ensure it doesn't include the bucket name
-  const url = new URL(endpoint)
-
-  // Remove bucket name from subdomain if present (e.g., bucket.region.provider.com)
-  const hostParts = url.hostname.split(".")
-  if (hostParts.length > 2 && hostParts[0] === bucket) {
-    url.hostname = hostParts.slice(1).join(".")
-  }
-
-  // Remove bucket from path if present
-  url.pathname = url.pathname.replace(`/${bucket}`, "")
-
-  // Build clean endpoint without trailing slash
-  const cleanEndpoint = (url.origin + url.pathname).replace(/\/$/, "")
 
   _client = new S3Client({
-    endpoint: cleanEndpoint,
-    region: config.s3Region,
+    endpoint: config.s3.endpoint,
+    region: config.s3.region,
     credentials: {
-      accessKeyId: config.s3AccessKeyId,
-      secretAccessKey: config.s3SecretAccessKey
+      accessKeyId: config.s3.accessKeyId,
+      secretAccessKey: config.s3.secretAccessKey
     },
     forcePathStyle: true
   })
 
-  _bucket = bucket
-  _endpoint = endpoint
-
-  return { client: _client, bucket: _bucket, endpoint: _endpoint }
+  return { client: _client }
 }
 
 export function useS3() {
-  const { client, bucket, endpoint } = init()
+  const config = useRuntimeConfig()
+  const { client } = init()
 
   /**
    * Upload an object to S3.
@@ -84,7 +63,7 @@ export function useS3() {
     options: PutItemOptions = {}
   ) {
     const command = new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       Body: body,
       ContentType: options.contentType,
@@ -99,7 +78,7 @@ export function useS3() {
    */
   async function getItem(key: string): Promise<Buffer> {
     const command = new GetObjectCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key
     })
     const response = await client.send(command)
@@ -120,7 +99,7 @@ export function useS3() {
    */
   async function getItemAsString(key: string): Promise<string> {
     const command = new GetObjectCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key
     })
     const response = await client.send(command)
@@ -137,7 +116,7 @@ export function useS3() {
    */
   async function deleteItem(key: string) {
     const command = new DeleteObjectCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key
     })
     return client.send(command)
@@ -157,7 +136,7 @@ export function useS3() {
 
     do {
       const command = new ListObjectsV2Command({
-        Bucket: bucket,
+        Bucket: config.s3.bucket,
         Prefix: prefix,
         MaxKeys: maxKeys,
         ContinuationToken: continuationToken
@@ -182,7 +161,7 @@ export function useS3() {
     options: MultipartUploadOptions = {}
   ): Promise<string> {
     const command = new CreateMultipartUploadCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       ContentType: options.contentType,
       CacheControl: options.cacheControl,
@@ -192,6 +171,7 @@ export function useS3() {
     const response = await client.send(command)
 
     if (!response.UploadId) {
+      console.log(response)
       throw new Error(`Failed to create multipart upload for key: ${key}`)
     }
 
@@ -208,7 +188,7 @@ export function useS3() {
     body: Buffer | Uint8Array
   ): Promise<MultipartPart> {
     const command = new UploadPartCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       UploadId: uploadId,
       PartNumber: partNumber,
@@ -229,7 +209,7 @@ export function useS3() {
    */
   async function completeMultipartUpload(key: string, uploadId: string, parts: MultipartPart[]) {
     const command = new CompleteMultipartUploadCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       UploadId: uploadId,
       MultipartUpload: { Parts: parts }
@@ -242,7 +222,7 @@ export function useS3() {
    */
   async function abortMultipartUpload(key: string, uploadId: string) {
     const command = new AbortMultipartUploadCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       UploadId: uploadId
     })
@@ -260,7 +240,7 @@ export function useS3() {
     expiresIn = 3600
   ): Promise<string> {
     const command = new UploadPartCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       UploadId: uploadId,
       PartNumber: partNumber
@@ -296,7 +276,7 @@ export function useS3() {
   ): Promise<string> {
     const { contentType, cacheControl, expiresIn = 3600 } = options
     const command = new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: config.s3.bucket,
       Key: key,
       ContentType: contentType,
       CacheControl: cacheControl
@@ -308,7 +288,7 @@ export function useS3() {
    * Build the public URL for a given object key.
    */
   function getPublicUrl(key: string): string {
-    return `${endpoint}/${bucket}/${key}`
+    return `${config.s3.endpoint}/${config.s3.bucket}/${key}`
   }
 
   return {
@@ -326,7 +306,6 @@ export function useS3() {
     getPresignedPutUrl,
     getPublicUrl,
     /** Escape hatch — prefer the high-level helpers above. */
-    client,
-    bucket
+    $client: client
   }
 }

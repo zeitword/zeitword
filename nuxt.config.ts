@@ -15,18 +15,16 @@ export default defineNuxtConfig({
   fonts: { experimental: { processCSSVariables: true } },
 
   runtimeConfig: {
-    // S3 credentials
-    s3AccessKeyId: "",
-    s3SecretAccessKey: "",
-    s3Endpoint: "",
-    s3Bucket: "",
-    s3Region: "",
+    s3: {
+      accessKeyId: "",
+      secretAccessKey: "",
+      endpoint: "",
+      bucket: "",
+      region: ""
+    },
 
     //Resend
     resend: "",
-
-    // OpenAI
-    openaiApiKey: "",
 
     public: {
       siteUrl: "",

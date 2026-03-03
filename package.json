@@ -15,9 +15,6 @@
     "lint:fix": "oxlint --fix"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.2.22",
-    "@ai-sdk/openai": "^2.0.62",
-    "@ai-sdk/vue": "^2.0.87",
     "@aws-sdk/client-s3": "^3.922.0",
     "@aws-sdk/s3-request-presigner": "^3.922.0",
     "@libsql/client": "^0.14.0",
@@ -39,7 +36,6 @@
     "@vueuse/integrations": "^14.0.0",
     "@vueuse/nuxt": "^14.0.0",
     "@vueuse/router": "^14.0.0",
-    "ai": "^5.0.87",
     "auth-utils": "^1.0.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^1.0.0-beta.15-859cf75",

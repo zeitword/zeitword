@@ -2,13 +2,7 @@
 import { useMagicKeys, whenever } from "@vueuse/core"
 import { LexoRank } from "lexorank"
 import { merge, set } from "lodash-es"
-import {
-  LanguagesIcon,
-  FileJsonIcon,
-  FileWarningIcon,
-  SparklesIcon,
-  ArrowRightIcon
-} from "lucide-vue-next"
+import { FileJsonIcon, FileWarningIcon } from "lucide-vue-next"
 import { uuidv7 } from "uuidv7"
 
 definePageMeta({ layout: "story" })
@@ -332,40 +326,7 @@ const { meta_s, ctrl_s } = useMagicKeys()
 //   await refresh()
 // })
 
-const agentEditor = useSessionStorage("agentEditor", false)
 
-function toggleAgentEditor() {
-  agentEditor.value = !agentEditor.value
-}
-
-const isTranslationModalOpen = ref(false)
-const isTranslating = ref(false)
-function toggleTranslationModal() {
-  isTranslationModalOpen.value = !isTranslationModalOpen.value
-}
-
-async function autoTranslate() {
-  isTranslating.value = true
-
-  try {
-    const response = await $fetch(`/api/ai/translate`, {
-      method: "POST",
-      body: {
-        storyId: storyId.value,
-        fromLanguage: site.value?.defaultLanguage,
-        toLanguage: selectedLanguage.value
-      }
-    })
-
-    content.value = response
-  } catch (error) {
-    console.error("Error translating story:", error)
-    toast.error({ description: "Error translating story" })
-  }
-
-  isTranslating.value = false
-  isTranslationModalOpen.value = false
-}
 </script>
 
 <template>
@@ -409,12 +370,6 @@ async function autoTranslate() {
       </Transition>
     </template>
     <div class="flex items-center gap-2">
-      <DButton
-        v-if="site?.defaultLanguage !== selectedLanguage"
-        :icon-left="LanguagesIcon"
-        @click="toggleTranslationModal"
-        variant="secondary"
-      />
       <DSelect
         :model-value="selectedLanguage"
         :options="languageOptions"
@@ -424,11 +379,6 @@ async function autoTranslate() {
         :icon-left="FileJsonIcon"
         @click="showJson = !showJson"
         :variant="showJson ? 'primary' : 'secondary'"
-      />
-      <DButton
-        :icon-left="SparklesIcon"
-        @click="toggleAgentEditor"
-        :variant="agentEditor ? 'primary' : 'secondary'"
       />
     </div>
   </DPageTitle>
@@ -482,21 +432,6 @@ async function autoTranslate() {
       </div>
     </div>
 
-    <div
-      v-if="agentEditor"
-      name="agent-editor"
-      class="border-neutral flex max-w-[500px] flex-1 flex-col gap-2 overflow-auto border-l"
-    >
-      <d-agent-editor
-        :language="selectedLanguage"
-        :site-id="siteId as string"
-        :story-id="storyId as string"
-        :content="content"
-        :sorted-fields="sortedFields"
-        @updateNestedField="updateNestedFieldRefined"
-        @addBlock="addBlock"
-      />
-    </div>
   </div>
 
   <DModal
@@ -508,30 +443,6 @@ async function autoTranslate() {
     @close="isDeleteModalOpen = false"
     @confirm="deleteBlock"
   ></DModal>
-
-  <DModal
-    :open="isTranslationModalOpen"
-    :loading="isTranslating"
-    title="Auto Translate"
-    description="Use AI to translate this story:"
-    confirm-text="Translate"
-    @close="isTranslationModalOpen = false"
-    @confirm="autoTranslate"
-  >
-    <div class="flex items-center justify-center gap-4">
-      <DSelect
-        :model-value="site?.defaultLanguage"
-        :disabled="true"
-        :options="languageOptions"
-      />
-      <ArrowRightIcon class="size-4 text-neutral-50" />
-      <DSelect
-        :model-value="selectedLanguage"
-        :disabled="true"
-        :options="languageOptions"
-      />
-    </div>
-  </DModal>
 </template>
 
 <style scoped>

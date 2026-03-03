@@ -40,20 +40,20 @@ const page = computed({
       class="flex items-center gap-1 text-stone-700 dark:text-white"
     >
       <PaginationFirst
-        class="text-neutral hover:bg-neutral-strong/10 active:inset-shadow relative inline-flex h-9 w-9 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
+        class="text-neutral hover:bg-neutral-strong active:inset-shadow relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg p-2 text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
       >
-        <ArrowLeftIcon />
+        <ArrowLeftIcon class="size-4" />
       </PaginationFirst>
       <PaginationPrev
-        class="text-neutral hover:bg-neutral-strong/10 active:inset-shadow relative inline-flex h-9 w-9 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
+        class="text-neutral hover:bg-neutral-strong active:inset-shadow relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg p-2 text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
       >
-        <ChevronLeftIcon />
+        <ChevronLeftIcon class="size-4" />
       </PaginationPrev>
       <template v-for="(page, index) in items">
         <PaginationListItem
           v-if="page.type === 'page'"
           :key="index"
-          class="text-neutral border-neutral hover:bg-neutral-weak hover:shadow-button data-[selected]:bg-neutral-inverse data-[selected]:text-neutral-inverse data-[selected]:inset-shadow bg-neutral relative inline-flex h-9 w-9 cursor-pointer items-center justify-center gap-2 rounded-lg border text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          class="text-neutral border-neutral hover:bg-neutral-weak hover:shadow-button data-selected:bg-neutral-inverse data-selected:text-neutral-inverse data-[selected]:inset-shadow bg-neutral relative inline-flex h-9 w-9 cursor-pointer items-center justify-center gap-2 rounded-lg border text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2"
           :value="page.value"
         >
           {{ page.value }}
@@ -62,20 +62,20 @@ const page = computed({
           v-else
           :key="page.type"
           :index="index"
-          class="text-neutral flex h-9 w-9 items-center justify-center"
+          class="text-neutral flex size-4 items-center justify-center"
         >
           &#8230;
         </PaginationEllipsis>
       </template>
       <PaginationNext
-        class="text-neutral hover:bg-neutral-strong/10 active:inset-shadow relative inline-flex h-9 w-9 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
+        class="text-neutral hover:bg-neutral-strong active:inset-shadow relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg p-2 text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
       >
-        <ChevronRightIcon />
+        <ChevronRightIcon class="size-4" />
       </PaginationNext>
       <PaginationLast
-        class="text-neutral hover:bg-neutral-strong/10 active:inset-shadow relative inline-flex h-9 w-9 cursor-pointer items-center justify-center gap-2 rounded-lg text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
+        class="text-neutral hover:bg-neutral-strong active:inset-shadow relative inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg p-2 text-sm text-nowrap ring-blue-600 outline-none select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50"
       >
-        <ArrowRightIcon />
+        <ArrowRightIcon class="size-4" />
       </PaginationLast>
     </PaginationList>
   </PaginationRoot>

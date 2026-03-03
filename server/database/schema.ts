@@ -241,25 +241,3 @@ export const storyTranslatedSlugs = pgTable(
     uniqueIndex("translated_slug_site_lang_idx").on(t.slug, t.siteId, t.languageCode)
   ]
 )
-
-// AI
-
-export const languageModelUsageCredits = pgTable("language_model_usage_credits", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  amount: integer().notNull(),
-  ...organisationId,
-  ...timestamps
-})
-
-export const languageModelUsages = pgTable("language_model_usages", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  userId: uuid()
-    .notNull()
-    .references(() => users.id),
-  modelId: text().notNull(),
-  inputTokens: integer().notNull(),
-  outputTokens: integer().notNull(),
-  totalTokens: integer().notNull(),
-  ...organisationId,
-  ...timestamps
-})
