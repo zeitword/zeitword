@@ -1,7 +1,7 @@
+import { eq, and } from "drizzle-orm"
 import { z } from "zod"
 import { components, stories, storyTranslatedSlugs } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
-import { eq, and } from "drizzle-orm"
 import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const updateStorySchema = z.object({

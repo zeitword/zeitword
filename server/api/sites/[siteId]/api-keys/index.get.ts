@@ -1,6 +1,6 @@
-import { siteApiKeys, sites } from "~~/server/database/schema"
 import { and, eq } from "drizzle-orm"
 import { z } from "zod"
+import { siteApiKeys, sites } from "~~/server/database/schema"
 
 const paramSchema = z.object({
   siteId: z.uuid()

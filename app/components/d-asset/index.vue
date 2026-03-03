@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from "vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
+import { ref, computed } from "vue"
+
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
+
 import { useChunkedUpload } from "~/composables/useChunkedUpload"
 
 type Props = {

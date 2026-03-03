@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ChevronDownIcon, ChevronUpIcon, CheckIcon } from "lucide-vue-next"
 import {
   SelectRoot,
   SelectTrigger,
@@ -10,7 +11,6 @@ import {
   SelectItemIndicator,
   SelectItemText
 } from "reka-ui"
-import { ChevronDownIcon, ChevronUpIcon, CheckIcon } from "lucide-vue-next"
 
 interface Props {
   options: { value: string | number | boolean | null; display: string }[]

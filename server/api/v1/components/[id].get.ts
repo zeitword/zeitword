@@ -1,7 +1,7 @@
-import { requireApiKey } from "~~/server/utils/api-key-auth"
-import { components } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
 import { z } from "zod"
+import { components } from "~~/server/database/schema"
+import { requireApiKey } from "~~/server/utils/api-key-auth"
 
 const paramSchema = z.object({
   id: z.uuid()

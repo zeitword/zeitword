@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { DField, DComponent } from "~/types/models"
-import type { AssetConfig } from "~/types"
 import { computed } from "vue"
+
+import type { AssetConfig } from "~/types"
+import type { DField, DComponent } from "~/types/models"
 
 type Props = {
   field: DField

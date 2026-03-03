@@ -1,5 +1,6 @@
-import { sessions } from "../database/schema"
 import { eq, isNull } from "drizzle-orm"
+
+import { sessions } from "../database/schema"
 
 // server/plugins/session.ts
 export default defineNitroPlugin(() => {

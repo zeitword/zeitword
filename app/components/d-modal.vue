@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from "lucide-vue-next"
 import {
   DialogClose,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogRoot,
   DialogTitle
 } from "reka-ui"
-import { X } from "lucide-vue-next"
 
 type Props = {
   open: boolean

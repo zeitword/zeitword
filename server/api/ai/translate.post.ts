@@ -1,9 +1,10 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateObject, NoObjectGeneratedError } from "ai"
-import z from "zod"
 import { and, eq } from "drizzle-orm"
-import { stories, componentFields } from "~~/server/database/schema"
 import { merge, set } from "lodash-es"
+import z from "zod"
+import { stories, componentFields } from "~~/server/database/schema"
+
 import { trackUsage } from "./chat"
 
 const openai = createOpenAI({

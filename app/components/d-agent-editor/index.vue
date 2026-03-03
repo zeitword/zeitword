@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ArrowUpIcon } from "lucide-vue-next"
 import type { UIMessage } from "ai"
+
 import { Chat } from "@ai-sdk/vue"
 import {
   createIdGenerator,
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithToolCalls
 } from "ai"
+import { ArrowUpIcon } from "lucide-vue-next"
 import { computed, ref } from "vue"
 
 interface Props {

@@ -1,8 +1,10 @@
-import { users } from "../database/schema"
-import { nanoid } from "nanoid"
-import { z } from "zod"
 import type { H3Event } from "h3"
+
+import { nanoid } from "nanoid"
 import { Resend } from "resend"
+import { z } from "zod"
+
+import { users } from "../database/schema"
 
 const bodySchema = z.object({
   email: z.string().email()

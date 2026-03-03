@@ -1,5 +1,5 @@
-import { userInvitations, users } from "~~/server/database/schema"
 import { isNull } from "drizzle-orm"
+import { userInvitations, users } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)

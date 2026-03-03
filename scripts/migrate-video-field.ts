@@ -1,6 +1,6 @@
-import { useDrizzle, tables } from "~~/server/utils/drizzle"
 import { eq } from "drizzle-orm"
 import { inspect } from "util"
+import { useDrizzle, tables } from "~~/server/utils/drizzle"
 
 function isVideoUrl(str: unknown): str is string {
   return typeof str === "string" && (str.startsWith("http://") || str.startsWith("https://"))

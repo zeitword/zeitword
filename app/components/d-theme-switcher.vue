@@ -1,7 +1,7 @@
 <script setup>
-import { computed, onMounted } from "vue"
-import { Monitor, Sun, Moon } from "lucide-vue-next"
 import { useStorage } from "@vueuse/core"
+import { Monitor, Sun, Moon } from "lucide-vue-next"
+import { computed, onMounted } from "vue"
 
 const mode = useStorage("theme-mode", "system")
 

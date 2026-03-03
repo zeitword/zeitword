@@ -1,5 +1,5 @@
-import { components } from "~~/server/database/schema"
 import { eq } from "drizzle-orm"
+import { components } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")

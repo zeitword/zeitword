@@ -1,5 +1,5 @@
-import { useDrizzle, tables } from "~~/server/utils/drizzle"
 import { eq } from "drizzle-orm"
+import { useDrizzle, tables } from "~~/server/utils/drizzle"
 
 async function migrateContentToI18n(isDryRun: boolean) {
   console.log(`Starting content i18n migration... (${isDryRun ? "DRY RUN" : "EXECUTION"})`)

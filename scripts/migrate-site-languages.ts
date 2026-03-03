@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm"
 // zeitword/scripts/migrate-site-languages.ts
 import { useDrizzle, tables } from "~~/server/utils/drizzle"
-import { eq } from "drizzle-orm"
 
 async function migrateSiteLanguages(isDryRun: boolean) {
   console.log(`Starting site languages migration... (${isDryRun ? "DRY RUN" : "EXECUTION"})`)

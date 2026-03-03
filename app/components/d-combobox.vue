@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon } from "lucide-vue-next"
 import {
   ComboboxRoot,
   ComboboxAnchor,
@@ -11,7 +12,6 @@ import {
   ComboboxItemIndicator,
   ComboboxCancel
 } from "reka-ui"
-import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon } from "lucide-vue-next"
 import { ref, computed } from "vue"
 
 interface Props {

@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CheckIcon,
+  XIcon,
+  LinkIcon,
+  ExternalLinkIcon
+} from "lucide-vue-next"
+import {
   ComboboxRoot,
   ComboboxAnchor,
   ComboboxInput,
@@ -12,14 +20,6 @@ import {
   ComboboxCancel,
   ComboboxEmpty
 } from "reka-ui"
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  CheckIcon,
-  XIcon,
-  LinkIcon,
-  ExternalLinkIcon
-} from "lucide-vue-next"
 import { nextTick } from "vue"
 
 interface InternalLink {

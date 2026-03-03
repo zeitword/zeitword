@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { PlusIcon, GripVertical } from "lucide-vue-next"
-import type { DField, DComponent } from "~/types/models"
 import { LexoRank } from "lexorank"
+import { PlusIcon, GripVertical } from "lucide-vue-next"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
+
+import type { DField, DComponent } from "~/types/models"
 
 type Props = {
   field: DField

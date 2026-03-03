@@ -1,7 +1,7 @@
-import { stories } from "~~/server/database/schema"
-import { requireApiKey } from "~~/server/utils/api-key-auth"
 import { eq, and } from "drizzle-orm"
 import z from "zod"
+import { stories } from "~~/server/database/schema"
+import { requireApiKey } from "~~/server/utils/api-key-auth"
 
 const paramSchema = z.object({
   storyId: z.uuid()

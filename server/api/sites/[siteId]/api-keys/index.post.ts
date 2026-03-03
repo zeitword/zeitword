@@ -1,7 +1,7 @@
+import { and, eq } from "drizzle-orm"
 import { customAlphabet } from "nanoid"
 import { z } from "zod"
 import { siteApiKeys, sites } from "~~/server/database/schema"
-import { and, eq } from "drizzle-orm"
 
 const bodySchema = z.object({
   name: z.string()

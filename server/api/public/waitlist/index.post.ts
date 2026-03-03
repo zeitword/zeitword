@@ -1,7 +1,7 @@
-import { z } from "zod"
-import { waitlist } from "~~/server/database/schema"
 import { createHash } from "crypto"
 import { Resend } from "resend"
+import { z } from "zod"
+import { waitlist } from "~~/server/database/schema"
 
 const bodySchema = z.object({
   email: z.email()

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useMagicKeys, whenever } from "@vueuse/core"
+import { LexoRank } from "lexorank"
+import { merge, set } from "lodash-es"
 import {
   LanguagesIcon,
   FileJsonIcon,
@@ -6,9 +9,6 @@ import {
   SparklesIcon,
   ArrowRightIcon
 } from "lucide-vue-next"
-import { merge, set } from "lodash-es"
-import { LexoRank } from "lexorank"
-import { useMagicKeys, whenever } from "@vueuse/core"
 import { uuidv7 } from "uuidv7"
 
 definePageMeta({ layout: "story" })

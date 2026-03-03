@@ -1,6 +1,6 @@
+import { eq, and } from "drizzle-orm"
 import { z } from "zod"
 import { components } from "~~/server/database/schema"
-import { eq, and } from "drizzle-orm"
 
 const bodySchema = z.object({
   name: z.string().min(1).max(255),

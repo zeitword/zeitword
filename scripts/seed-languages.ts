@@ -1,5 +1,5 @@
-import { useDrizzle, tables } from "~~/server/utils/drizzle"
 import ISO6391 from "iso-639-1"
+import { useDrizzle, tables } from "~~/server/utils/drizzle"
 
 async function seedLanguages() {
   console.log("Starting language seeding...")

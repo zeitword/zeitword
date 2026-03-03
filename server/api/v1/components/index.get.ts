@@ -1,6 +1,6 @@
-import { requireApiKey } from "~~/server/utils/api-key-auth"
-import { components } from "~~/server/database/schema"
 import { eq, and } from "drizzle-orm"
+import { components } from "~~/server/database/schema"
+import { requireApiKey } from "~~/server/utils/api-key-auth"
 
 export default defineEventHandler(async (event) => {
   const auth = await requireApiKey(event)

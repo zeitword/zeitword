@@ -1,4 +1,5 @@
 import { computed, ref } from "vue"
+
 import type { AssetType } from "~/types"
 
 const assetTypeToMimeMap: { [key: string]: string[] } = {

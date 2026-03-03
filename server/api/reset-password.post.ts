@@ -1,5 +1,6 @@
-import { users } from "../database/schema"
 import { z } from "zod"
+
+import { users } from "../database/schema"
 
 const bodySchema = z.object({
   token: z.string(),

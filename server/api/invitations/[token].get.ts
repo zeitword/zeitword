@@ -1,5 +1,5 @@
-import { userInvitations, organisations } from "~~/server/database/schema"
 import { isNull } from "drizzle-orm"
+import { userInvitations, organisations } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const token = getRouterParam(event, "token")

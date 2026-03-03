@@ -1,9 +1,9 @@
-import { languageModelUsageCredits, languageModelUsages } from "~~/server/database/schema"
-import { convertToModelMessages, streamText, tool, stepCountIs } from "ai"
-import { hasSufficientFunds, modelCards } from "~~/server/utils/ai"
 import { createOpenAI } from "@ai-sdk/openai"
+import { convertToModelMessages, streamText, tool, stepCountIs } from "ai"
 import { sum } from "drizzle-orm"
 import { z } from "zod"
+import { languageModelUsageCredits, languageModelUsages } from "~~/server/database/schema"
+import { hasSufficientFunds, modelCards } from "~~/server/utils/ai"
 
 const openai = createOpenAI({
   apiKey: useRuntimeConfig().openaiApiKey

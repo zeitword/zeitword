@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { GripVertical, TextCursorInput } from "lucide-vue-next"
 import { LexoRank } from "lexorank"
+import { GripVertical, TextCursorInput } from "lucide-vue-next"
 import Sortable from "sortablejs"
 import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from "vue"
 

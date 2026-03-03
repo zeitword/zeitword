@@ -1,9 +1,9 @@
-import { userInvitations, users, organisations } from "~~/server/database/schema"
+import { addDays } from "date-fns"
 import { isNull } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { Resend } from "resend"
-import { addDays } from "date-fns"
 import { z } from "zod"
+import { userInvitations, users, organisations } from "~~/server/database/schema"
 
 const bodySchema = z.object({
   email: z.email()

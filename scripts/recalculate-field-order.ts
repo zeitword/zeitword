@@ -1,6 +1,6 @@
-import { useDrizzle, tables } from "~~/server/utils/drizzle"
-import { LexoRank } from "lexorank"
 import { and, asc, eq } from "drizzle-orm"
+import { LexoRank } from "lexorank"
+import { useDrizzle, tables } from "~~/server/utils/drizzle"
 
 async function recalculateFieldOrders() {
   const allComponents = await useDrizzle().select().from(tables.components)

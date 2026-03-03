@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue"
-import { GripVertical, UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
-import type { DField } from "~/types/models"
+import { useFileDialog, useDropZone } from "@vueuse/core"
 import { LexoRank } from "lexorank"
+import { GripVertical, UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
-import { useFileDialog, useDropZone } from "@vueuse/core"
-import { useAssetValidation } from "~/composables/useAssetValidation"
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue"
+
 import type { AssetConfig } from "~/types"
+import type { DField } from "~/types/models"
+
+import { useAssetValidation } from "~/composables/useAssetValidation"
 import { useChunkedUpload } from "~/composables/useChunkedUpload"
 
 const { toast } = useToast()

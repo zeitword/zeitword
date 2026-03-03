@@ -1,6 +1,6 @@
+import { isNull } from "drizzle-orm"
 import { z } from "zod"
 import { userInvitations, users, organisations } from "~~/server/database/schema"
-import { isNull } from "drizzle-orm"
 
 const bodySchema = z
   .object({

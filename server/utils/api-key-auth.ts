@@ -1,7 +1,7 @@
-import { siteApiKeys, siteLanguages, sites } from "~~/server/database/schema"
-import { eq, and } from "drizzle-orm"
 import type { H3Event } from "h3"
-import { nanoid } from "nanoid"
+
+import { eq, and } from "drizzle-orm"
+import { siteApiKeys, siteLanguages, sites } from "~~/server/database/schema"
 
 export interface ApiKeyAuthResult {
   siteId: string

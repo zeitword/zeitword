@@ -1,7 +1,7 @@
-import { useDrizzle, tables } from "~~/server/utils/drizzle"
 import { eq } from "drizzle-orm"
-import { inspect } from "util" // For better object logging
 import { LexoRank } from "lexorank" // Import LexoRank
+import { inspect } from "util" // For better object logging
+import { useDrizzle, tables } from "~~/server/utils/drizzle"
 
 // Helper function to check if a string looks like a potential image URL
 function isImageUrl(str: unknown): str is string {

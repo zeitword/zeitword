@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm"
 // bun run scripts/move-site-to-org.ts <siteId> <newOrganizationId> [--dry-run]
 import { useDrizzle, tables } from "~~/server/utils/drizzle"
-import { eq } from "drizzle-orm"
 
 async function moveSiteToOrganization(siteId: string, newOrganizationId: string) {
   const isDryRun = process.argv.includes("--dry-run")
