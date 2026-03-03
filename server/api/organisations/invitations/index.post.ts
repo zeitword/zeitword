@@ -23,15 +23,15 @@ export default defineEventHandler(async (event) => {
     .where(eq(users.email, normalizedEmail))
     .limit(1)
 
-  if (existingUser) {
-    if (!existingUser.deletedAt) {
-      // Active user — cannot invite someone already in an org
-      throw createError({
-        statusCode: 400,
-        statusMessage: "Cannot invite user as they are already part of another organization"
-      })
-    }
+  if (existingUser && existingUser.deletedAt === null) {
+    // Active user — cannot invite someone already in an org
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Cannot invite user as they are already part of another organization"
+    })
+  }
 
+  if (existingUser && existingUser.deletedAt !== null) {
     // Archived user — unarchive them and move to this org
     await useDrizzle()
       .update(users)
