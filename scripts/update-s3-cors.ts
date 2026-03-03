@@ -25,14 +25,13 @@ const s3Client = new S3Client({
     accessKeyId: process.env.NUXT_S3_ACCESS_KEY_ID!,
     secretAccessKey: process.env.NUXT_S3_SECRET_ACCESS_KEY!
   },
-  forcePathStyle: true // Required for S3-compatible services like MinIO
+  forcePathStyle: false
 })
 
 // Define allowed origins
 const allowedOrigins: string[] = [
   // "http://localhost:3000",
-  "https://app.zeitword.com",
-  "https://zeitword-git-feature-large-uploads-trail-group.vercel.app"
+  "https://app.zeitword.com"
 ]
 
 // Add additional origins from environment if specified

@@ -43,8 +43,7 @@ function init() {
     credentials: {
       accessKeyId: config.s3.accessKeyId,
       secretAccessKey: config.s3.secretAccessKey
-    },
-    forcePathStyle: true
+    }
   })
 
   return { client: _client }
