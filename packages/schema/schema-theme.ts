@@ -33,6 +33,32 @@ const descriptionField: DField = { displayName: "Description", type: "textarea" 
 const linkField: DField = { displayName: "Link", type: "link" }
 const iconField: DField = { displayName: "Icon", type: "text" }
 const imageField: DField = { displayName: "Image", type: "asset" }
+const levelField: DField = {
+  displayName: "Level",
+  type: "option",
+  options: [
+    { key: "1", value: "1" },
+    { key: "2", value: "2" },
+    { key: "3", value: "3" }
+  ]
+}
+const buttonsField: DField = {
+  displayName: "Buttons",
+  type: "blocks",
+  componentWhitelist: ["d-button"]
+}
+
+// --- Intro Fields (shared by many blocks) ---
+const introFields: { [key: string]: DField } = {
+  heading: headingField,
+  title: titleField,
+  level: levelField,
+  description: {
+    displayName: "Description",
+    type: "textarea"
+  },
+  buttons: buttonsField
+}
 
 // --- Site Config Fields ---
 const siteConfigFields: { [key: string]: DField } = {
@@ -90,6 +116,7 @@ const buttonFields: { [key: string]: DField } = {
 const cardFields: { [key: string]: DField } = {
   icon: iconField,
   image: imageField,
+  heading: headingField,
   title: titleField,
   description: {
     displayName: "Description",
@@ -309,10 +336,78 @@ export const schema: DSchema = {
       }
     }
   },
+  "d-number-card": {
+    name: "d-number-card",
+    displayName: "Number Card",
+    previewField: "number",
+    fields: {
+      number: { displayName: "Number", type: "text" },
+      leading: { displayName: "Leading", type: "text" },
+      trailing: { displayName: "Trailing", type: "text" },
+      description: { displayName: "Description", type: "text" },
+      animated: { displayName: "Animated", type: "boolean" }
+    }
+  },
+  "d-testimonial": {
+    name: "d-testimonial",
+    displayName: "Testimonial",
+    previewField: "name",
+    fields: {
+      logo: imageField,
+      name: { displayName: "Name", type: "text" },
+      role: { displayName: "Role", type: "text" },
+      quote: { displayName: "Quote", type: "textarea" }
+    }
+  },
+  "d-input": {
+    name: "d-input",
+    displayName: "Input",
+    previewField: "label",
+    fields: {
+      name: { displayName: "Name", type: "text" },
+      label: { displayName: "Label", type: "text" },
+      placeholder: { displayName: "Placeholder", type: "text" },
+      type: {
+        displayName: "Type",
+        type: "option",
+        options: [
+          { key: "text", value: "Text" },
+          { key: "email", value: "Email" },
+          { key: "number", value: "Number" },
+          { key: "tel", value: "Phone" },
+          { key: "url", value: "URL" }
+        ]
+      },
+      required: { displayName: "Required", type: "boolean" }
+    }
+  },
+  "d-textarea": {
+    name: "d-textarea",
+    displayName: "Textarea",
+    previewField: "label",
+    fields: {
+      name: { displayName: "Name", type: "text" },
+      label: { displayName: "Label", type: "text" },
+      placeholder: { displayName: "Placeholder", type: "text" },
+      rows: { displayName: "Rows", type: "number" },
+      required: { displayName: "Required", type: "boolean" }
+    }
+  },
   "block-cards-1": {
     name: "block-cards-1",
     displayName: "Cards Block 1",
     fields: {
+      level: levelField,
+      cols: {
+        displayName: "Columns",
+        type: "option",
+        options: [
+          { key: "2", value: "2" },
+          { key: "3", value: "3" },
+          { key: "4", value: "4" }
+        ]
+      },
+      numbered: { displayName: "Numbered", type: "boolean" },
       cards: {
         displayName: "Cards",
         type: "blocks",
@@ -323,13 +418,15 @@ export const schema: DSchema = {
   "block-logos-1": {
     name: "block-logos-1",
     displayName: "Logos Block 1",
-    previewField: "title",
+    previewField: "heading",
     fields: {
       heading: headingField,
       logos: {
         displayName: "Logos",
         type: "assets"
-      }
+      },
+      speed: { displayName: "Speed", type: "number" },
+      color: { displayName: "Color", type: "boolean" }
     }
   },
   "block-intro-1": {
@@ -339,15 +436,13 @@ export const schema: DSchema = {
     fields: {
       heading: headingField,
       title: titleField,
+      level: levelField,
       description: {
         displayName: "Description",
         type: "richtext"
       },
-      buttons: {
-        displayName: "Buttons",
-        type: "blocks",
-        componentWhitelist: ["d-button"]
-      }
+      buttons: buttonsField,
+      center: { displayName: "Center", type: "boolean" }
     }
   },
   "block-cta-1": {
@@ -374,13 +469,14 @@ export const schema: DSchema = {
       heading: headingField,
       title: titleField,
       description: descriptionField,
-      buttons: {
-        displayName: "Buttons",
-        type: "blocks",
-        componentWhitelist: ["d-button"]
-      },
+      buttons: buttonsField,
+      level: levelField,
       center: {
         displayName: "Center",
+        type: "boolean"
+      },
+      hasBanner: {
+        displayName: "Has Banner",
         type: "boolean"
       }
     }
@@ -398,15 +494,13 @@ export const schema: DSchema = {
   "block-map-1": {
     name: "block-map-1",
     displayName: "Map Block 1",
-    previewField: "title",
     fields: {
-      title: titleField,
-      description: descriptionField,
       map: {
         displayName: "Map",
         type: "blocks",
         componentWhitelist: ["d-map-marker", "d-map-marker-img"]
-      }
+      },
+      image: imageField
     }
   },
   "block-team-1": {
@@ -482,6 +576,112 @@ export const schema: DSchema = {
     }
   },
 
+  "block-hero-2": {
+    name: "block-hero-2",
+    displayName: "Hero Block 2",
+    previewField: "title",
+    fields: {
+      heading: headingField,
+      title: titleField,
+      description: descriptionField,
+      buttons: buttonsField,
+      image: imageField,
+      level: levelField
+    }
+  },
+  "block-image-compare-1": {
+    name: "block-image-compare-1",
+    displayName: "Image Compare Block 1",
+    fields: {
+      image1: { displayName: "Image 1 (After)", type: "asset" },
+      image2: { displayName: "Image 2 (Before)", type: "asset" }
+    }
+  },
+  "block-map-2": {
+    name: "block-map-2",
+    displayName: "Map Block 2",
+    previewField: "title",
+    fields: {
+      ...introFields,
+      map: {
+        displayName: "Map",
+        type: "blocks",
+        componentWhitelist: ["d-map-marker", "d-map-marker-img"]
+      },
+      image: imageField
+    }
+  },
+  "block-numbers-1": {
+    name: "block-numbers-1",
+    displayName: "Numbers Block 1",
+    previewField: "title",
+    fields: {
+      ...introFields,
+      cards: {
+        displayName: "Number Cards",
+        type: "blocks",
+        componentWhitelist: ["d-number-card"]
+      }
+    }
+  },
+  "block-quote-1": {
+    name: "block-quote-1",
+    displayName: "Quote Block 1",
+    previewField: "title",
+    fields: {
+      heading: headingField,
+      title: titleField,
+      description: descriptionField,
+      image: imageField,
+      buttons: buttonsField
+    }
+  },
+  "block-testimonials-1": {
+    name: "block-testimonials-1",
+    displayName: "Testimonials Block 1",
+    fields: {
+      testimonials: {
+        displayName: "Testimonials",
+        type: "blocks",
+        componentWhitelist: ["d-testimonial"]
+      }
+    }
+  },
+  "block-text-asset-1": {
+    name: "block-text-asset-1",
+    displayName: "Text Asset Block 1",
+    previewField: "title",
+    fields: {
+      ...introFields,
+      reverse: { displayName: "Reverse", type: "boolean" },
+      asset: { displayName: "Asset", type: "asset" }
+    }
+  },
+  "block-form-1": {
+    name: "block-form-1",
+    displayName: "Form Block 1",
+    fields: {
+      fields: {
+        displayName: "Fields",
+        type: "blocks",
+        componentWhitelist: ["d-input", "d-textarea"]
+      },
+      submitButtonText: {
+        displayName: "Submit Button Text",
+        type: "text",
+        default: "Submit"
+      },
+      privacyText: {
+        displayName: "Privacy Text",
+        type: "textarea"
+      },
+      privacyLinks: {
+        displayName: "Privacy Links",
+        type: "blocks",
+        componentWhitelist: ["d-text-link"]
+      }
+    }
+  },
   footer: {
     name: "footer",
     displayName: "Footer",
@@ -512,11 +712,18 @@ export const schema: DSchema = {
         type: "blocks",
         componentWhitelist: [
           "block-hero-1",
+          "block-hero-2",
           "block-cards-1",
           "block-cta-1",
+          "block-intro-1",
           "block-rich-text-1",
           "block-gallery-1",
-          "block-image-1"
+          "block-image-1",
+          "block-image-compare-1",
+          "block-quote-1",
+          "block-numbers-1",
+          "block-text-asset-1",
+          "block-testimonials-1"
         ]
       }
     }
@@ -538,17 +745,25 @@ export const schema: DSchema = {
         componentWhitelist: [
           "block-cards-1",
           "block-hero-1",
+          "block-hero-2",
           "block-intro-1",
           "block-logos-1",
           "block-cta-1",
           "block-map-1",
+          "block-map-2",
           "block-team-1",
           "block-rich-text-1",
           "block-articles-1",
           "block-rss-1",
           "block-gallery-1",
           "block-image-1",
-          "block-faq-1"
+          "block-image-compare-1",
+          "block-faq-1",
+          "block-numbers-1",
+          "block-quote-1",
+          "block-testimonials-1",
+          "block-text-asset-1",
+          "block-form-1"
         ]
       }
     }
