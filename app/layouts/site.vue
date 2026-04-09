@@ -3,6 +3,7 @@ const siteId = useRouteParams("siteId")
 
 const navigation = ref([
   { name: "Content", to: `/sites/${siteId.value}/stories` },
+  { name: "Media", to: `/sites/${siteId.value}/assets` },
   { name: "Components", to: `/sites/${siteId.value}/components` },
   { name: "Settings", to: `/sites/${siteId.value}/settings` }
 ])

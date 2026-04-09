@@ -1,10 +1,13 @@
 import { z } from "zod"
+import { assets } from "~~/server/database/schema"
 
 const completeUploadSchema = z.object({
   key: z.string().min(1),
   uploadId: z.string().min(1),
   fileName: z.string().min(1),
+  fileSize: z.number().int().positive().optional(),
   contentType: z.string().min(1),
+  siteId: z.string().uuid().optional(),
   parts: z
     .array(
       z.object({
@@ -33,10 +36,28 @@ export default defineEventHandler(async (event) => {
     await s3.completeMultipartUpload(data.key, data.uploadId, parts)
 
     const fileType = getAssetTypeFromMimeType(data.contentType)
+    const src = s3.getPublicUrl(data.key)
+
+    // If siteId is provided, persist the asset record in the database
+    if (data.siteId) {
+      await useDrizzle()
+        .insert(assets)
+        .values({
+          id: data.key,
+          fileName: data.fileName,
+          contentType: data.contentType,
+          fileSize: data.fileSize || 0,
+          type: fileType,
+          src,
+          siteId: data.siteId,
+          uploadedBy: secure.userId,
+          organisationId: secure.organisationId
+        })
+    }
 
     return {
       id: data.key,
-      src: s3.getPublicUrl(data.key),
+      src,
       type: fileType,
       fileName: data.fileName
     }

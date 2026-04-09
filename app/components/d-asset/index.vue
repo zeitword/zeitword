@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useFileDialog, useDropZone } from "@vueuse/core"
-import { UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
+import { UploadCloudIcon, LoaderCircleIcon, ImageIcon } from "lucide-vue-next"
 import { ref, computed } from "vue"
 
 import type { AssetConfig, AssetType, AssetObject } from "~/types"
+import type { DAsset } from "~/types/models"
 
 import { useUpload } from "~/composables/useUpload"
 
@@ -16,6 +17,9 @@ const props = withDefaults(defineProps<Props>(), {
   config: undefined,
   borderless: false
 })
+
+const siteId = useRouteParams("siteId")
+const isPickerOpen = ref(false)
 
 const emit = defineEmits<{
   (e: "update:value", value: AssetObject | null): void
@@ -107,7 +111,7 @@ async function uploadFile(file: File) {
       }
     })
 
-    const asset = await doUpload(file)
+    const asset = await doUpload(file, { siteId: siteId.value })
     emit("update:value", { id: asset.id, src: asset.src, alt: file.name, type: asset.type })
   } catch (error) {
     console.error(error)
@@ -143,6 +147,18 @@ function handleUpdateAlt(newAlt: string) {
   if (!newValue) return
 
   emit("update:value", newValue)
+}
+
+function handlePickerSelect(assets: DAsset[]) {
+  if (assets.length > 0) {
+    const asset = assets[0]
+    emit("update:value", {
+      id: asset.id,
+      src: asset.src,
+      alt: asset.fileName,
+      type: asset.type
+    })
+  }
 }
 
 useDropZone(dropZoneRef, {
@@ -191,16 +207,14 @@ useDropZone(dropZoneRef, {
           }
         "
       />
-      <button
+      <div
         v-else
         ref="dropZoneRef"
-        class="relative flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-xl p-6 text-center transition-colors"
+        class="relative flex h-full w-full flex-col items-center justify-center rounded-xl p-6 text-center transition-colors"
         :class="[
           isDragging ? 'bg-neutral-subtle' : 'border-neutral-soft bg-neutral-bg',
           isLoading ? 'cursor-wait opacity-75' : ''
         ]"
-        tabindex="0"
-        @click="!isLoading && openFileDialog()"
       >
         <div
           v-if="isLoading"
@@ -223,7 +237,7 @@ useDropZone(dropZoneRef, {
 
         <div
           v-if="!isLoading"
-          class="text-neutral pointer-events-none flex flex-col items-center"
+          class="text-neutral flex flex-col items-center"
         >
           <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
           <p class="text-copy-sm text-neutral-subtle">
@@ -231,16 +245,33 @@ useDropZone(dropZoneRef, {
             <span v-else>Drag & drop file here, or</span>
           </p>
           <p class="text-copy-sm text-neutral-subtle">({{ allowedTypesString }})</p>
-          <DButton
-            variant="secondary"
-            size="sm"
-            class="mt-2"
-            tabindex="-1"
-          >
-            Select file
-          </DButton>
+          <div class="mt-2 flex gap-2">
+            <DButton
+              variant="secondary"
+              size="sm"
+              :icon-left="UploadCloudIcon"
+              @click="openFileDialog()"
+            >
+              Upload file
+            </DButton>
+            <DButton
+              variant="secondary"
+              size="sm"
+              :icon-left="ImageIcon"
+              @click="isPickerOpen = true"
+            >
+              Media library
+            </DButton>
+          </div>
         </div>
-      </button>
+      </div>
     </div>
+
+    <DAssetPicker
+      :open="isPickerOpen"
+      :asset-types="config?.assetTypes"
+      @close="isPickerOpen = false"
+      @select="handlePickerSelect"
+    />
   </div>
 </template>

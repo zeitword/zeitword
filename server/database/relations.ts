@@ -41,6 +41,21 @@ export const relations = defineRelations(schema, (r) => ({
     })
   },
 
+  assets: {
+    site: r.one.sites({
+      from: r.assets.siteId,
+      to: r.sites.id
+    }),
+    organisation: r.one.organisations({
+      from: r.assets.organisationId,
+      to: r.organisations.id
+    }),
+    uploader: r.one.users({
+      from: r.assets.uploadedBy,
+      to: r.users.id
+    })
+  },
+
   sites: {
     componentFields: r.many.componentFields({
       from: r.sites.id,
@@ -73,6 +88,10 @@ export const relations = defineRelations(schema, (r) => ({
     stories: r.many.stories({
       from: r.sites.id,
       to: r.stories.siteId
+    }),
+    assets: r.many.assets({
+      from: r.sites.id,
+      to: r.assets.siteId
     }),
     storyTranslatedSlugs: r.many.storyTranslatedSlugs({
       from: r.sites.id,
@@ -153,6 +172,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.organisations.id,
       to: r.stories.organisationId
     }),
+    assets: r.many.assets({
+      from: r.organisations.id,
+      to: r.assets.organisationId
+    }),
     users: r.many.users({
       from: r.organisations.id,
       to: r.users.organisationId
@@ -201,6 +224,10 @@ export const relations = defineRelations(schema, (r) => ({
     invitationsSent: r.many.userInvitations({
       from: r.users.id,
       to: r.userInvitations.invitedBy
+    }),
+    assets: r.many.assets({
+      from: r.users.id,
+      to: r.assets.uploadedBy
     })
   },
 

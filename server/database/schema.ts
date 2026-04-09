@@ -220,6 +220,21 @@ export const waitlist = pgTable("waitlist", {
   ...timestamps
 })
 
+export const assets = pgTable("assets", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  fileName: text().notNull(),
+  contentType: text().notNull(),
+  fileSize: integer().notNull(),
+  type: text().notNull(),
+  src: text().notNull(),
+  siteId: uuid()
+    .notNull()
+    .references(() => sites.id),
+  uploadedBy: uuid().references(() => users.id),
+  ...organisationId,
+  ...timestamps
+})
+
 export const storyTranslatedSlugs = pgTable(
   "story_translated_slugs",
   {

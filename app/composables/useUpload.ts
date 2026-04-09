@@ -94,7 +94,7 @@ export function useUpload(options: UploadOptions = {}) {
     })
   }
 
-  async function uploadFile(file: File): Promise<CompleteUploadResponse> {
+  async function uploadFile(file: File, meta?: { siteId?: string }): Promise<CompleteUploadResponse> {
     isUploading.value = true
     abortController.value = new AbortController()
 
@@ -170,7 +170,9 @@ export function useUpload(options: UploadOptions = {}) {
           key,
           uploadId,
           fileName: file.name,
+          fileSize: file.size,
           contentType: file.type || "application/octet-stream",
+          siteId: meta?.siteId,
           parts: completedParts
         }
       })
@@ -208,8 +210,3 @@ export function useUpload(options: UploadOptions = {}) {
     uploadProgress: computed(() => uploadProgress.value)
   }
 }
-
-// Backwards-compatible alias
-export const useChunkedUpload = useUpload
-export type ChunkUploadProgress = UploadProgress
-export type ChunkedUploadOptions = UploadOptions

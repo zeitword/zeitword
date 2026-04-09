@@ -17,7 +17,7 @@ type Props = {
   description?: string
   confirmText?: string
   danger?: boolean
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl"
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "4xl"
 }
 const { open, loading = false, title, description, size = "md" } = defineProps<Props>()
 
@@ -27,7 +27,8 @@ const sizeClasses: { [key: string]: string } = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
-  "2xl": "max-w-2xl"
+  "2xl": "max-w-2xl",
+  "4xl": "max-w-4xl"
 }
 
 const emit = defineEmits<{

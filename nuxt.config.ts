@@ -4,7 +4,12 @@ import tailwindcss from "@tailwindcss/vite"
 export default defineNuxtConfig({
   compatibilityDate: "latest",
   future: { compatibilityVersion: 5 },
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ["lucide-vue-next", "reka-ui", "uuidv7"]
+    }
+  },
   ssr: false,
 
   devtools: { enabled: false },

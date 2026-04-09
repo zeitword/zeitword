@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { LexoRank } from "lexorank"
-import { GripVertical, UploadCloudIcon, LoaderCircleIcon } from "lucide-vue-next"
+import { GripVertical, UploadCloudIcon, LoaderCircleIcon, ImageIcon } from "lucide-vue-next"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue"
 
 import type { AssetConfig } from "~/types"
-import type { DField } from "~/types/models"
+import type { DField, DAsset } from "~/types/models"
 
 import { useAssetValidation } from "~/composables/useAssetValidation"
 import { useUpload } from "~/composables/useUpload"
 
 const { toast } = useToast()
+const siteId = useRouteParams("siteId")
+const isPickerOpen = ref(false)
 
 type AssetObject = {
   id: string
@@ -115,7 +117,7 @@ async function handleFileUploads(files: File[]) {
         }
       })
 
-      const asset = await doUpload(file)
+      const asset = await doUpload(file, { siteId: siteId.value })
       delete uploadProgress.value[fileId]
 
       return { ...asset, fileName: file.name }
@@ -353,6 +355,38 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
 
   emit("update:value", currentAssets.length > 0 ? currentAssets : null)
 }
+
+function handlePickerSelect(selectedAssets: DAsset[]) {
+  if (selectedAssets.length === 0) return
+
+  const availableSlots = props.field.maxValue
+    ? props.field.maxValue - sortedAssets.value.length
+    : selectedAssets.length
+  if (availableSlots <= 0 && props.field.maxValue) return
+
+  const assetsToAdd = selectedAssets.slice(0, availableSlots)
+
+  let lastRank =
+    sortedAssets.value.length > 0
+      ? LexoRank.parse(sortedAssets.value[sortedAssets.value.length - 1].order)
+      : LexoRank.middle()
+
+  const newAssetObjects: AssetObject[] = assetsToAdd.map((asset) => {
+    const newRank = lastRank.genNext()
+    lastRank = newRank
+    return {
+      id: uuidv7(),
+      src: asset.src,
+      alt: asset.fileName,
+      order: newRank.toString(),
+      type: asset.type
+    }
+  })
+
+  const updatedValue = [...sortedAssets.value, ...newAssetObjects]
+  updatedValue.sort((a, b) => a.order.localeCompare(b.order))
+  emit("update:value", updatedValue)
+}
 </script>
 
 <template>
@@ -395,19 +429,16 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
     </div>
 
     <div class="p-1">
-      <button
+      <div
         ref="addDropZoneRef"
-        class="border-neutral-subtle relative flex h-30 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-1 border-dashed p-4 text-center transition-colors"
+        class="border-neutral-subtle relative flex h-30 w-full flex-col items-center justify-center rounded-lg border-1 border-dashed p-4 text-center transition-colors"
         :class="[
           isAddingDragging
             ? 'border-neutral bg-neutral-subtle'
             : 'hover:border-neutral hover:bg-neutral-soft',
           isUploading ? 'cursor-wait opacity-75' : '',
-          isMaxReached ? 'hidden' : '' // Hide add button if max is reached
+          isMaxReached ? 'hidden' : ''
         ]"
-        :disabled="isUploading || isMaxReached"
-        @click="!isUploading && !isMaxReached && openFileDialog()"
-        aria-label="Add new assets"
       >
         <div
           v-if="isUploading"
@@ -436,12 +467,12 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
 
         <div
           v-if="!isUploading"
-          class="text-neutral pointer-events-none flex flex-col items-center"
+          class="text-neutral flex flex-col items-center"
         >
           <UploadCloudIcon class="text-neutral-subtle mb-2 size-5" />
           <p class="text-copy-sm">
             <span v-if="isAddingDragging">Drop files(s) to upload</span>
-            <span v-else>Drag & drop files here, or click to select</span>
+            <span v-else>Drag & drop files here, or</span>
           </p>
           <p
             v-if="allowedTypesString"
@@ -449,16 +480,28 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
           >
             ({{ allowedTypesString }})
           </p>
-          <DButton
-            variant="secondary"
-            size="sm"
-            class="pointer-events-none mt-2"
-            tabindex="-1"
-          >
-            Select Files
-          </DButton>
+          <div class="mt-2 flex gap-2">
+            <DButton
+              variant="secondary"
+              size="sm"
+              :icon-left="UploadCloudIcon"
+              :disabled="isMaxReached"
+              @click="!isMaxReached && openFileDialog()"
+            >
+              Upload files
+            </DButton>
+            <DButton
+              variant="secondary"
+              size="sm"
+              :icon-left="ImageIcon"
+              :disabled="isMaxReached"
+              @click="!isMaxReached && (isPickerOpen = true)"
+            >
+              Media library
+            </DButton>
+          </div>
         </div>
-      </button>
+      </div>
       <div
         class="mt-1 flex justify-end p-1"
         v-if="field.maxValue"
@@ -484,6 +527,14 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
         </p>
       </div>
     </div>
+
+    <DAssetPicker
+      :open="isPickerOpen"
+      multiple
+      :asset-types="assetTypes"
+      @close="isPickerOpen = false"
+      @select="handlePickerSelect"
+    />
   </div>
 </template>
 
