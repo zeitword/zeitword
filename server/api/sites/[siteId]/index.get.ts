@@ -1,6 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const id = getRouterParam(event, "siteId")
   if (!id) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
@@ -8,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const [site] = await useDrizzle().query.sites.findMany({
     where: {
       id,
-      organisationId: secure.organisationId
+      organisationId
     },
     with: {
       languages: {

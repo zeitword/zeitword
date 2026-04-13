@@ -180,6 +180,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.organisations.id,
       to: r.users.organisationId
     }),
+    personalAccessTokens: r.many.personalAccessTokens({
+      from: r.organisations.id,
+      to: r.personalAccessTokens.organisationId
+    }),
     storyTranslatedSlugs: r.many.storyTranslatedSlugs({
       from: r.organisations.id,
       to: r.storyTranslatedSlugs.organisationId
@@ -221,6 +225,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.users.organisationId,
       to: r.organisations.id
     }),
+    personalAccessTokens: r.many.personalAccessTokens({
+      from: r.users.id,
+      to: r.personalAccessTokens.userId
+    }),
     invitationsSent: r.many.userInvitations({
       from: r.users.id,
       to: r.userInvitations.invitedBy
@@ -258,6 +266,17 @@ export const relations = defineRelations(schema, (r) => ({
     translatedSlugs: r.many.storyTranslatedSlugs({
       from: r.stories.id,
       to: r.storyTranslatedSlugs.storyId
+    })
+  },
+
+  personalAccessTokens: {
+    user: r.one.users({
+      from: r.personalAccessTokens.userId,
+      to: r.users.id
+    }),
+    organisation: r.one.organisations({
+      from: r.personalAccessTokens.organisationId,
+      to: r.organisations.id
     })
   }
 }))

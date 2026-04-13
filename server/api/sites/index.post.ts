@@ -9,8 +9,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const data = await readValidatedBody(event, bodySchema.parse)
 
@@ -22,7 +21,7 @@ export default defineEventHandler(async (event) => {
     .values({
       name: data.name,
       domain: data.domain || "",
-      organisationId: secure.organisationId,
+      organisationId: organisationId,
       defaultLanguage: data.defaultLanguage
     })
     .returning()

@@ -47,8 +47,9 @@ function buildValidationSchemaForField(
       return z.boolean()
     case "link":
       return linkSchema
-    case "blocks":
-      const schemas = []
+    case "blocks": {
+      const schemas: z.ZodTypeAny[] = []
+      const seenComponentIds = new Set<string>()
 
       try {
         if (Array.isArray(componentData)) {
@@ -56,6 +57,8 @@ function buildValidationSchemaForField(
           const allowedBlockNames = (field.componentWhitelist || []) as string[]
 
           for (const block of blocks) {
+            if (seenComponentIds.has(block.componentId)) continue
+
             const blockDefinition = componentDefinitions.find(
               (c) => c.componentId === block.componentId
             )
@@ -63,17 +66,16 @@ function buildValidationSchemaForField(
               blockDefinition?.componentName.toLowerCase() || ""
             )
 
+            if (!blockDefinition || !isAllowed) continue
+
+            seenComponentIds.add(block.componentId)
+
             schemas.push(
               z.object({
                 id: z.uuid(),
-                componentId: z.uuid().refine(
-                  (id: string) => {
-                    return blockDefinition && isAllowed
-                  },
-                  {
-                    message: `Invalid component ID: ${block.componentId}, types must be in whitelist`
-                  }
-                ),
+                componentId: z.literal(block.componentId),
+                componentName: z.string().optional(),
+                order: z.string().optional(),
                 content: buildValidationSchemaForComponent(
                   block.componentId,
                   block.content,
@@ -88,14 +90,17 @@ function buildValidationSchemaForField(
       }
 
       return schemas.length > 0
-        ? z.array(z.union(schemas as any))
+        ? z.array(z.discriminatedUnion("componentId", schemas as any))
         : z.array(
             z.object({
               id: z.uuid(),
               componentId: z.uuid(),
+              componentName: z.string().optional(),
+              order: z.string().optional(),
               content: z.any()
             })
           )
+    }
     default:
       return z.string()
   }
