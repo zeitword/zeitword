@@ -2,8 +2,7 @@ import { eq, and, inArray } from "drizzle-orm"
 import { components, componentFields, fieldOptions } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
@@ -11,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const componentsData = await useDrizzle()
     .select()
     .from(components)
-    .where(and(eq(components.siteId, siteId), eq(components.organisationId, secure.organisationId)))
+    .where(and(eq(components.siteId, siteId), eq(components.organisationId, organisationId)))
     .leftJoin(componentFields, eq(components.id, componentFields.componentId))
 
   const componentMap = new Map()
@@ -38,7 +37,7 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           inArray(fieldOptions.componentId, componentIds), // Filter by component IDs
-          eq(fieldOptions.organisationId, secure.organisationId)
+          eq(fieldOptions.organisationId, organisationId)
         )
       )
 

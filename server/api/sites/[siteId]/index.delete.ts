@@ -8,8 +8,7 @@ import {
 } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { secure, session } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "siteId is required" })
@@ -21,7 +20,7 @@ export default defineEventHandler(async (event) => {
       const [existingSite] = await tx
         .select()
         .from(sites)
-        .where(and(eq(sites.id, siteId), eq(sites.organisationId, secure.organisationId)))
+        .where(and(eq(sites.id, siteId), eq(sites.organisationId, organisationId)))
 
       if (!existingSite) {
         throw createError({
@@ -32,13 +31,13 @@ export default defineEventHandler(async (event) => {
 
       await tx
         .delete(stories)
-        .where(and(eq(stories.siteId, siteId), eq(stories.organisationId, secure.organisationId)))
+        .where(and(eq(stories.siteId, siteId), eq(stories.organisationId, organisationId)))
       await tx
         .delete(fieldOptions)
         .where(
           and(
             eq(fieldOptions.siteId, siteId),
-            eq(fieldOptions.organisationId, secure.organisationId)
+            eq(fieldOptions.organisationId, organisationId)
           )
         )
       await tx
@@ -46,17 +45,17 @@ export default defineEventHandler(async (event) => {
         .where(
           and(
             eq(componentFields.siteId, siteId),
-            eq(componentFields.organisationId, secure.organisationId)
+            eq(componentFields.organisationId, organisationId)
           )
         )
       await tx
         .delete(components)
         .where(
-          and(eq(components.siteId, siteId), eq(components.organisationId, secure.organisationId))
+          and(eq(components.siteId, siteId), eq(components.organisationId, organisationId))
         )
       const [deletedSite] = await tx
         .delete(sites)
-        .where(and(eq(sites.id, siteId), eq(sites.organisationId, secure.organisationId)))
+        .where(and(eq(sites.id, siteId), eq(sites.organisationId, organisationId)))
         .returning()
 
       return deletedSite

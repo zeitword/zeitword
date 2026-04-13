@@ -47,8 +47,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId)
@@ -88,7 +87,7 @@ export default defineEventHandler(async (event) => {
       })
       .where(
         and(
-          eq(componentFields.organisationId, secure.organisationId),
+          eq(componentFields.organisationId, organisationId),
           eq(componentFields.componentId, componentId),
           eq(componentFields.fieldKey, fieldKey),
           eq(componentFields.siteId, siteId)
@@ -108,7 +107,7 @@ export default defineEventHandler(async (event) => {
           and(
             eq(fieldOptions.componentId, componentId),
             eq(fieldOptions.fieldKey, fieldKey),
-            eq(fieldOptions.organisationId, secure.organisationId),
+            eq(fieldOptions.organisationId, organisationId),
             eq(fieldOptions.siteId, siteId)
           )
         )
@@ -121,7 +120,7 @@ export default defineEventHandler(async (event) => {
           optionName: option.optionName,
           optionValue: option.optionValue,
           siteId,
-          organisationId: secure.organisationId
+          organisationId: organisationId
         })
       }
     }

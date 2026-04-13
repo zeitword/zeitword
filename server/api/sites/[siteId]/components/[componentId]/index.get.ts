@@ -1,8 +1,7 @@
 import { componentFields, components } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid Site ID" })
@@ -21,7 +20,7 @@ export default defineEventHandler(async (event) => {
       and(
         eq(components.id, componentId),
         eq(components.siteId, siteId),
-        eq(components.organisationId, secure.organisationId)
+        eq(components.organisationId, organisationId)
       )
     )
     .leftJoin(componentFields, eq(components.id, componentFields.componentId))

@@ -2,8 +2,7 @@ import { and, eq } from "drizzle-orm"
 import { componentFields, fieldOptions } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "siteId is required" })
@@ -25,7 +24,7 @@ export default defineEventHandler(async (event) => {
             eq(componentFields.componentId, componentId),
             eq(componentFields.fieldKey, fieldKey),
             eq(componentFields.siteId, siteId),
-            eq(componentFields.organisationId, secure.organisationId)
+            eq(componentFields.organisationId, organisationId)
           )
         )
 
@@ -44,7 +43,7 @@ export default defineEventHandler(async (event) => {
             eq(fieldOptions.componentId, componentId),
             eq(fieldOptions.fieldKey, fieldKey),
             eq(fieldOptions.siteId, siteId),
-            eq(fieldOptions.organisationId, secure.organisationId)
+            eq(fieldOptions.organisationId, organisationId)
           )
         )
 
@@ -56,7 +55,7 @@ export default defineEventHandler(async (event) => {
             eq(componentFields.componentId, componentId),
             eq(componentFields.fieldKey, fieldKey),
             eq(componentFields.siteId, siteId),
-            eq(componentFields.organisationId, secure.organisationId)
+            eq(componentFields.organisationId, organisationId)
           )
         )
         .returning()

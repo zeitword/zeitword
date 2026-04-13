@@ -1,0 +1,22 @@
+{
+  "name": "@zeitword/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "zeitword-mcp": "./build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "files": ["build"],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "open": "^10.1.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3"
+  }
+}

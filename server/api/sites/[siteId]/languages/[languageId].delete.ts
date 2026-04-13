@@ -2,8 +2,7 @@ import { and, eq } from "drizzle-orm"
 import { siteLanguages, stories, sites } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   const languageCode = getRouterParam(event, "languageId")

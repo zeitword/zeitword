@@ -11,8 +11,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   const componentId = getRouterParam(event, "componentId")
@@ -34,7 +33,7 @@ export default defineEventHandler(async (event) => {
       and(
         eq(components.id, componentId),
         eq(components.siteId, siteId),
-        eq(components.organisationId, secure.organisationId)
+        eq(components.organisationId, organisationId)
       )
     )
     .returning()

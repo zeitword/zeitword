@@ -10,8 +10,7 @@ import {
 import { mergeWithFallback } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   const storyId = getRouterParam(event, "storyId")
@@ -27,7 +26,7 @@ export default defineEventHandler(async (event) => {
       siteId,
       storyId,
       selectedLang,
-      organisationId: secure.organisationId
+      organisationId: organisationId
     })
 
     const slugParts = story.slug.split("/")
@@ -45,7 +44,7 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           inArray(stories.slug, parentSlugs),
-          eq(stories.organisationId, secure.organisationId),
+          eq(stories.organisationId, organisationId),
           eq(stories.siteId, siteId)
         )
       )
