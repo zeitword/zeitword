@@ -4,7 +4,11 @@ import {
   components,
   componentFields,
   fieldOptions,
-  stories
+  stories,
+  siteLanguages,
+  siteApiKeys,
+  storyTranslatedSlugs,
+  assets
 } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
@@ -29,30 +33,31 @@ export default defineEventHandler(async (event) => {
         })
       }
 
+      // Delete in dependency order to avoid FK constraint violations
+      await tx
+        .delete(storyTranslatedSlugs)
+        .where(and(eq(storyTranslatedSlugs.siteId, siteId), eq(storyTranslatedSlugs.organisationId, organisationId)))
       await tx
         .delete(stories)
         .where(and(eq(stories.siteId, siteId), eq(stories.organisationId, organisationId)))
       await tx
+        .delete(assets)
+        .where(and(eq(assets.siteId, siteId), eq(assets.organisationId, organisationId)))
+      await tx
         .delete(fieldOptions)
-        .where(
-          and(
-            eq(fieldOptions.siteId, siteId),
-            eq(fieldOptions.organisationId, organisationId)
-          )
-        )
+        .where(and(eq(fieldOptions.siteId, siteId), eq(fieldOptions.organisationId, organisationId)))
       await tx
         .delete(componentFields)
-        .where(
-          and(
-            eq(componentFields.siteId, siteId),
-            eq(componentFields.organisationId, organisationId)
-          )
-        )
+        .where(and(eq(componentFields.siteId, siteId), eq(componentFields.organisationId, organisationId)))
       await tx
         .delete(components)
-        .where(
-          and(eq(components.siteId, siteId), eq(components.organisationId, organisationId))
-        )
+        .where(and(eq(components.siteId, siteId), eq(components.organisationId, organisationId)))
+      await tx
+        .delete(siteApiKeys)
+        .where(and(eq(siteApiKeys.siteId, siteId), eq(siteApiKeys.organisationId, organisationId)))
+      await tx
+        .delete(siteLanguages)
+        .where(eq(siteLanguages.siteId, siteId))
       const [deletedSite] = await tx
         .delete(sites)
         .where(and(eq(sites.id, siteId), eq(sites.organisationId, organisationId)))
@@ -60,15 +65,9 @@ export default defineEventHandler(async (event) => {
 
       return deletedSite
     })
-  } catch (error) {
+  } catch (error: any) {
+    if (error.statusCode) throw error
     console.error("Error deleting site:", error)
-    if (error instanceof Error && error.message.includes("foreign key constraint")) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: "Cannot delete site because it has related data."
-      })
-    }
-
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error"

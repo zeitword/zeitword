@@ -146,14 +146,10 @@ export class ZeitwordApi {
     siteId: string,
     componentId: string,
     data: {
-      fieldKey: string
-      type: string
+      name: string
+      fieldType: string
+      order: string
       displayName: string
-      required?: boolean
-      description?: string
-      defaultValue?: string
-      componentWhitelist?: string[]
-      options?: { optionName: string; optionValue: string }[]
     }
   ) {
     return this.request(`/api/sites/${siteId}/components/${componentId}/fields`, {
@@ -167,11 +163,12 @@ export class ZeitwordApi {
     componentId: string,
     fieldKey: string,
     data: {
-      type?: string
-      displayName?: string
+      fieldKey?: string
+      fieldType?: string
       required?: boolean
-      description?: string
-      defaultValue?: string
+      description?: string | null
+      displayName?: string | null
+      defaultValue?: string | number | boolean | null
       componentWhitelist?: string[]
       options?: { optionName: string; optionValue: string }[]
     }

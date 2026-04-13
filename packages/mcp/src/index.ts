@@ -3,6 +3,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod"
+import { LexoRank } from "lexorank"
 import { ZeitwordApi } from "./api.js"
 import { getStoredToken, authenticateViaBrowser, clearStoredToken } from "./auth.js"
 
@@ -223,37 +224,37 @@ For "option" type fields, provide options as an array of {optionName, optionValu
       inputSchema: {
         siteId: z.string().describe("The UUID of the site"),
         componentId: z.string().describe("The UUID of the component"),
-        fieldKey: z
+        name: z
           .string()
           .describe('The field key used in content JSON (e.g., "title", "cards", "buttons")'),
-        type: z
+        fieldType: z
           .string()
           .describe(
             "Field type: text, textarea, richtext, markdown, number, datetime, boolean, option, options, asset, assets, link, blocks, section, custom"
           ),
-        displayName: z.string().describe('Human-readable name (e.g., "Title", "Cards")'),
-        required: z.boolean().optional().describe("Whether the field is required"),
-        description: z.string().optional().describe("Help text for editors"),
-        defaultValue: z.string().optional().describe("Default value as a string"),
-        componentWhitelist: z
-          .array(z.string())
-          .optional()
-          .describe(
-            'For "blocks" type fields: array of component names that can be nested (e.g., ["d-button", "d-card"])'
-          ),
-        options: z
-          .array(
-            z.object({
-              optionName: z.string(),
-              optionValue: z.string()
-            })
-          )
-          .optional()
-          .describe('For "option" type fields: available choices')
+        order: z.string().optional().describe("LexoRank order string. Auto-generated if not provided."),
+        displayName: z.string().describe('Human-readable name (e.g., "Title", "Cards")')
       }
     },
-    async ({ siteId, componentId, ...data }) => {
-      const field = await api.createField(siteId, componentId, data)
+    async ({ siteId, componentId, order, ...data }) => {
+      // Auto-generate LexoRank order if not provided
+      let fieldOrder = order
+      if (!fieldOrder) {
+        const component = await api.getComponent(siteId, componentId)
+        const fields = component.fields || []
+        if (fields.length === 0) {
+          fieldOrder = LexoRank.min().genNext().toString()
+        } else {
+          const sorted = [...fields].sort((a: any, b: any) => (a.order ?? "").localeCompare(b.order ?? ""))
+          const lastOrder = sorted[sorted.length - 1].order
+          try {
+            fieldOrder = LexoRank.parse(lastOrder).genNext().toString()
+          } catch {
+            fieldOrder = LexoRank.min().genNext().toString()
+          }
+        }
+      }
+      const field = await api.createField(siteId, componentId, { ...data, order: fieldOrder })
       return textResult(formatJson(field))
     }
   )
@@ -261,12 +262,13 @@ For "option" type fields, provide options as an array of {optionName, optionValu
   server.registerTool(
     "update_field",
     {
-      description: "Update a field on a component",
+      description: `Update a field on a component. Can update the field key, type, display name, required flag, description, default value, component whitelist (for blocks type), and options (for option type).`,
       inputSchema: {
         siteId: z.string().describe("The UUID of the site"),
         componentId: z.string().describe("The UUID of the component"),
-        fieldKey: z.string().describe("The field key to update"),
-        type: z.string().optional().describe("New field type"),
+        fieldKey: z.string().describe("The current field key to update"),
+        newFieldKey: z.string().optional().describe("New field key if renaming"),
+        fieldType: z.string().optional().describe("New field type"),
         displayName: z.string().optional().describe("New display name"),
         required: z.boolean().optional().describe("Whether the field is required"),
         description: z.string().optional().describe("Help text for editors"),
@@ -283,8 +285,9 @@ For "option" type fields, provide options as an array of {optionName, optionValu
           .describe("Options for option fields")
       }
     },
-    async ({ siteId, componentId, fieldKey, ...data }) => {
-      const field = await api.updateField(siteId, componentId, fieldKey, data)
+    async ({ siteId, componentId, fieldKey, newFieldKey, ...data }) => {
+      const body = { ...data, ...(newFieldKey ? { fieldKey: newFieldKey } : {}) }
+      const field = await api.updateField(siteId, componentId, fieldKey, body)
       return textResult(formatJson(field))
     }
   )
@@ -345,7 +348,7 @@ For "option" type fields, provide options as an array of {optionName, optionValu
 Content is a JSON object keyed by language code. Each block in the content has:
 - componentId: UUID of the component type
 - content: object with field values matching the component's schema
-- order: string for ordering (use lexicographic sorting, e.g., "a0", "a1", "a2")
+- order: string for ordering using LexoRank format (e.g., "0|100000:", "0|100008:", "0|10000g:")
 
 Example content:
 {
@@ -355,7 +358,7 @@ Example content:
       {
         "componentId": "uuid-of-hero-component",
         "content": { "title": "Welcome", "description": "..." },
-        "order": "a0"
+        "order": "0|100000:"
       }
     ]
   }

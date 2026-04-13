@@ -12,6 +12,7 @@
   "files": ["build"],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "lexorank": "^1.0.5",
     "open": "^10.1.0",
     "zod": "^3.24.0"
   },

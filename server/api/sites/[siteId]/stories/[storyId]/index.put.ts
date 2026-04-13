@@ -10,8 +10,8 @@ const jsonSchema: z.ZodType<Json> = z.lazy(() =>
 )
 
 const bodySchema = z.object({
-  slug: z.string().min(1).max(255),
-  title: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255).optional(),
+  title: z.string().min(1).max(255).optional(),
   content: jsonSchema.optional(),
   componentId: z.string().uuid().optional()
 })
@@ -39,18 +39,20 @@ export default defineEventHandler(async (event) => {
     )
     .limit(1)
 
+  const updateData: Record<string, unknown> = { updatedAt: new Date() }
+  if (data.slug !== undefined) updateData.slug = data.slug
+  if (data.title !== undefined) updateData.title = data.title
+  if (data.componentId !== undefined) updateData.componentId = data.componentId
+  if (data.content !== undefined) {
+    updateData.content = {
+      ...(currentStory?.content || {}),
+      ...((data.content as object) || {})
+    }
+  }
+
   const [story] = await useDrizzle()
     .update(stories)
-    .set({
-      slug: data.slug,
-      title: data.title,
-      content: {
-        ...(currentStory?.content || {}),
-        ...((data?.content as object) || {})
-      },
-      componentId: data.componentId,
-      updatedAt: new Date()
-    })
+    .set(updateData)
     .where(
       and(
         eq(stories.id, storyId),

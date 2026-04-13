@@ -17,7 +17,7 @@ const optionSchema = z.object({
 })
 
 const bodySchema = z.object({
-  fieldKey: z.string().min(1).max(255),
+  fieldKey: z.string().min(1).max(255).optional(),
   fieldType: z.enum([
     "blocks",
     "text",
@@ -34,13 +34,13 @@ const bodySchema = z.object({
     "link",
     "section",
     "custom"
-  ]),
-  required: z.boolean(),
-  description: z.string().max(255).nullable(),
-  displayName: z.string().max(255).nullable(),
-  defaultValue: literalSchema,
-  minValue: z.number().min(0).nullable(),
-  maxValue: z.number().min(0).nullable(),
+  ]).optional(),
+  required: z.boolean().optional(),
+  description: z.string().max(255).nullable().optional(),
+  displayName: z.string().max(255).nullable().optional(),
+  defaultValue: literalSchema.optional(),
+  minValue: z.number().min(0).nullable().optional(),
+  maxValue: z.number().min(0).nullable().optional(),
   componentWhitelist: z.array(z.string()).optional(),
   options: z.array(optionSchema).optional(),
   config: jsonSchema.optional()
@@ -71,20 +71,21 @@ export default defineEventHandler(async (event) => {
   const db = useDrizzle()
 
   const tx = await db.transaction(async (tx) => {
+    const updateData: Record<string, unknown> = {}
+    if (data.fieldKey !== undefined) updateData.fieldKey = data.fieldKey
+    if (data.fieldType !== undefined) updateData.type = data.fieldType
+    if (data.required !== undefined) updateData.required = data.required
+    if (data.description !== undefined) updateData.description = data.description
+    if (data.displayName !== undefined) updateData.displayName = data.displayName
+    if (data.defaultValue !== undefined) updateData.defaultValue = data.defaultValue
+    if (data.componentWhitelist !== undefined) updateData.componentWhitelist = data.componentWhitelist
+    if (data.minValue !== undefined) updateData.minValue = data.minValue
+    if (data.maxValue !== undefined) updateData.maxValue = data.maxValue
+    if (data.config !== undefined) updateData.config = data.config
+
     const [componentField] = await tx
       .update(componentFields)
-      .set({
-        fieldKey: data.fieldKey,
-        type: data.fieldType,
-        required: data.required,
-        description: data.description,
-        displayName: data.displayName,
-        defaultValue: data.defaultValue,
-        componentWhitelist: data.componentWhitelist,
-        minValue: data.minValue,
-        maxValue: data.maxValue,
-        config: data.config
-      })
+      .set(updateData)
       .where(
         and(
           eq(componentFields.organisationId, organisationId),

@@ -11,7 +11,7 @@ const jsonSchema: z.ZodType<Json> = z.lazy(() =>
 
 const bodySchema = z.object({
   slug: z.string().min(1).max(255),
-  type: z.enum(["story", "folder"]),
+  type: z.enum(["story", "folder"]).default("story"),
   title: z.string().min(1).max(255),
   content: jsonSchema,
   componentId: z.string().uuid().optional()
