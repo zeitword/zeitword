@@ -165,6 +165,7 @@ export class ZeitwordApi {
     data: {
       fieldKey?: string
       fieldType?: string
+      order?: string
       required?: boolean
       description?: string | null
       displayName?: string | null

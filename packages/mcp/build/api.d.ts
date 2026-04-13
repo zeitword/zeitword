@@ -55,6 +55,7 @@ export declare class ZeitwordApi {
     updateField(siteId: string, componentId: string, fieldKey: string, data: {
         fieldKey?: string;
         fieldType?: string;
+        order?: string;
         required?: boolean;
         description?: string | null;
         displayName?: string | null;

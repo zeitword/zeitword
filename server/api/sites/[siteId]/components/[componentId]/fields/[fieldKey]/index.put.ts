@@ -18,6 +18,7 @@ const optionSchema = z.object({
 
 const bodySchema = z.object({
   fieldKey: z.string().min(1).max(255).optional(),
+  order: z.string().optional(),
   fieldType: z.enum([
     "blocks",
     "text",
@@ -73,6 +74,7 @@ export default defineEventHandler(async (event) => {
   const tx = await db.transaction(async (tx) => {
     const updateData: Record<string, unknown> = {}
     if (data.fieldKey !== undefined) updateData.fieldKey = data.fieldKey
+    if (data.order !== undefined) updateData.order = data.order
     if (data.fieldType !== undefined) updateData.type = data.fieldType
     if (data.required !== undefined) updateData.required = data.required
     if (data.description !== undefined) updateData.description = data.description

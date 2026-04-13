@@ -37,7 +37,8 @@ async function main() {
     // ── Sites ──────────────────────────────────────────────────────────
     server.registerTool("list_sites", {
         description: "List all sites in the organization",
-        inputSchema: {}
+        inputSchema: {},
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async () => {
         const sites = await api.listSites();
         return textResult(formatJson(sites));
@@ -46,7 +47,8 @@ async function main() {
         description: "Get details of a specific site",
         inputSchema: {
             siteId: z.string().describe("The UUID of the site")
-        }
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async ({ siteId }) => {
         const site = await api.getSite(siteId);
         return textResult(formatJson(site));
@@ -60,7 +62,8 @@ async function main() {
                 .string()
                 .optional()
                 .describe('Default language code (e.g., "en", "de"). Defaults to "en"')
-        }
+        },
+        annotations: { destructiveHint: false, openWorldHint: false }
     }, async ({ name, domain, defaultLanguage }) => {
         const site = await api.createSite({ name, domain, defaultLanguage });
         return textResult(formatJson(site));
@@ -71,7 +74,8 @@ async function main() {
             siteId: z.string().describe("The UUID of the site"),
             name: z.string().optional().describe("New display name"),
             domain: z.string().optional().describe("New domain name")
-        }
+        },
+        annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, name, domain }) => {
         const site = await api.updateSite(siteId, { name, domain });
         return textResult(formatJson(site));
@@ -80,7 +84,8 @@ async function main() {
         description: "Delete a site. This is irreversible.",
         inputSchema: {
             siteId: z.string().describe("The UUID of the site to delete")
-        }
+        },
+        annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId }) => {
         await api.deleteSite(siteId);
         return textResult("Site deleted successfully");
@@ -90,7 +95,8 @@ async function main() {
         description: "List all components (content types/block schemas) for a site. Components define the structure of content — like 'page', 'hero-1', 'cards-1', etc.",
         inputSchema: {
             siteId: z.string().describe("The UUID of the site")
-        }
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async ({ siteId }) => {
         const components = await api.listComponents(siteId);
         return textResult(formatJson(components));
@@ -100,7 +106,8 @@ async function main() {
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             componentId: z.string().describe("The UUID of the component")
-        }
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async ({ siteId, componentId }) => {
         const component = await api.getComponent(siteId, componentId);
         return textResult(formatJson(component));
@@ -117,7 +124,8 @@ async function main() {
                 .string()
                 .optional()
                 .describe("Which field to use as preview label in the editor")
-        }
+        },
+        annotations: { destructiveHint: false, openWorldHint: false }
     }, async ({ siteId, name, displayName, previewField }) => {
         const component = await api.createComponent(siteId, { name, displayName, previewField });
         return textResult(formatJson(component));
@@ -130,7 +138,8 @@ async function main() {
             name: z.string().optional().describe("New machine-readable name"),
             displayName: z.string().optional().describe("New display name"),
             previewField: z.string().optional().describe("New preview field key")
-        }
+        },
+        annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, componentId, ...data }) => {
         const component = await api.updateComponent(siteId, componentId, data);
         return textResult(formatJson(component));
@@ -140,7 +149,8 @@ async function main() {
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             componentId: z.string().describe("The UUID of the component to delete")
-        }
+        },
+        annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, componentId }) => {
         await api.deleteComponent(siteId, componentId);
         return textResult("Component deleted successfully");
@@ -163,7 +173,8 @@ For "option" type fields, provide options as an array of {optionName, optionValu
                 .describe("Field type: text, textarea, richtext, markdown, number, datetime, boolean, option, options, asset, assets, link, blocks, section, custom"),
             order: z.string().optional().describe("LexoRank order string. Auto-generated if not provided."),
             displayName: z.string().describe('Human-readable name (e.g., "Title", "Cards")')
-        }
+        },
+        annotations: { destructiveHint: false, openWorldHint: false }
     }, async ({ siteId, componentId, order, ...data }) => {
         // Auto-generate LexoRank order if not provided
         let fieldOrder = order;
@@ -189,6 +200,7 @@ For "option" type fields, provide options as an array of {optionName, optionValu
     });
     server.registerTool("update_field", {
         description: `Update a field on a component. Can update the field key, type, display name, required flag, description, default value, component whitelist (for blocks type), and options (for option type).`,
+        annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false },
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             componentId: z.string().describe("The UUID of the component"),
@@ -219,10 +231,163 @@ For "option" type fields, provide options as an array of {optionName, optionValu
             siteId: z.string().describe("The UUID of the site"),
             componentId: z.string().describe("The UUID of the component"),
             fieldKey: z.string().describe("The field key to delete")
-        }
+        },
+        annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, componentId, fieldKey }) => {
         await api.deleteField(siteId, componentId, fieldKey);
         return textResult("Field deleted successfully");
+    });
+    // ── Schema Upsert ──────────────────────────────────────────────────
+    server.registerTool("upsert_component_schema", {
+        description: `Create or update a component and all its fields in a single call. Idempotent — safe to call repeatedly with the same definition.
+
+Behavior:
+- If a component with the given name does not exist, it is created along with all fields.
+- If it already exists, the component metadata is updated if changed, then fields are diffed:
+  - Fields in the definition but not on the component are created.
+  - Fields in both are updated.
+  - Fields on the component but not in the definition are deleted ONLY if removeExtraFields is true (default: false).
+- Field order follows the array order in the definition (auto-generated LexoRank).
+
+Returns the full component with all fields after the upsert.`,
+        inputSchema: {
+            siteId: z.string().describe("The UUID of the site"),
+            name: z.string().describe('Machine-readable component name (e.g., "hero-1", "page")'),
+            displayName: z.string().describe('Human-readable name (e.g., "Hero Block 1")'),
+            previewField: z.string().optional().describe("Which field to use as preview label"),
+            fields: z
+                .array(z.object({
+                name: z.string().describe("Field key"),
+                fieldType: z.string().describe("Field type (text, textarea, richtext, blocks, etc.)"),
+                displayName: z.string().describe("Human-readable field name"),
+                required: z.boolean().optional().describe("Whether the field is required"),
+                description: z.string().optional().describe("Help text for editors"),
+                defaultValue: z.string().optional().describe("Default value"),
+                componentWhitelist: z
+                    .array(z.string())
+                    .optional()
+                    .describe("Allowed nested component names (for blocks type)"),
+                options: z
+                    .array(z.object({ optionName: z.string(), optionValue: z.string() }))
+                    .optional()
+                    .describe("Options for option/options type fields")
+            }))
+                .describe("Array of field definitions. Order in the array determines field order."),
+            removeExtraFields: z
+                .boolean()
+                .optional()
+                .describe("If true, fields on the component that are not in the definition will be deleted. Default: false.")
+        },
+        annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
+    }, async ({ siteId, name, displayName, previewField, fields, removeExtraFields }) => {
+        const log = [];
+        // 1. Find or create the component
+        const existingComponents = await api.listComponents(siteId);
+        let component = existingComponents.find((c) => c.name === name);
+        if (!component) {
+            component = await api.createComponent(siteId, { name, displayName, previewField });
+            log.push(`Created component "${name}" (${component.id})`);
+        }
+        else {
+            // Update metadata if changed
+            const updates = {};
+            if (displayName !== component.displayName)
+                updates.displayName = displayName;
+            if (previewField !== undefined && previewField !== component.previewField)
+                updates.previewField = previewField;
+            if (Object.keys(updates).length > 0) {
+                component = await api.updateComponent(siteId, component.id, updates);
+                log.push(`Updated component metadata: ${Object.keys(updates).join(", ")}`);
+            }
+            else {
+                log.push(`Component "${name}" already exists, metadata unchanged`);
+            }
+        }
+        // 2. Get current fields (API returns fieldKey/type, not name/fieldType)
+        const fullComponent = await api.getComponent(siteId, component.id);
+        const existingFields = fullComponent.fields || [];
+        const existingFieldMap = new Map(existingFields.map((f) => [f.fieldKey, f]));
+        const definedFieldNames = new Set(fields.map((f) => f.name));
+        // 3. Generate LexoRank order sequence for all fields
+        let rank = LexoRank.min().genNext();
+        const fieldOrders = [];
+        for (let i = 0; i < fields.length; i++) {
+            fieldOrders.push(rank.toString());
+            rank = rank.genNext();
+        }
+        // 4. Create or update fields
+        for (let i = 0; i < fields.length; i++) {
+            const fieldDef = fields[i];
+            const existing = existingFieldMap.get(fieldDef.name);
+            if (!existing) {
+                // Create new field
+                await api.createField(siteId, component.id, {
+                    name: fieldDef.name,
+                    fieldType: fieldDef.fieldType,
+                    displayName: fieldDef.displayName,
+                    order: fieldOrders[i]
+                });
+                log.push(`Created field "${fieldDef.name}"`);
+                // If there are extra properties (required, description, componentWhitelist, options), update
+                const extras = {};
+                if (fieldDef.required !== undefined)
+                    extras.required = fieldDef.required;
+                if (fieldDef.description !== undefined)
+                    extras.description = fieldDef.description;
+                if (fieldDef.defaultValue !== undefined)
+                    extras.defaultValue = fieldDef.defaultValue;
+                if (fieldDef.componentWhitelist !== undefined)
+                    extras.componentWhitelist = fieldDef.componentWhitelist;
+                if (fieldDef.options !== undefined)
+                    extras.options = fieldDef.options;
+                if (Object.keys(extras).length > 0) {
+                    await api.updateField(siteId, component.id, fieldDef.name, extras);
+                }
+            }
+            else {
+                // Update existing field (API returns `type` not `fieldType`)
+                const updates = {};
+                if (fieldDef.fieldType !== existing.type)
+                    updates.fieldType = fieldDef.fieldType;
+                if (fieldDef.displayName !== existing.displayName)
+                    updates.displayName = fieldDef.displayName;
+                if (fieldDef.required !== undefined && fieldDef.required !== existing.required)
+                    updates.required = fieldDef.required;
+                if (fieldDef.description !== undefined && fieldDef.description !== existing.description)
+                    updates.description = fieldDef.description;
+                if (fieldDef.defaultValue !== undefined && fieldDef.defaultValue !== existing.defaultValue)
+                    updates.defaultValue = fieldDef.defaultValue;
+                if (fieldDef.componentWhitelist !== undefined)
+                    updates.componentWhitelist = fieldDef.componentWhitelist;
+                if (fieldDef.options !== undefined)
+                    updates.options = fieldDef.options;
+                // Update order only if it changed
+                if (fieldOrders[i] !== existing.order)
+                    updates.order = fieldOrders[i];
+                if (Object.keys(updates).length > 0) {
+                    await api.updateField(siteId, component.id, fieldDef.name, updates);
+                    log.push(`Updated field "${fieldDef.name}"`);
+                }
+                else {
+                    log.push(`Field "${fieldDef.name}" unchanged`);
+                }
+            }
+        }
+        // 5. Remove extra fields if requested
+        if (removeExtraFields) {
+            for (const existing of existingFields) {
+                if (!definedFieldNames.has(existing.fieldKey)) {
+                    await api.deleteField(siteId, component.id, existing.fieldKey);
+                    log.push(`Deleted extra field "${existing.fieldKey}"`);
+                }
+            }
+        }
+        // 6. Return the final state
+        const result = await api.getComponent(siteId, component.id);
+        return textResult(formatJson({
+            summary: log,
+            component: result
+        }));
     });
     // ── Stories (content) ──────────────────────────────────────────────
     server.registerTool("list_stories", {
@@ -230,7 +395,8 @@ For "option" type fields, provide options as an array of {optionName, optionValu
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             search: z.string().optional().describe("Search query to filter stories by title or slug")
-        }
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async ({ siteId, search }) => {
         const stories = await api.listStories(siteId, { search });
         return textResult(formatJson(stories));
@@ -240,7 +406,8 @@ For "option" type fields, provide options as an array of {optionName, optionValu
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             storyId: z.string().describe("The UUID of the story")
-        }
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async ({ siteId, storyId }) => {
         const story = await api.getStory(siteId, storyId);
         return textResult(formatJson(story));
@@ -284,7 +451,8 @@ Example content:
                 .string()
                 .optional()
                 .describe("UUID of the component type this story uses")
-        }
+        },
+        annotations: { destructiveHint: false, openWorldHint: false }
     }, async ({ siteId, ...data }) => {
         const story = await api.createStory(siteId, data);
         return textResult(formatJson(story));
@@ -297,7 +465,8 @@ Example content:
             slug: z.string().optional().describe("New URL slug"),
             title: z.string().optional().describe("New title"),
             content: z.record(z.any()).optional().describe("Content to merge (keyed by language code)")
-        }
+        },
+        annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, storyId, ...data }) => {
         const story = await api.updateStory(siteId, storyId, data);
         return textResult(formatJson(story));
@@ -307,7 +476,8 @@ Example content:
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             storyId: z.string().describe("The UUID of the story to delete")
-        }
+        },
+        annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, storyId }) => {
         await api.deleteStory(siteId, storyId);
         return textResult("Story deleted successfully");
@@ -317,7 +487,8 @@ Example content:
         description: "List languages enabled for a site",
         inputSchema: {
             siteId: z.string().describe("The UUID of the site")
-        }
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false }
     }, async ({ siteId }) => {
         const languages = await api.listLanguages(siteId);
         return textResult(formatJson(languages));
@@ -327,7 +498,8 @@ Example content:
         inputSchema: {
             siteId: z.string().describe("The UUID of the site"),
             languageCode: z.string().describe('ISO 639-1 language code (e.g., "de", "fr", "es")')
-        }
+        },
+        annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     }, async ({ siteId, languageCode }) => {
         const result = await api.addLanguage(siteId, languageCode);
         return textResult(formatJson(result));
@@ -335,7 +507,8 @@ Example content:
     // ── Auth ───────────────────────────────────────────────────────────
     server.registerTool("logout", {
         description: "Clear stored Zeitword authentication token",
-        inputSchema: {}
+        inputSchema: {},
+        annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false }
     }, async () => {
         clearStoredToken();
         return textResult("Token cleared. The MCP server will need to be restarted to re-authenticate.");
