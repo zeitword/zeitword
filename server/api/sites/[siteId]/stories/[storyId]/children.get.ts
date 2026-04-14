@@ -18,6 +18,11 @@ export default defineEventHandler(async (event) => {
   const storyId = getRouterParam(event, "storyId")
   if (!storyId) throw createError({ statusCode: 400, statusMessage: "Invalid Story ID" })
 
+  const uuidSchema = z.string().uuid()
+  if (!uuidSchema.safeParse(storyId).success) {
+    throw createError({ statusCode: 400, statusMessage: "Invalid Story ID format" })
+  }
+
   const { offset, limit } = await getValidatedQuery(event, querySchema.parse)
 
   // Get the slug of the parent story/folder.

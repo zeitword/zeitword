@@ -23,6 +23,7 @@ const emit = defineEmits(["ready", "componentClick"])
 
 const { content } = toRefs(props)
 const isIframeReady = ref(false)
+const contentDelivered = ref(false)
 const maxRetries = 5
 const retryDelay = 1000
 
@@ -38,64 +39,62 @@ const iframeUrl = computed(() => {
   return `${domain.value}/preview/${slug}`
 })
 
+function sendContentToIframe(updatedContent: any) {
+  const previewFrame = document.getElementById("previewFrame") as HTMLIFrameElement | null
+  if (!previewFrame?.contentWindow) return
+  previewFrame.contentWindow.postMessage(
+    {
+      type: "updatePreview",
+      data: JSON.parse(JSON.stringify(updatedContent))
+    },
+    domain.value
+  )
+}
+
 const sendPreviewUpdate = useDebounceFn((updatedContent) => {
-  const previewFrame = document.getElementById("previewFrame")
-  if (previewFrame && previewFrame.contentWindow) {
-    previewFrame.contentWindow.postMessage(
-      {
-        type: "updatePreview",
-        data: JSON.parse(JSON.stringify(updatedContent))
-      },
-      domain.value
-    )
-  }
+  sendContentToIframe(updatedContent)
 }, 200)
 
-// Function to send content and retry if needed
-const sendInitialContent = async (retries = 0) => {
-  const previewFrame = document.getElementById("previewFrame")
-  if (!previewFrame || !previewFrame.contentWindow) {
+// Push content to the iframe, retrying until it's likely been received.
+// The iframe may not have its message listener ready when @load fires,
+// so we retry several times to cover the Nuxt hydration window.
+const sendInitialContent = (retries = 0) => {
+  if (contentDelivered.value) return
+
+  const previewFrame = document.getElementById("previewFrame") as HTMLIFrameElement | null
+  if (!previewFrame?.contentWindow) {
     if (retries < maxRetries) {
       setTimeout(() => sendInitialContent(retries + 1), retryDelay)
     }
     return
   }
 
-  try {
-    previewFrame.contentWindow.postMessage(
-      {
-        type: "updatePreview",
-        data: JSON.parse(JSON.stringify(content.value))
-      },
-      domain.value
-    )
-    isIframeReady.value = true
-  } catch (error) {
-    console.error("Failed to send initial content:", error)
-    if (retries < maxRetries) {
-      setTimeout(() => sendInitialContent(retries + 1), retryDelay)
-    }
+  sendContentToIframe(content.value)
+
+  if (retries < maxRetries) {
+    setTimeout(() => sendInitialContent(retries + 1), retryDelay)
   }
 }
 
-// Handle iframe load event
 const handleIframeLoad = () => {
+  isIframeReady.value = true
   sendInitialContent()
 }
 
-// Handle incoming messages
-const handleMessage = (event) => {
+// Handle incoming messages from the preview iframe
+const handleMessage = (event: MessageEvent) => {
   const allowedOrigins = ["https://app.zeitword.com", "http://localhost:", domain.value]
   if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
-    console.warn("CMS: Message rejected - Invalid origin", event.origin)
     return
   }
 
   if (event.data.type === "requestInitialData") {
-    sendPreviewUpdate(content.value)
+    // The iframe is ready and asking for content — send immediately (no debounce)
+    sendContentToIframe(content.value)
+    contentDelivered.value = true
+    isIframeReady.value = true
     emit("ready")
   } else if (event.data.type === "componentClick") {
-    console.log(event.data.data)
     emit("componentClick", event.data.data)
   }
 }

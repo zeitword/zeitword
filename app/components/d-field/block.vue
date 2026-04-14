@@ -34,7 +34,6 @@ const emit = defineEmits<{
 function updateNestedBlockField(fieldKey: string, value: any) {
   if (!blockContent) return
   blockContent.content[fieldKey] = value
-
   emit("update:value", blockContent)
 }
 

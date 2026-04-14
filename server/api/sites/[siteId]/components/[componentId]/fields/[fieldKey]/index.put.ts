@@ -85,24 +85,44 @@ export default defineEventHandler(async (event) => {
     if (data.maxValue !== undefined) updateData.maxValue = data.maxValue
     if (data.config !== undefined) updateData.config = data.config
 
-    const [componentField] = await tx
-      .update(componentFields)
-      .set(updateData)
-      .where(
-        and(
-          eq(componentFields.organisationId, organisationId),
-          eq(componentFields.componentId, componentId),
-          eq(componentFields.fieldKey, fieldKey),
-          eq(componentFields.siteId, siteId)
+    let componentField
+    if (Object.keys(updateData).length > 0) {
+      const [updated] = await tx
+        .update(componentFields)
+        .set(updateData)
+        .where(
+          and(
+            eq(componentFields.organisationId, organisationId),
+            eq(componentFields.componentId, componentId),
+            eq(componentFields.fieldKey, fieldKey),
+            eq(componentFields.siteId, siteId)
+          )
         )
-      )
-      .returning()
+        .returning()
+      componentField = updated
+    } else {
+      // No field-level updates, but may still need to update options — fetch current state
+      const [existing] = await tx
+        .select()
+        .from(componentFields)
+        .where(
+          and(
+            eq(componentFields.organisationId, organisationId),
+            eq(componentFields.componentId, componentId),
+            eq(componentFields.fieldKey, fieldKey),
+            eq(componentFields.siteId, siteId)
+          )
+        )
+      componentField = existing
+    }
 
     if (!componentField) {
       throw createError({ statusCode: 404, statusMessage: "Component Field Not Found" })
     }
 
-    if ((data.fieldType === "option" || data.fieldType === "options") && data.options) {
+    // Use the resolved field type (from update or existing) for options check
+    const resolvedFieldType = data.fieldType ?? componentField.type
+    if ((resolvedFieldType === "option" || resolvedFieldType === "options") && data.options) {
       // Delete existing options.  Easier to delete and recreate than diff.
       await tx
         .delete(fieldOptions)
