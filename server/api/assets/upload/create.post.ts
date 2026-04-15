@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
       cacheControl: "public, max-age=31536000",
       metadata: {
         fileName: encodeURIComponent(data.fileName),
-        uploadedBy: userId || "unknown"
+        uploadedBy: userId
       }
     })
 

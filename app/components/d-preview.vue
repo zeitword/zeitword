@@ -77,14 +77,22 @@ const sendInitialContent = (retries = 0) => {
 }
 
 const handleIframeLoad = () => {
+  contentDelivered.value = false
   isIframeReady.value = true
   sendInitialContent()
 }
 
 // Handle incoming messages from the preview iframe
 const handleMessage = (event: MessageEvent) => {
-  const allowedOrigins = ["https://app.zeitword.com", "http://localhost:", domain.value]
-  if (!allowedOrigins.some((prefix) => event.origin.startsWith(prefix))) {
+  const isLocalhost = /^http:\/\/localhost(:\d+)?$/.test(event.origin)
+  let domainOrigin: string
+  try {
+    domainOrigin = new URL(domain.value).origin
+  } catch {
+    domainOrigin = domain.value
+  }
+  const allowedOrigins = new Set(["https://app.zeitword.com", domainOrigin])
+  if (!isLocalhost && !allowedOrigins.has(event.origin)) {
     return
   }
 
