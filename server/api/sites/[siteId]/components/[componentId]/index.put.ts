@@ -3,10 +3,10 @@ import { z } from "zod"
 import { components } from "~~/server/database/schema"
 
 const bodySchema = z.object({
-  name: z.string().min(1).max(255),
-  displayName: z.string().min(1).max(255),
+  name: z.string().min(1).max(255).optional(),
+  displayName: z.string().min(1).max(255).optional(),
   previewImage: z.string().nullable().optional(),
-  previewField: z.string().nullable(),
+  previewField: z.string().nullable().optional(),
   renderPreview: z.boolean().optional()
 })
 
@@ -18,17 +18,22 @@ export default defineEventHandler(async (event) => {
   if (!siteId || !componentId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
-  console.log(data)
+
+  // Build partial update — only include fields that were provided
+  const updates: Record<string, any> = {}
+  if (data.name !== undefined) updates.name = data.name
+  if (data.displayName !== undefined) updates.displayName = data.displayName
+  if (data.previewImage !== undefined) updates.previewImage = data.previewImage
+  if (data.previewField !== undefined) updates.previewField = data.previewField
+  if (data.renderPreview !== undefined) updates.renderPreview = data.renderPreview
+
+  if (Object.keys(updates).length === 0) {
+    throw createError({ statusCode: 400, statusMessage: "No fields to update" })
+  }
 
   const [updatedComponent] = await useDrizzle()
     .update(components)
-    .set({
-      name: data.name,
-      displayName: data.displayName,
-      previewImage: data.previewImage,
-      previewField: data.previewField,
-      renderPreview: data.renderPreview
-    })
+    .set(updates)
     .where(
       and(
         eq(components.id, componentId),

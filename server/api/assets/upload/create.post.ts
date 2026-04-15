@@ -10,8 +10,7 @@ const createUploadSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { userId, organisationId } = await requireAuth(event)
 
   const data = await readValidatedBody(event, createUploadSchema.parse)
   const s3 = useS3()
@@ -25,7 +24,7 @@ export default defineEventHandler(async (event) => {
       cacheControl: "public, max-age=31536000",
       metadata: {
         fileName: encodeURIComponent(data.fileName),
-        uploadedBy: secure.userId || "unknown"
+        uploadedBy: userId
       }
     })
 

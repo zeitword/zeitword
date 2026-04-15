@@ -72,7 +72,7 @@ const fileIcon = computed(() => {
   return FileIcon
 })
 
-function toUpperCase(str: string) {
+function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 </script>
@@ -115,7 +115,7 @@ function toUpperCase(str: string) {
         <div
           class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none active:scale-98"
         >
-          <div class="text-nowrap">{{ toUpperCase(props.asset.type) ?? "Asset" }}</div>
+          <div class="text-nowrap">{{ props.asset.type ? capitalize(props.asset.type) : "Asset" }}</div>
         </div>
       </button>
       <div class="flex gap-1">
@@ -163,7 +163,7 @@ function toUpperCase(str: string) {
                 />
               </div>
               <span class="text-neutral-subtle ml-2 text-sm">
-                {{ toUpperCase(props.asset.type) }}: {{ props.asset.id }}
+                {{ props.asset.type ? capitalize(props.asset.type) : "Asset" }}: {{ props.asset.id }}
               </span>
             </div>
             <div
