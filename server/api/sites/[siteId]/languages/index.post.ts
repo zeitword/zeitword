@@ -20,7 +20,10 @@ const nonTranslatableFields = [
   "number",
   "datetime",
   "option",
-  "options"
+  "options",
+  "link",
+  "section",
+  "custom"
 ] as const
 
 async function processBlockContent(
