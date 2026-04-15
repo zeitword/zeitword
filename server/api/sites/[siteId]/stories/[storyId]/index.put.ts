@@ -39,13 +39,17 @@ export default defineEventHandler(async (event) => {
     )
     .limit(1)
 
+  if (!currentStory) {
+    throw createError({ statusCode: 404, statusMessage: "Story not found" })
+  }
+
   const updateData: Record<string, unknown> = { updatedAt: new Date() }
   if (data.slug !== undefined) updateData.slug = data.slug
   if (data.title !== undefined) updateData.title = data.title
   if (data.componentId !== undefined) updateData.componentId = data.componentId
   if (data.content !== undefined) {
     updateData.content = {
-      ...(currentStory?.content || {}),
+      ...(currentStory.content || {}),
       ...((data.content as object) || {})
     }
   }

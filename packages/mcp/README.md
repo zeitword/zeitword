@@ -6,9 +6,16 @@ MCP (Model Context Protocol) server for Zeitword CMS. Allows AI assistants to ma
 
 ```bash
 cd packages/mcp
-bun install
+bun install   # also runs `tsc` via the prepare script
+```
+
+If you need to rebuild manually:
+
+```bash
 bun run build
 ```
+
+The build output (`build/`) is gitignored and regenerated automatically on install via the `prepare` script.
 
 ## Authentication
 
@@ -35,6 +42,8 @@ Add to your MCP config:
 }
 ```
 
+Make sure you've run `bun install` in `packages/mcp` first so the build output exists.
+
 ### Environment variables
 
 - `ZEITWORD_API_URL` — Override the API URL (default: `https://app.zeitword.com`)
@@ -46,7 +55,7 @@ Add to your MCP config:
 - `list_sites` — List all sites in the organization
 - `get_site` — Get site details
 - `create_site` — Create a new site
-- `update_site` — Update site name/domain
+- `update_site` — Update site name, domain, or default language
 - `delete_site` — Delete a site
 
 ### Components (Schemas)
@@ -55,22 +64,35 @@ Add to your MCP config:
 - `create_component` — Create a new component
 - `update_component` — Update a component
 - `delete_component` — Delete a component
+- `upsert_component_schema` — Idempotent create/update of a component and all its fields in one call
 
 ### Fields
 - `create_field` — Add a field to a component
-- `update_field` — Update a field
+- `update_field` — Update a field (supports renaming via `newFieldKey`)
 - `delete_field` — Delete a field
 
 ### Stories (Content)
 - `list_stories` — List stories for a site
-- `get_story` — Get story with full content
-- `create_story` — Create a new story
-- `update_story` — Update story content
+- `get_story` — Get story (shallow by default, `full=true` for nested block content)
+- `create_story` — Create a new story with auto-enriched blocks
+- `update_story` — Update story slug, title, or componentId
+- `update_story_content` — Replace entire content for a language
 - `delete_story` — Delete a story
+
+### Blocks
+- `add_block` — Add a block at a position (start, end, before/after another block)
+- `update_block` — Replace a block's content by ID
+- `remove_block` — Delete a block by ID
+- `move_block` — Reorder a block within a story
+
+### Assets
+- `list_assets` — List uploaded assets (images, files) for a site
+- `upload_asset` — Upload a file from disk to a site
 
 ### Languages
 - `list_languages` — List enabled languages
 - `add_language` — Add a language to a site
+- `remove_language` — Remove a language (deletes all content for that language)
 
 ### Auth
 - `logout` — Clear stored token

@@ -84,17 +84,12 @@ export class ZeitwordApi {
   private async enrichBlocks(siteId: string, blocks: any[]): Promise<any[]> {
     const nameMap = await this.getComponentNameMap(siteId)
 
-    let lastOrder = LexoRank.middle()
-    for (const block of blocks) {
-      if (this.isBlock(block)) {
-        if (block.order && typeof block.order === "string") {
-          try {
-            lastOrder = LexoRank.parse(block.order)
-          } catch {
-            lastOrder = lastOrder.genNext()
-          }
-        }
-      }
+    // Check if any block is missing an order — if so, regenerate all orders
+    const hasMissingOrder = blocks.some(
+      (b) => this.isBlock(b) && (!b.order || typeof b.order !== "string")
+    )
+    if (hasMissingOrder) {
+      this.regenerateOrders(blocks)
     }
 
     for (const block of blocks) {
@@ -111,11 +106,7 @@ export class ZeitwordApi {
         }
       }
 
-      if (!block.order || typeof block.order !== "string") {
-        lastOrder = lastOrder.genNext()
-        block.order = lastOrder.toString()
-      }
-
+      // Recurse into nested block arrays (e.g., cards, buttons)
       if (block.content && typeof block.content === "object") {
         for (const value of Object.values(block.content)) {
           if (Array.isArray(value)) {
@@ -371,7 +362,6 @@ export class ZeitwordApi {
     }
 
     this.regenerateOrders(blocks)
-    await this.enrichBlocks(siteId, [newBlock])
 
     await this.putStoryContent(siteId, storyId, storyContent)
     return { success: true, storyId, blockId: newBlock.id, componentName: newBlock.componentName }

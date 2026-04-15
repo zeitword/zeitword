@@ -573,6 +573,8 @@ Returns the asset with its public URL (src), which can be used in content fields
       const upload = await api.createUpload(fileName, fileSize, contentType)
 
       // Step 2: Read the file and upload each part
+      // TODO: For large files, consider streaming with fs.createReadStream({ start, end })
+      // instead of loading the entire file into memory at once.
       const fileBuffer = fs.readFileSync(resolvedPath)
       const parts: { partNumber: number; etag: string }[] = []
 
@@ -588,6 +590,11 @@ Returns the asset with its public URL (src), which can be used in content fields
             "Content-Length": String(chunk.length)
           }
         })
+
+        if (!res.ok) {
+          const body = await res.text().catch(() => "(no body)")
+          return textResult(`Error: S3 upload failed for part ${i + 1}: ${res.status} ${res.statusText} — ${body}`)
+        }
 
         const etag = res.headers.get("etag")
         if (!etag) {

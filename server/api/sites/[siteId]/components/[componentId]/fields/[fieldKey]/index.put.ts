@@ -122,8 +122,9 @@ export default defineEventHandler(async (event) => {
 
     // Use the resolved field type (from update or existing) for options check
     const resolvedFieldType = data.fieldType ?? componentField.type
+    const resolvedFieldKey = data.fieldKey ?? fieldKey
     if ((resolvedFieldType === "option" || resolvedFieldType === "options") && data.options) {
-      // Delete existing options.  Easier to delete and recreate than diff.
+      // Delete existing options using the old key (they still reference it in the DB)
       await tx
         .delete(fieldOptions)
         .where(
@@ -135,11 +136,11 @@ export default defineEventHandler(async (event) => {
           )
         )
 
-      // Insert/Update options
+      // Re-insert options using the resolved key (new key if renamed, old key otherwise)
       for (const option of data.options) {
         await tx.insert(fieldOptions).values({
           componentId,
-          fieldKey,
+          fieldKey: resolvedFieldKey,
           optionName: option.optionName,
           optionValue: option.optionValue,
           siteId,
