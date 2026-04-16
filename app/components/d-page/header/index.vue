@@ -18,32 +18,14 @@ const initials = computed(() => {
   return (name[0]?.charAt(0) || "") + (name[1]?.charAt(0) || "")
 })
 
-const { data: site } = await useAsyncData(
-  `/api/sites`,
-  async () => {
-    if (!siteId.value) return undefined
-
-    const data = await $fetch(`/api/sites/${siteId.value}`)
-    return data
-  },
-  {
-    watch: [siteId]
-  }
+const { data: site } = await useFetch(
+  () => siteId.value ? `/api/sites/${siteId.value}` : null
 )
 
-const { data: story } = await useAsyncData(
-  "/api/sites/stories",
-  async () => {
-    if (!siteId.value || (!storyId.value && !folderId.value)) return undefined
-
-    const data = await $fetch(
-      `/api/sites/${siteId.value}/stories/${storyId.value || folderId.value}`
-    )
-    return data
-  },
-  {
-    watch: [storyId, folderId]
-  }
+const { data: story } = await useFetch(
+  () => (siteId.value && (storyId.value || folderId.value))
+    ? `/api/sites/${siteId.value}/stories/${storyId.value || folderId.value}`
+    : null
 )
 
 const breadcrumbContainer = ref<HTMLElement | undefined>()
@@ -90,8 +72,8 @@ const visibleBreadcrumbItems = computed(() => {
           ref="breadcrumbContainer"
           class="flex grow items-center gap-2"
         >
-          <template v-if="story">
-            <template v-if="story.parents.length > maxVisibleBreadcrumbItems">
+          <template v-if="story && (storyId || folderId)">
+            <template v-if="(story.parents?.length || 0) > maxVisibleBreadcrumbItems">
               <DPageHeaderSeparator />
               <span class="text-neutral-subtle">...</span>
             </template>

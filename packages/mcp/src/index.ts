@@ -759,7 +759,9 @@ Position options:
 - "end" (default): Add at the end of the blocks array
 - "start": Add at the beginning
 - "before:blockId": Add before a specific existing block
-- "after:blockId": Add after a specific existing block`,
+- "after:blockId": Add after a specific existing block
+
+IMPORTANT: If the story's component has multiple blocks-type fields (e.g. "links", "buttons", "banner"), you MUST specify fieldKey to target the correct field. If only one blocks-type field exists, it will be auto-detected.`,
       inputSchema: {
         siteId: z.string().describe("The UUID of the site"),
         storyId: z.string().describe("The UUID of the story"),
@@ -769,12 +771,16 @@ Position options:
         position: z
           .string()
           .optional()
-          .describe('Where to insert: "end" (default), "start", "before:blockId", "after:blockId"')
+          .describe('Where to insert: "end" (default), "start", "before:blockId", "after:blockId"'),
+        fieldKey: z
+          .string()
+          .optional()
+          .describe('The field key to add the block to (e.g. "banner", "links", "buttons"). Required when the component has multiple blocks-type fields.')
       },
       annotations: { destructiveHint: false, openWorldHint: false }
     },
-    async ({ siteId, storyId, language, componentId, content, position }) => {
-      const result = await api.addBlock(siteId, storyId, language, { componentId, content }, position)
+    async ({ siteId, storyId, language, componentId, content, position, fieldKey }) => {
+      const result = await api.addBlock(siteId, storyId, language, { componentId, content }, position, fieldKey)
       return textResult(formatJson(result))
     }
   )
