@@ -159,8 +159,8 @@ export class ZeitwordApi {
   }
 
   private async fetchStoryContent(siteId: string, storyId: string): Promise<Record<string, any>> {
-    const story = await this.getStory(siteId, storyId, { full: true })
-    return this.normalizeContent((story as any)?.content || {})
+    const content = await this.request<Record<string, any>>(`/api/sites/${siteId}/stories/${storyId}/content`)
+    return this.normalizeContent(content || {})
   }
 
   private async putStoryContent(siteId: string, storyId: string, content: Record<string, any>): Promise<any> {
@@ -168,6 +168,43 @@ export class ZeitwordApi {
       method: "PUT",
       body: { content }
     })
+  }
+
+  private getBlocksArray(langContent: Record<string, any>, fieldKey?: string): any[] {
+    if (fieldKey) {
+      if (!Array.isArray(langContent[fieldKey])) {
+        langContent[fieldKey] = []
+      }
+      return langContent[fieldKey]
+    }
+    if (Array.isArray(langContent.blocks)) {
+      return langContent.blocks
+    }
+    const blocksKeys = Object.keys(langContent).filter(
+      (k) => Array.isArray(langContent[k]) && langContent[k].some((b: any) => this.isBlock(b))
+    )
+    if (blocksKeys.length === 1) {
+      return langContent[blocksKeys[0]]
+    }
+    if (blocksKeys.length > 1) {
+      throw new Error(
+        `Multiple blocks-type fields found (${blocksKeys.join(", ")}). Please specify a fieldKey.`
+      )
+    }
+    langContent.blocks = []
+    return langContent.blocks
+  }
+
+  private findBlockArrayContaining(langContent: Record<string, any>, blockId: string): { array: any[]; key: string } | null {
+    for (const key of Object.keys(langContent)) {
+      if (Array.isArray(langContent[key])) {
+        const idx = langContent[key].findIndex((b: any) => b.id === blockId)
+        if (idx !== -1) {
+          return { array: langContent[key], key }
+        }
+      }
+    }
+    return null
   }
 
   private regenerateOrders(blocks: any[]): void {
@@ -327,15 +364,15 @@ export class ZeitwordApi {
     storyId: string,
     language: string,
     block: { componentId: string; content: Record<string, any> },
-    position: string = "end"
+    position: string = "end",
+    fieldKey?: string
   ) {
     await this.validateLanguage(siteId, language)
     const storyContent = await this.fetchStoryContent(siteId, storyId)
 
-    if (!storyContent[language]) storyContent[language] = { blocks: [] }
-    if (!Array.isArray(storyContent[language].blocks)) storyContent[language].blocks = []
+    if (!storyContent[language]) storyContent[language] = {}
 
-    const blocks = storyContent[language].blocks
+    const blocks = this.getBlocksArray(storyContent[language], fieldKey)
     const nameMap = await this.getComponentNameMap(siteId)
     const newBlock: any = {
       id: uuidv7(),
@@ -377,17 +414,17 @@ export class ZeitwordApi {
     await this.validateLanguage(siteId, language)
     const storyContent = await this.fetchStoryContent(siteId, storyId)
 
-    if (!storyContent[language]?.blocks) {
-      throw new Error(`No blocks found for language "${language}"`)
+    const langContent = storyContent[language]
+    if (!langContent) {
+      throw new Error(`No content found for language "${language}"`)
     }
 
-    const blocks = storyContent[language].blocks
-    const block = blocks.find((b: any) => b.id === blockId)
-    if (!block) throw new Error(`Block ${blockId} not found`)
+    const found = this.findBlockArrayContaining(langContent, blockId)
+    if (!found) throw new Error(`Block ${blockId} not found`)
 
+    const block = found.array.find((b: any) => b.id === blockId)
     block.content = blockContent
 
-    // Enrich nested blocks (logos, cards, badges, etc.) with id/order/componentName
     for (const value of Object.values(blockContent)) {
       if (Array.isArray(value)) {
         await this.enrichBlocks(siteId, value)
@@ -407,15 +444,16 @@ export class ZeitwordApi {
     await this.validateLanguage(siteId, language)
     const storyContent = await this.fetchStoryContent(siteId, storyId)
 
-    if (!storyContent[language]?.blocks) {
-      throw new Error(`No blocks found for language "${language}"`)
+    const langContent = storyContent[language]
+    if (!langContent) {
+      throw new Error(`No content found for language "${language}"`)
     }
 
-    const blocks = storyContent[language].blocks
-    const idx = blocks.findIndex((b: any) => b.id === blockId)
-    if (idx === -1) throw new Error(`Block ${blockId} not found`)
+    const found = this.findBlockArrayContaining(langContent, blockId)
+    if (!found) throw new Error(`Block ${blockId} not found`)
 
-    blocks.splice(idx, 1)
+    const idx = found.array.findIndex((b: any) => b.id === blockId)
+    found.array.splice(idx, 1)
 
     await this.putStoryContent(siteId, storyId, storyContent)
     return { success: true, storyId, blockId }
@@ -431,14 +469,16 @@ export class ZeitwordApi {
     await this.validateLanguage(siteId, language)
     const storyContent = await this.fetchStoryContent(siteId, storyId)
 
-    if (!storyContent[language]?.blocks) {
-      throw new Error(`No blocks found for language "${language}"`)
+    const langContent = storyContent[language]
+    if (!langContent) {
+      throw new Error(`No content found for language "${language}"`)
     }
 
-    const blocks = storyContent[language].blocks
-    const idx = blocks.findIndex((b: any) => b.id === blockId)
-    if (idx === -1) throw new Error(`Block ${blockId} not found`)
+    const found = this.findBlockArrayContaining(langContent, blockId)
+    if (!found) throw new Error(`Block ${blockId} not found`)
 
+    const blocks = found.array
+    const idx = blocks.findIndex((b: any) => b.id === blockId)
     const [block] = blocks.splice(idx, 1)
 
     if (position === "start") {
