@@ -38,6 +38,11 @@ function textResult(text: string) {
   return { content: [{ type: "text" as const, text }] }
 }
 
+/**
+ * Start the Zeitword MCP server over stdio and register CLI tools for managing sites, components, fields, assets, stories, languages, and authentication.
+ *
+ * Creates an authenticated API client, registers all MCP tools used by the CLI, connects the server transport to stdio, and logs the running server to stderr.
+ */
 async function main() {
   const api = await getApi()
 
