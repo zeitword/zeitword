@@ -285,6 +285,12 @@ export class ZeitwordApi {
 
   async getStory(siteId: string, storyId: string, options?: { full?: boolean }) {
     const story = await this.request<any>(`/api/sites/${siteId}/stories/${storyId}`)
+
+    // Replace the single-language content from the story endpoint with the
+    // full content (all languages) from the /content endpoint
+    const fullContent = await this.fetchStoryContent(siteId, storyId)
+    story.content = fullContent
+
     if (options?.full) return story
 
     // Shallow mode: strip block content down to summaries

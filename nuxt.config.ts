@@ -31,6 +31,9 @@ export default defineNuxtConfig({
     //Resend
     resend: "",
 
+    // OpenAI
+    openaiApiKey: "",
+
     public: {
       siteUrl: "",
       appUrl: "https://app.zeitword.com"
