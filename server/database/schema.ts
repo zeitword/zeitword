@@ -249,6 +249,28 @@ export const assets = pgTable("assets", {
   ...timestamps
 })
 
+// AI
+
+export const languageModelUsageCredits = pgTable("language_model_usage_credits", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  amount: integer().notNull(),
+  ...organisationId,
+  ...timestamps
+})
+
+export const languageModelUsages = pgTable("language_model_usages", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  userId: uuid()
+    .notNull()
+    .references(() => users.id),
+  modelId: text().notNull(),
+  inputTokens: integer().notNull(),
+  outputTokens: integer().notNull(),
+  totalTokens: integer().notNull(),
+  ...organisationId,
+  ...timestamps
+})
+
 export const storyTranslatedSlugs = pgTable(
   "story_translated_slugs",
   {
