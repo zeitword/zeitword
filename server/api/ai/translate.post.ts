@@ -1,5 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai"
-import { generateObject, NoObjectGeneratedError } from "ai"
+import { generateText, NoObjectGeneratedError, Output } from "ai"
 import { and, eq } from "drizzle-orm"
 import { merge, set } from "lodash-es"
 import { z } from "zod"
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     []
   )
 
-  const { object: translatedStory, usage } = await translateStory({
+  const { output: translatedStory, usage } = await translateStory({
     content: JSON.stringify(translateableFields),
     fromLanguage,
     toLanguage
@@ -147,15 +147,17 @@ async function translateStory({
   toLanguage: string
 }) {
   try {
-    return await generateObject({
+    return await generateText({
       model: openai.responses(TRANSLATION_MODEL),
-      schema: z.object({
-        fields: z.array(
-          z.object({
-            path: z.array(z.union([z.string(), z.number()])),
-            value: z.string()
-          })
-        )
+      output: Output.object({
+        schema: z.object({
+          fields: z.array(
+            z.object({
+              path: z.array(z.union([z.string(), z.number()])),
+              value: z.string()
+            })
+          )
+        })
       }),
       prompt: `Translate the following fields from ${fromLanguage} to ${toLanguage}.
       Only translate the value property, preserve the path property.
@@ -166,7 +168,7 @@ async function translateStory({
     console.error(error)
 
     if (NoObjectGeneratedError.isInstance(error)) {
-      return { object: undefined, usage: error.usage }
+      return { output: undefined, usage: error.usage }
     }
 
     throw error
