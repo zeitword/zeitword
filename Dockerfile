@@ -16,8 +16,8 @@ ENV PATH="${PATH}:/root/.bun/bin"
 # Install dependencies in a separate layer for better caching
 FROM base AS install
 RUN mkdir -p /temp/dev
-COPY package.json /temp/dev/
-RUN cd /temp/dev && bun install
+COPY package.json bun.lock /temp/dev/
+RUN cd /temp/dev && bun install --frozen-lockfile
 
 # Copy dependencies and source code
 FROM base AS prerelease
