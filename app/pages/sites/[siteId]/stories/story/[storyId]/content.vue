@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useMagicKeys, whenever } from "@vueuse/core"
 import { LexoRank } from "lexorank"
 import { merge, set } from "lodash-es"
 import { FileJsonIcon, FileWarningIcon, LanguagesIcon, ArrowRightIcon } from "lucide-vue-next"
@@ -298,33 +297,6 @@ function resetChanges() {
 }
 
 const isPreviewReady = ref(false)
-
-const { meta_s, ctrl_s } = useMagicKeys()
-
-// Prevent default browser save dialog
-// useEventListener(
-//   document,
-//   "keydown",
-//   (e) => {
-//     if ((e.key === "s" || e.key === "S") && (e.ctrlKey || e.metaKey)) {
-//       e.preventDefault()
-//     }
-//   },
-//   { passive: false }
-// )
-
-// whenever(
-//   () => meta_s?.value || ctrl_s?.value,
-//   () => {
-//     if (hasChanges.value) {
-//       save()
-//     }
-//   }
-// )
-
-// onMounted(async () => {
-//   await refresh()
-// })
 
 const isTranslationModalOpen = ref(false)
 const isTranslating = ref(false)

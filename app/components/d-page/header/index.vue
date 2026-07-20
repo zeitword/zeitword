@@ -9,6 +9,7 @@ const { navigation } = defineProps<Props>()
 const siteId = useRouteParams<string>("siteId")
 const storyId = useRouteParams<string>("storyId")
 const folderId = useRouteParams<string>("folderId")
+const activeStoryId = computed(() => storyId.value || folderId.value)
 
 const { data: me } = await useFetch(`/api/me`)
 
@@ -18,12 +19,18 @@ const initials = computed(() => {
   return (name[0]?.charAt(0) || "") + (name[1]?.charAt(0) || "")
 })
 
-const { data: site } = await useFetch(() => (siteId.value ? `/api/sites/${siteId.value}` : null))
+const { data: site } = await useFetch(() => `/api/sites/${siteId.value}`, {
+  immediate: Boolean(siteId.value)
+})
 
-const { data: story } = await useFetch(() =>
-  siteId.value && (storyId.value || folderId.value)
-    ? `/api/sites/${siteId.value}/stories/${storyId.value || folderId.value}`
-    : null
+const { data: story } = await useFetch(
+  () => `/api/sites/${siteId.value}/stories/${activeStoryId.value}`,
+  {
+    immediate: Boolean(siteId.value && activeStoryId.value),
+    query: computed(() => ({
+      lang: site.value?.defaultLanguage || "en"
+    }))
+  }
 )
 
 const breadcrumbContainer = ref<HTMLElement | undefined>()
