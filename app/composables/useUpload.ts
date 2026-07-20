@@ -119,7 +119,8 @@ export function useUpload(options: UploadOptions = {}) {
           body: {
             fileName: file.name,
             fileSize: file.size,
-            contentType: file.type || "application/octet-stream"
+            contentType: file.type || "application/octet-stream",
+            siteId: meta?.siteId
           }
         }
       )

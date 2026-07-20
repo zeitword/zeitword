@@ -41,6 +41,7 @@ function init() {
     endpoint: config.s3.endpoint,
     region: config.s3.region,
     forcePathStyle: true,
+    requestChecksumCalculation: "WHEN_REQUIRED",
     credentials: {
       accessKeyId: config.s3.accessKeyId,
       secretAccessKey: config.s3.secretAccessKey

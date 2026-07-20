@@ -55,7 +55,10 @@ function navigateToSettings(id: string) {
 </script>
 
 <template>
-  <DList v-if="stories.length > 0">
+  <DList
+    v-if="stories.length > 0"
+    :shadow="false"
+  >
     <DListItem
       v-for="item in stories"
       :key="item.id"

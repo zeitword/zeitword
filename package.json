@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "api-key:create": "bun scripts/create-site-api-key.ts",
     "s3:update-cors": "bun run scripts/update-s3-cors.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",

@@ -19,9 +19,12 @@ const completeUploadSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { userId, organisationId } = await requireAuth(event)
+  const auth = await requireAssetUploadAuth(event)
 
   const data = await readValidatedBody(event, completeUploadSchema.parse)
+  if (auth.siteId && data.siteId !== auth.siteId) {
+    throw createError({ statusCode: 403, statusMessage: "API key does not belong to this site" })
+  }
   const s3 = useS3()
 
   try {
@@ -49,8 +52,8 @@ export default defineEventHandler(async (event) => {
           type: fileType,
           src,
           siteId: data.siteId,
-          uploadedBy: userId,
-          organisationId
+          uploadedBy: auth.userId,
+          organisationId: auth.organisationId
         })
     }
 

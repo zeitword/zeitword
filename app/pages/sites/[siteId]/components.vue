@@ -85,7 +85,10 @@ async function deleteComponent() {
 
   <DPageWrapper>
     <div class="py-5">
-      <DList v-if="components && components.length > 0">
+      <DList
+        v-if="components && components.length > 0"
+        :shadow="false"
+      >
         <DListItem
           v-for="component in components"
           :key="component.id"

@@ -6,13 +6,17 @@ const PART_SIZE = 10 * 1024 * 1024 // 10MB per part
 const createUploadSchema = z.object({
   fileName: z.string().min(1),
   fileSize: z.number().int().positive(),
-  contentType: z.string().min(1)
+  contentType: z.string().min(1),
+  siteId: z.string().uuid().optional()
 })
 
 export default defineEventHandler(async (event) => {
-  const { userId, organisationId } = await requireAuth(event)
+  const auth = await requireAssetUploadAuth(event)
 
   const data = await readValidatedBody(event, createUploadSchema.parse)
+  if (auth.siteId && data.siteId !== auth.siteId) {
+    throw createError({ statusCode: 403, statusMessage: "API key does not belong to this site" })
+  }
   const s3 = useS3()
   const key = uuidv7()
 
@@ -24,7 +28,7 @@ export default defineEventHandler(async (event) => {
       cacheControl: "public, max-age=31536000",
       metadata: {
         fileName: encodeURIComponent(data.fileName),
-        uploadedBy: userId
+        ...(auth.userId ? { uploadedBy: auth.userId } : {})
       }
     })
 
