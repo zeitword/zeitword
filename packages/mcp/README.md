@@ -52,6 +52,7 @@ Make sure you've run `bun install` in `packages/mcp` first so the build output e
 ## Available Tools
 
 ### Sites
+
 - `list_sites` — List all sites in the organization
 - `get_site` — Get site details
 - `create_site` — Create a new site
@@ -59,6 +60,7 @@ Make sure you've run `bun install` in `packages/mcp` first so the build output e
 - `delete_site` — Delete a site
 
 ### Components (Schemas)
+
 - `list_components` — List all component schemas for a site
 - `get_component` — Get component with fields
 - `create_component` — Create a new component
@@ -67,11 +69,13 @@ Make sure you've run `bun install` in `packages/mcp` first so the build output e
 - `upsert_component_schema` — Idempotent create/update of a component and all its fields in one call
 
 ### Fields
+
 - `create_field` — Add a field to a component
 - `update_field` — Update a field (supports renaming via `newFieldKey`)
 - `delete_field` — Delete a field
 
 ### Stories (Content)
+
 - `list_stories` — List stories for a site
 - `get_story` — Get story (shallow by default, `full=true` for nested block content)
 - `create_story` — Create a new story with auto-enriched blocks
@@ -80,21 +84,25 @@ Make sure you've run `bun install` in `packages/mcp` first so the build output e
 - `delete_story` — Delete a story
 
 ### Blocks
+
 - `add_block` — Add a block at a position (start, end, before/after another block)
 - `update_block` — Replace a block's content by ID
 - `remove_block` — Delete a block by ID
 - `move_block` — Reorder a block within a story
 
 ### Assets
+
 - `list_assets` — List uploaded assets (images, files) for a site
 - `upload_asset` — Upload a file from disk to a site
 
 ### Languages
+
 - `list_languages` — List enabled languages
 - `add_language` — Add a language to a site
 - `remove_language` — Remove a language (deletes all content for that language)
 
 ### Auth
+
 - `logout` — Clear stored token
 
 ## Token format
@@ -102,6 +110,7 @@ Make sure you've run `bun install` in `packages/mcp` first so the build output e
 Personal access tokens use the format: `zwpat_{uuid}_{secret}`
 
 Tokens are:
+
 - Scoped to the user's organization
 - Stored with scrypt-hashed secrets (plaintext never persisted server-side)
 - Revocable from the Zeitword dashboard

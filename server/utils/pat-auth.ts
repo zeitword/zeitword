@@ -1,6 +1,7 @@
-import { personalAccessTokens, users } from "~~/server/database/schema"
-import { eq, and, isNull, or, gt } from "drizzle-orm"
 import type { H3Event } from "h3"
+
+import { eq, and, isNull, or, gt } from "drizzle-orm"
+import { personalAccessTokens, users } from "~~/server/database/schema"
 
 export interface PatAuthResult {
   userId: string
@@ -38,12 +39,7 @@ export async function validatePat(token: string): Promise<PatAuthResult> {
         expiresAt: personalAccessTokens.expiresAt
       })
       .from(personalAccessTokens)
-      .where(
-        and(
-          eq(personalAccessTokens.id, id),
-          isNull(personalAccessTokens.deletedAt)
-        )
-      )
+      .where(and(eq(personalAccessTokens.id, id), isNull(personalAccessTokens.deletedAt)))
       .limit(1)
 
     // Verify the secret (always run verifyPassword to prevent timing attacks)
@@ -71,12 +67,7 @@ export async function validatePat(token: string): Promise<PatAuthResult> {
         email: users.email
       })
       .from(users)
-      .where(
-        and(
-          eq(users.id, tokenRecord.userId),
-          isNull(users.deletedAt)
-        )
-      )
+      .where(and(eq(users.id, tokenRecord.userId), isNull(users.deletedAt)))
       .limit(1)
 
     if (!user) {

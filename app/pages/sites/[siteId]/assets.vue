@@ -93,7 +93,9 @@ async function uploadFiles(files: File[]) {
       await doUpload(file, { siteId: siteId.value })
     }
 
-    toast.success({ description: `${files.length === 1 ? "File" : `${files.length} files`} uploaded successfully` })
+    toast.success({
+      description: `${files.length === 1 ? "File" : `${files.length} files`} uploaded successfully`
+    })
     await refresh()
   } catch (error) {
     console.error(error)
@@ -234,7 +236,10 @@ const typeFilters = [
           class="flex w-full cursor-pointer flex-col items-center justify-center px-6 py-8"
           @click="!isUploading && openFilePicker()"
         >
-          <div v-if="isUploading" class="flex flex-col items-center">
+          <div
+            v-if="isUploading"
+            class="flex flex-col items-center"
+          >
             <LoaderCircleIcon class="text-neutral-subtle mb-2 size-6 animate-spin" />
             <p class="text-copy text-neutral-subtle">
               Uploading{{ uploadProgress > 0 ? ` ${uploadProgress}%` : "..." }}
@@ -250,7 +255,10 @@ const typeFilters = [
             </div>
           </div>
 
-          <div v-else class="flex flex-col items-center">
+          <div
+            v-else
+            class="flex flex-col items-center"
+          >
             <UploadCloudIcon class="text-neutral-subtle mb-2 size-6" />
             <p class="text-copy text-neutral">
               <span v-if="isDragging">Drop files to upload</span>
@@ -295,7 +303,9 @@ const typeFilters = [
           v-for="asset in assets"
           :key="asset.id"
           class="border-neutral bg-neutral group relative cursor-pointer overflow-hidden rounded-lg border transition-all"
-          :class="[selectedAsset?.id === asset.id ? 'ring-2 ring-blue-500' : 'hover:border-neutral-strong']"
+          :class="[
+            selectedAsset?.id === asset.id ? 'ring-2 ring-blue-500' : 'hover:border-neutral-strong'
+          ]"
           @click="selectAsset(asset)"
         >
           <!-- Thumbnail -->
@@ -319,7 +329,9 @@ const typeFilters = [
             </div>
 
             <!-- Hover overlay -->
-            <div class="absolute inset-0 flex items-center justify-center gap-2 bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100">
+            <div
+              class="absolute inset-0 flex items-center justify-center gap-2 bg-black/0 opacity-0 transition-all group-hover:bg-black/40 group-hover:opacity-100"
+            >
               <DButton
                 variant="secondary"
                 size="sm"
@@ -337,7 +349,10 @@ const typeFilters = [
 
           <!-- Info -->
           <div class="px-2 py-2">
-            <p class="text-copy-sm text-neutral truncate" :title="asset.fileName">
+            <p
+              class="text-copy-sm text-neutral truncate"
+              :title="asset.fileName"
+            >
               {{ asset.fileName }}
             </p>
             <p class="text-copy-xs text-neutral-subtle">
@@ -351,7 +366,9 @@ const typeFilters = [
       <DEmpty
         v-else-if="!isUploading"
         title="No assets yet"
-        :description="search || typeFilter ? 'No assets match your search' : 'Upload files to get started'"
+        :description="
+          search || typeFilter ? 'No assets match your search' : 'Upload files to get started'
+        "
         :icon="ImageIcon"
         size="lg"
       >
@@ -385,12 +402,12 @@ const typeFilters = [
           v-if="selectedAsset"
           class="border-neutral bg-neutral fixed right-6 bottom-6 z-50 w-96 overflow-hidden rounded-xl border shadow-lg"
         >
-          <div class="flex items-center justify-between border-b border-neutral px-4 py-3">
+          <div class="border-neutral flex items-center justify-between border-b px-4 py-3">
             <h3 class="text-copy text-neutral truncate font-medium">
               {{ selectedAsset.fileName }}
             </h3>
             <button
-              class="text-neutral-subtle hover:text-neutral cursor-pointer rounded-md p-1 transition-colors hover:bg-neutral-subtle"
+              class="text-neutral-subtle hover:text-neutral hover:bg-neutral-subtle cursor-pointer rounded-md p-1 transition-colors"
               @click="selectedAsset = null"
             >
               <XIcon class="size-4" />
@@ -398,7 +415,7 @@ const typeFilters = [
           </div>
 
           <!-- Preview -->
-          <div class="bg-neutral-subtle border-b border-neutral">
+          <div class="bg-neutral-subtle border-neutral border-b">
             <div class="flex items-center justify-center p-4">
               <NuxtImg
                 v-if="selectedAsset.type === 'image'"
@@ -408,7 +425,10 @@ const typeFilters = [
                 height="300"
                 class="max-h-48 rounded-md object-contain"
               />
-              <div v-else class="flex flex-col items-center gap-2 py-6">
+              <div
+                v-else
+                class="flex flex-col items-center gap-2 py-6"
+              >
                 <component
                   :is="getAssetIcon(selectedAsset.type)"
                   class="text-neutral-subtle size-12"

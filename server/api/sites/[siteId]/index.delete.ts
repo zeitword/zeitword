@@ -36,7 +36,12 @@ export default defineEventHandler(async (event) => {
       // Delete in dependency order to avoid FK constraint violations
       await tx
         .delete(storyTranslatedSlugs)
-        .where(and(eq(storyTranslatedSlugs.siteId, siteId), eq(storyTranslatedSlugs.organisationId, organisationId)))
+        .where(
+          and(
+            eq(storyTranslatedSlugs.siteId, siteId),
+            eq(storyTranslatedSlugs.organisationId, organisationId)
+          )
+        )
       await tx
         .delete(stories)
         .where(and(eq(stories.siteId, siteId), eq(stories.organisationId, organisationId)))
@@ -45,19 +50,24 @@ export default defineEventHandler(async (event) => {
         .where(and(eq(assets.siteId, siteId), eq(assets.organisationId, organisationId)))
       await tx
         .delete(fieldOptions)
-        .where(and(eq(fieldOptions.siteId, siteId), eq(fieldOptions.organisationId, organisationId)))
+        .where(
+          and(eq(fieldOptions.siteId, siteId), eq(fieldOptions.organisationId, organisationId))
+        )
       await tx
         .delete(componentFields)
-        .where(and(eq(componentFields.siteId, siteId), eq(componentFields.organisationId, organisationId)))
+        .where(
+          and(
+            eq(componentFields.siteId, siteId),
+            eq(componentFields.organisationId, organisationId)
+          )
+        )
       await tx
         .delete(components)
         .where(and(eq(components.siteId, siteId), eq(components.organisationId, organisationId)))
       await tx
         .delete(siteApiKeys)
         .where(and(eq(siteApiKeys.siteId, siteId), eq(siteApiKeys.organisationId, organisationId)))
-      await tx
-        .delete(siteLanguages)
-        .where(eq(siteLanguages.siteId, siteId))
+      await tx.delete(siteLanguages).where(eq(siteLanguages.siteId, siteId))
       const [deletedSite] = await tx
         .delete(sites)
         .where(and(eq(sites.id, siteId), eq(sites.organisationId, organisationId)))

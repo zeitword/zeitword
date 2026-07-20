@@ -50,30 +50,37 @@ async function authorize() {
       <h1 class="mb-2 text-center text-2xl font-semibold text-neutral-900">Zeitword</h1>
       <p class="mb-6 text-center text-sm text-neutral-500">MCP Authorization</p>
 
-      <div v-if="!callbackPort" class="text-center">
-        <p class="text-sm text-red-600">
-          Invalid authorization request. Missing callback port.
-        </p>
+      <div
+        v-if="!callbackPort"
+        class="text-center"
+      >
+        <p class="text-sm text-red-600">Invalid authorization request. Missing callback port.</p>
       </div>
 
-      <div v-else-if="authorized" class="text-center">
-        <p class="text-sm text-neutral-600">
-          Authorization successful. You can close this window.
-        </p>
+      <div
+        v-else-if="authorized"
+        class="text-center"
+      >
+        <p class="text-sm text-neutral-600">Authorization successful. You can close this window.</p>
       </div>
 
-      <div v-else class="flex flex-col gap-4">
+      <div
+        v-else
+        class="flex flex-col gap-4"
+      >
         <div class="rounded-md bg-neutral-50 p-4">
           <p class="text-sm text-neutral-700">
             An MCP client is requesting access to your Zeitword account.
           </p>
           <p class="mt-2 text-sm text-neutral-500">
-            Signed in as <strong class="text-neutral-700">{{ user?.email }}</strong>
+            Signed in as
+            <strong class="text-neutral-700">{{ user?.email }}</strong>
           </p>
         </div>
 
         <p class="text-xs text-neutral-500">
-          This will create a personal access token that allows the MCP client to manage your sites, content, and schemas on your behalf.
+          This will create a personal access token that allows the MCP client to manage your sites,
+          content, and schemas on your behalf.
         </p>
 
         <DButton

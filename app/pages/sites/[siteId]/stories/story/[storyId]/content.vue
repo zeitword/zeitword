@@ -469,7 +469,6 @@ async function autoTranslate() {
         </template>
       </div>
     </div>
-
   </div>
 
   <DModal

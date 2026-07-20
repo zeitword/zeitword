@@ -1,5 +1,5 @@
-import { uuidv7 } from "uuidv7"
 import { LexoRank } from "lexorank"
+import { uuidv7 } from "uuidv7"
 
 export class ZeitwordApi {
   private componentCache = new Map<string, Map<string, string>>()
@@ -59,7 +59,10 @@ export class ZeitwordApi {
     }
   }
 
-  private async validateContentLanguages(siteId: string, content: Record<string, any>): Promise<void> {
+  private async validateContentLanguages(
+    siteId: string,
+    content: Record<string, any>
+  ): Promise<void> {
     const valid = await this.getValidLanguages(siteId)
     for (const key of Object.keys(content)) {
       if (!valid.has(key)) {
@@ -73,12 +76,16 @@ export class ZeitwordApi {
 
   // ── Content Enrichment ─────────────────────────────────────────────
 
-  private isBlock(obj: any): obj is { componentId: string; content: any; order?: string; id?: string; componentName?: string } {
-    return (
-      typeof obj === "object" &&
-      obj !== null &&
-      typeof obj.componentId === "string"
-    )
+  private isBlock(
+    obj: any
+  ): obj is {
+    componentId: string
+    content: any
+    order?: string
+    id?: string
+    componentName?: string
+  } {
+    return typeof obj === "object" && obj !== null && typeof obj.componentId === "string"
   }
 
   private async enrichBlocks(siteId: string, blocks: any[]): Promise<any[]> {
@@ -119,7 +126,10 @@ export class ZeitwordApi {
     return blocks
   }
 
-  private async enrichContent(siteId: string, content: Record<string, any>): Promise<Record<string, any>> {
+  private async enrichContent(
+    siteId: string,
+    content: Record<string, any>
+  ): Promise<Record<string, any>> {
     for (const lang of Object.keys(content)) {
       const langContent = content[lang]
       if (typeof langContent !== "object" || langContent === null) continue
@@ -143,12 +153,12 @@ export class ZeitwordApi {
     if (typeof obj !== "object") return obj
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.normalizeContent(item))
+      return obj.map((item) => this.normalizeContent(item))
     }
 
     const keys = Object.keys(obj)
-    if (keys.length > 0 && keys.every(k => /^\d+$/.test(k))) {
-      return Object.values(obj).map(item => this.normalizeContent(item))
+    if (keys.length > 0 && keys.every((k) => /^\d+$/.test(k))) {
+      return Object.values(obj).map((item) => this.normalizeContent(item))
     }
 
     const result: any = {}
@@ -159,11 +169,17 @@ export class ZeitwordApi {
   }
 
   private async fetchStoryContent(siteId: string, storyId: string): Promise<Record<string, any>> {
-    const content = await this.request<Record<string, any>>(`/api/sites/${siteId}/stories/${storyId}/content`)
+    const content = await this.request<Record<string, any>>(
+      `/api/sites/${siteId}/stories/${storyId}/content`
+    )
     return this.normalizeContent(content || {})
   }
 
-  private async putStoryContent(siteId: string, storyId: string, content: Record<string, any>): Promise<any> {
+  private async putStoryContent(
+    siteId: string,
+    storyId: string,
+    content: Record<string, any>
+  ): Promise<any> {
     return this.request(`/api/sites/${siteId}/stories/${storyId}`, {
       method: "PUT",
       body: { content }
@@ -195,7 +211,10 @@ export class ZeitwordApi {
     return langContent.blocks
   }
 
-  private findBlockArrayContaining(langContent: Record<string, any>, blockId: string): { array: any[]; key: string } | null {
+  private findBlockArrayContaining(
+    langContent: Record<string, any>,
+    blockId: string
+  ): { array: any[]; key: string } | null {
     for (const key of Object.keys(langContent)) {
       if (Array.isArray(langContent[key])) {
         const idx = langContent[key].findIndex((b: any) => b.id === blockId)
@@ -270,7 +289,10 @@ export class ZeitwordApi {
     return this.request("/api/sites", { method: "POST", body: data })
   }
 
-  async updateSite(siteId: string, data: { name?: string; domain?: string; defaultLanguage?: string }) {
+  async updateSite(
+    siteId: string,
+    data: { name?: string; domain?: string; defaultLanguage?: string }
+  ) {
     return this.request(`/api/sites/${siteId}`, { method: "PUT", body: data })
   }
 
@@ -303,7 +325,7 @@ export class ZeitwordApi {
             id: b.id,
             componentName: b.componentName,
             componentId: b.componentId,
-            order: b.order,
+            order: b.order
           }))
         }
       }
@@ -441,12 +463,7 @@ export class ZeitwordApi {
     return { success: true, storyId, blockId }
   }
 
-  async removeBlock(
-    siteId: string,
-    storyId: string,
-    language: string,
-    blockId: string
-  ) {
+  async removeBlock(siteId: string, storyId: string, language: string, blockId: string) {
     await this.validateLanguage(siteId, language)
     const storyContent = await this.fetchStoryContent(siteId, storyId)
 

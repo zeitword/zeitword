@@ -4,11 +4,7 @@ import { and, eq } from "drizzle-orm"
 import { merge, set } from "lodash-es"
 import { z } from "zod"
 import { componentFields, stories } from "~~/server/database/schema"
-import {
-  hasSufficientFunds,
-  trackUsage,
-  TRANSLATION_MODEL
-} from "~~/server/utils/ai"
+import { hasSufficientFunds, trackUsage, TRANSLATION_MODEL } from "~~/server/utils/ai"
 
 const openai = createOpenAI({
   apiKey: useRuntimeConfig().openaiApiKey
@@ -110,12 +106,12 @@ async function getTranslatableContentFields(
     if (fieldType === "blocks") {
       for (const [index, block] of value.entries()) {
         translateableFields.push(
-          ...(await getTranslatableContentFields(
-            block.componentId,
-            organisationId,
-            block.content,
-            [...path, fieldKey, index, "content"]
-          ))
+          ...(await getTranslatableContentFields(block.componentId, organisationId, block.content, [
+            ...path,
+            fieldKey,
+            index,
+            "content"
+          ]))
         )
       }
     }

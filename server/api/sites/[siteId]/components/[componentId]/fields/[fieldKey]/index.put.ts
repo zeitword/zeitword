@@ -19,23 +19,25 @@ const optionSchema = z.object({
 const bodySchema = z.object({
   fieldKey: z.string().min(1).max(255).optional(),
   order: z.string().optional(),
-  fieldType: z.enum([
-    "blocks",
-    "text",
-    "textarea",
-    "richtext",
-    "markdown",
-    "number",
-    "datetime",
-    "boolean",
-    "option",
-    "options",
-    "asset",
-    "assets",
-    "link",
-    "section",
-    "custom"
-  ]).optional(),
+  fieldType: z
+    .enum([
+      "blocks",
+      "text",
+      "textarea",
+      "richtext",
+      "markdown",
+      "number",
+      "datetime",
+      "boolean",
+      "option",
+      "options",
+      "asset",
+      "assets",
+      "link",
+      "section",
+      "custom"
+    ])
+    .optional(),
   required: z.boolean().optional(),
   description: z.string().max(255).nullable().optional(),
   displayName: z.string().max(255).nullable().optional(),
@@ -80,7 +82,8 @@ export default defineEventHandler(async (event) => {
     if (data.description !== undefined) updateData.description = data.description
     if (data.displayName !== undefined) updateData.displayName = data.displayName
     if (data.defaultValue !== undefined) updateData.defaultValue = data.defaultValue
-    if (data.componentWhitelist !== undefined) updateData.componentWhitelist = data.componentWhitelist
+    if (data.componentWhitelist !== undefined)
+      updateData.componentWhitelist = data.componentWhitelist
     if (data.minValue !== undefined) updateData.minValue = data.minValue
     if (data.maxValue !== undefined) updateData.maxValue = data.maxValue
     if (data.config !== undefined) updateData.config = data.config

@@ -2,10 +2,11 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
-import { z } from "zod"
-import { LexoRank } from "lexorank"
 import fs from "fs"
+import { LexoRank } from "lexorank"
 import path from "path"
+import { z } from "zod"
+
 import { ZeitwordApi } from "./api.js"
 import { getStoredToken, authenticateViaBrowser, clearStoredToken } from "./auth.js"
 
@@ -104,7 +105,12 @@ async function main() {
         siteId: z.string().describe("The UUID of the site"),
         name: z.string().optional().describe("New display name"),
         domain: z.string().optional().describe("New domain name"),
-        defaultLanguage: z.string().optional().describe('New default language code (e.g., "de", "en"). Must be a language already added to the site.')
+        defaultLanguage: z
+          .string()
+          .optional()
+          .describe(
+            'New default language code (e.g., "de", "en"). Must be a language already added to the site.'
+          )
       },
       annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
@@ -247,7 +253,10 @@ For "option" type fields, provide options as an array of {optionName, optionValu
           .describe(
             "Field type: text, textarea, richtext, markdown, number, datetime, boolean, option, options, asset, assets, link, blocks, section, custom"
           ),
-        order: z.string().optional().describe("LexoRank order string. Auto-generated if not provided."),
+        order: z
+          .string()
+          .optional()
+          .describe("LexoRank order string. Auto-generated if not provided."),
         displayName: z.string().describe('Human-readable name (e.g., "Title", "Cards")')
       },
       annotations: { destructiveHint: false, openWorldHint: false }
@@ -261,7 +270,9 @@ For "option" type fields, provide options as an array of {optionName, optionValu
         if (fields.length === 0) {
           fieldOrder = LexoRank.min().genNext().toString()
         } else {
-          const sorted = [...fields].sort((a: any, b: any) => (a.order ?? "").localeCompare(b.order ?? ""))
+          const sorted = [...fields].sort((a: any, b: any) =>
+            (a.order ?? "").localeCompare(b.order ?? "")
+          )
           const lastOrder = sorted[sorted.length - 1].order
           try {
             fieldOrder = LexoRank.parse(lastOrder).genNext().toString()
@@ -290,7 +301,10 @@ For "option" type fields, provide options as an array of {optionName, optionValu
         required: z.boolean().optional().describe("Whether the field is required"),
         description: z.string().optional().describe("Help text for editors"),
         defaultValue: z.string().optional().describe("Default value"),
-        componentWhitelist: z.array(z.string()).optional().describe("Allowed nested component names"),
+        componentWhitelist: z
+          .array(z.string())
+          .optional()
+          .describe("Allowed nested component names"),
         options: z
           .array(
             z.object({
@@ -450,7 +464,10 @@ Returns the full component with all fields after the upsert.`,
             updates.required = fieldDef.required
           if (fieldDef.description !== undefined && fieldDef.description !== existing.description)
             updates.description = fieldDef.description
-          if (fieldDef.defaultValue !== undefined && fieldDef.defaultValue !== existing.defaultValue)
+          if (
+            fieldDef.defaultValue !== undefined &&
+            fieldDef.defaultValue !== existing.defaultValue
+          )
             updates.defaultValue = fieldDef.defaultValue
           if (fieldDef.componentWhitelist !== undefined)
             updates.componentWhitelist = fieldDef.componentWhitelist
@@ -522,9 +539,7 @@ Returns the full component with all fields after the upsert.`,
 Returns the asset with its public URL (src), which can be used in content fields of type "asset".`,
       inputSchema: {
         siteId: z.string().describe("The UUID of the site"),
-        filePath: z
-          .string()
-          .describe("Absolute path to the file on disk to upload")
+        filePath: z.string().describe("Absolute path to the file on disk to upload")
       },
       annotations: { destructiveHint: false, openWorldHint: false }
     },
@@ -593,7 +608,9 @@ Returns the asset with its public URL (src), which can be used in content fields
 
         if (!res.ok) {
           const body = await res.text().catch(() => "(no body)")
-          return textResult(`Error: S3 upload failed for part ${i + 1}: ${res.status} ${res.statusText} — ${body}`)
+          return textResult(
+            `Error: S3 upload failed for part ${i + 1}: ${res.status} ${res.statusText} — ${body}`
+          )
         }
 
         const etag = res.headers.get("etag")
@@ -648,7 +665,12 @@ Set full=true to retrieve the complete content tree including all nested block c
       inputSchema: {
         siteId: z.string().describe("The UUID of the site"),
         storyId: z.string().describe("The UUID of the story"),
-        full: z.boolean().optional().describe("If true, returns full nested block content. Default: false (shallow — block summaries only)")
+        full: z
+          .boolean()
+          .optional()
+          .describe(
+            "If true, returns full nested block content. Default: false (shallow — block summaries only)"
+          )
       },
       annotations: { readOnlyHint: true, openWorldHint: false }
     },
@@ -698,10 +720,7 @@ Example content for a site with default language "de":
           .record(z.any())
           .optional()
           .describe("Content object keyed by language code (e.g., { en: { ... } })"),
-        componentId: z
-          .string()
-          .optional()
-          .describe("UUID of the component type this story uses")
+        componentId: z.string().optional().describe("UUID of the component type this story uses")
       },
       annotations: { destructiveHint: false, openWorldHint: false }
     },
@@ -740,7 +759,9 @@ Use this to set up a page's full block structure in one call. For targeted edits
         siteId: z.string().describe("The UUID of the site"),
         storyId: z.string().describe("The UUID of the story"),
         language: z.string().describe('Language code (e.g., "en", "de")'),
-        content: z.record(z.any()).describe("Full content object for this language (e.g., { title: \"...\", blocks: [...] })")
+        content: z
+          .record(z.any())
+          .describe('Full content object for this language (e.g., { title: "...", blocks: [...] })')
       },
       annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
@@ -775,12 +796,21 @@ IMPORTANT: If the story's component has multiple blocks-type fields (e.g. "links
         fieldKey: z
           .string()
           .optional()
-          .describe('The field key to add the block to (e.g. "banner", "links", "buttons"). Required when the component has multiple blocks-type fields.')
+          .describe(
+            'The field key to add the block to (e.g. "banner", "links", "buttons"). Required when the component has multiple blocks-type fields.'
+          )
       },
       annotations: { destructiveHint: false, openWorldHint: false }
     },
     async ({ siteId, storyId, language, componentId, content, position, fieldKey }) => {
-      const result = await api.addBlock(siteId, storyId, language, { componentId, content }, position, fieldKey)
+      const result = await api.addBlock(
+        siteId,
+        storyId,
+        language,
+        { componentId, content },
+        position,
+        fieldKey
+      )
       return textResult(formatJson(result))
     }
   )
@@ -796,7 +826,9 @@ Use get_story to find block IDs in the story content.`,
         storyId: z.string().describe("The UUID of the story"),
         language: z.string().describe('Language code (e.g., "en", "de")'),
         blockId: z.string().describe("The ID of the block to update"),
-        content: z.record(z.any()).describe("New content for the block (full replacement, not merge)")
+        content: z
+          .record(z.any())
+          .describe("New content for the block (full replacement, not merge)")
       },
       annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
     },
@@ -905,7 +937,8 @@ Position options:
   server.registerTool(
     "remove_language",
     {
-      description: 'Remove a language from a site. This deletes all content for that language from every story in the site. Cannot remove the default language — change the default first using update_site.',
+      description:
+        "Remove a language from a site. This deletes all content for that language from every story in the site. Cannot remove the default language — change the default first using update_site.",
       inputSchema: {
         siteId: z.string().describe("The UUID of the site"),
         languageCode: z.string().describe('ISO 639-1 language code to remove (e.g., "en", "fr")')

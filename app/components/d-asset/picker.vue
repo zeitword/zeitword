@@ -11,8 +11,8 @@ import {
   LoaderCircleIcon
 } from "lucide-vue-next"
 
-import type { DAsset } from "~/types/models"
 import type { AssetType } from "~/types"
+import type { DAsset } from "~/types/models"
 
 import { useUpload } from "~/composables/useUpload"
 
@@ -51,19 +51,16 @@ const isUploading = ref(false)
 const uploadProgress = ref(0)
 
 // Fetch assets
-const { data: assetsResponse, refresh } = useFetch(
-  () => `/api/sites/${siteId.value}/assets`,
-  {
-    query: computed(() => ({
-      search: debouncedSearch.value || undefined,
-      type: typeFilter.value || undefined,
-      offset: offset.value,
-      limit
-    })),
-    watch: [debouncedSearch, typeFilter, offset],
-    immediate: false
-  }
-)
+const { data: assetsResponse, refresh } = useFetch(() => `/api/sites/${siteId.value}/assets`, {
+  query: computed(() => ({
+    search: debouncedSearch.value || undefined,
+    type: typeFilter.value || undefined,
+    offset: offset.value,
+    limit
+  })),
+  watch: [debouncedSearch, typeFilter, offset],
+  immediate: false
+})
 
 const assets = computed(() => assetsResponse.value?.data ?? [])
 const pagination = computed(() => assetsResponse.value?.pagination)
@@ -258,7 +255,7 @@ const confirmLabel = computed(() => {
           class="border-neutral bg-neutral group relative cursor-pointer overflow-hidden rounded-lg border transition-all"
           :class="[
             isSelected(asset)
-              ? 'ring-2 ring-blue-500 border-blue-500'
+              ? 'border-blue-500 ring-2 ring-blue-500'
               : 'hover:border-neutral-strong'
           ]"
           @click="toggleSelect(asset)"
@@ -312,9 +309,7 @@ const confirmLabel = computed(() => {
         v-else
         title="No assets found"
         :description="
-          search || typeFilter
-            ? 'No assets match your search'
-            : 'Upload files to get started'
+          search || typeFilter ? 'No assets match your search' : 'Upload files to get started'
         "
         :icon="ImageIcon"
       >

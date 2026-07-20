@@ -1,5 +1,5 @@
-import { personalAccessTokens } from "~~/server/database/schema"
 import { and, eq, isNull } from "drizzle-orm"
+import { personalAccessTokens } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)

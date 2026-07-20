@@ -94,7 +94,10 @@ export function useUpload(options: UploadOptions = {}) {
     })
   }
 
-  async function uploadFile(file: File, meta?: { siteId?: string }): Promise<CompleteUploadResponse> {
+  async function uploadFile(
+    file: File,
+    meta?: { siteId?: string }
+  ): Promise<CompleteUploadResponse> {
     isUploading.value = true
     abortController.value = new AbortController()
 

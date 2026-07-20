@@ -29,7 +29,7 @@ const bool = (displayName: string): DField => ({ displayName, type: "boolean" })
 const blocks = (displayName: string, whitelist: string[]): DField => ({
   displayName,
   type: "blocks",
-  componentWhitelist: whitelist,
+  componentWhitelist: whitelist
 })
 
 // ── Schema ───────────────────────────────────────────────────────────
@@ -49,10 +49,10 @@ export const schema: DSchema = {
         type: "option",
         options: [
           { key: "primary", value: "Primary" },
-          { key: "secondary", value: "Secondary" },
-        ],
-      },
-    },
+          { key: "secondary", value: "Secondary" }
+        ]
+      }
+    }
   },
 
   "d-card": {
@@ -64,8 +64,8 @@ export const schema: DSchema = {
       image: img("Image"),
       title: t("Title"),
       description: ta("Description"),
-      link: t("Link"),
-    },
+      link: t("Link")
+    }
   },
 
   "d-image-card": {
@@ -78,8 +78,8 @@ export const schema: DSchema = {
       description: ta("Description"),
       image: img("Image"),
       buttonText: t("Button Text"),
-      buttonLink: t("Button Link"),
-    },
+      buttonLink: t("Button Link")
+    }
   },
 
   "d-input": {
@@ -91,8 +91,8 @@ export const schema: DSchema = {
       label: t("Label"),
       type: t("Type"),
       placeholder: t("Placeholder"),
-      required: bool("Required"),
-    },
+      required: bool("Required")
+    }
   },
 
   "d-textarea": {
@@ -104,8 +104,8 @@ export const schema: DSchema = {
       label: t("Label"),
       placeholder: t("Placeholder"),
       required: bool("Required"),
-      rows: t("Rows"),
-    },
+      rows: t("Rows")
+    }
   },
 
   "d-text-link": {
@@ -114,8 +114,8 @@ export const schema: DSchema = {
     previewField: "text",
     fields: {
       text: t("Text"),
-      url: t("URL"),
-    },
+      url: t("URL")
+    }
   },
 
   "d-slide": {
@@ -126,8 +126,8 @@ export const schema: DSchema = {
       name: t("Tab Label"),
       image: img("Image"),
       title1: t("Title Line 1"),
-      title2: t("Title Line 2"),
-    },
+      title2: t("Title Line 2")
+    }
   },
 
   "d-contact": {
@@ -140,8 +140,8 @@ export const schema: DSchema = {
       role: t("Role"),
       description: ta("Description"),
       image: img("Image"),
-      location: t("Location"),
-    },
+      location: t("Location")
+    }
   },
 
   "d-map-marker": {
@@ -151,8 +151,8 @@ export const schema: DSchema = {
     fields: {
       name: t("Name"),
       posTop: t("Position Top (%)"),
-      posLeft: t("Position Left (%)"),
-    },
+      posLeft: t("Position Left (%)")
+    }
   },
 
   // ── Block Components ─────────────────────────────────────────────
@@ -166,8 +166,8 @@ export const schema: DSchema = {
       title: t("Title"),
       description: ta("Description"),
       buttonText: t("Button Text"),
-      buttonLink: t("Button Link"),
-    },
+      buttonLink: t("Button Link")
+    }
   },
 
   "team-1": {
@@ -175,8 +175,8 @@ export const schema: DSchema = {
     displayName: "Team Grid",
     fields: {
       id: t("Anchor ID"),
-      contacts: blocks("Contacts", ["d-contact"]),
-    },
+      contacts: blocks("Contacts", ["d-contact"])
+    }
   },
 
   "form-1": {
@@ -188,8 +188,8 @@ export const schema: DSchema = {
       submitButtonText: t("Submit Button Text"),
       privacyText: ta("Privacy Text"),
       privacyLinkText: t("Privacy Link Text"),
-      privacyLinkUrl: t("Privacy Link URL"),
-    },
+      privacyLinkUrl: t("Privacy Link URL")
+    }
   },
 
   "html-1": {
@@ -197,8 +197,8 @@ export const schema: DSchema = {
     displayName: "HTML Block",
     fields: {
       id: t("Anchor ID"),
-      html: ta("HTML Content"),
-    },
+      html: ta("HTML Content")
+    }
   },
 
   "navigation-1": {
@@ -210,8 +210,8 @@ export const schema: DSchema = {
       links: blocks("Links", ["d-text-link"]),
       buttonText: t("Button Text"),
       buttonLink: t("Button Link"),
-      startInverted: bool("Start Inverted"),
-    },
+      startInverted: bool("Start Inverted")
+    }
   },
 
   "header-2": {
@@ -221,8 +221,8 @@ export const schema: DSchema = {
     fields: {
       slides: blocks("Slides", ["d-slide"]),
       buttonText: t("Button Text"),
-      buttonLink: t("Button Link"),
-    },
+      buttonLink: t("Button Link")
+    }
   },
 
   "cards-1": {
@@ -236,8 +236,8 @@ export const schema: DSchema = {
       center: bool("Centered"),
       buttonText: t("Button Text"),
       buttonLink: t("Button Link"),
-      cards: blocks("Cards", ["d-card"]),
-    },
+      cards: blocks("Cards", ["d-card"])
+    }
   },
 
   "cards-2": {
@@ -245,8 +245,8 @@ export const schema: DSchema = {
     displayName: "Image Cards",
     fields: {
       id: t("Anchor ID"),
-      cards: blocks("Cards", ["d-image-card"]),
-    },
+      cards: blocks("Cards", ["d-image-card"])
+    }
   },
 
   "intro-1": {
@@ -260,8 +260,8 @@ export const schema: DSchema = {
       description: ta("Description"),
       center: bool("Centered"),
       buttonText: t("Button Text"),
-      buttonLink: t("Button Link"),
-    },
+      buttonLink: t("Button Link")
+    }
   },
 
   "image-1": {
@@ -274,8 +274,8 @@ export const schema: DSchema = {
       title: t("Title"),
       description: ta("Description"),
       buttonText: t("Button Text"),
-      buttonLink: t("Button Link"),
-    },
+      buttonLink: t("Button Link")
+    }
   },
 
   "image-2": {
@@ -288,8 +288,8 @@ export const schema: DSchema = {
       title: t("Title"),
       description: ta("Description"),
       before: img("Before Image"),
-      after: img("After Image"),
-    },
+      after: img("After Image")
+    }
   },
 
   "image-3": {
@@ -303,8 +303,8 @@ export const schema: DSchema = {
       description: ta("Description"),
       center: bool("Centered"),
       buttonText: t("Button Text"),
-      buttonLink: t("Button Link"),
-    },
+      buttonLink: t("Button Link")
+    }
   },
 
   "map-1": {
@@ -319,8 +319,8 @@ export const schema: DSchema = {
       buttonText: t("Button Text"),
       buttonLink: t("Button Link"),
       mapImage: img("Map Image"),
-      locations: blocks("Locations", ["d-map-marker"]),
-    },
+      locations: blocks("Locations", ["d-map-marker"])
+    }
   },
 
   "footer-1": {
@@ -332,8 +332,8 @@ export const schema: DSchema = {
       logoLink: t("Logo Link"),
       company: t("Company Name"),
       links: blocks("Links", ["d-text-link"]),
-      legal: blocks("Legal Links", ["d-text-link"]),
-    },
+      legal: blocks("Legal Links", ["d-text-link"])
+    }
   },
 
   // ── Content Types ────────────────────────────────────────────────
@@ -358,8 +358,8 @@ export const schema: DSchema = {
         "team-1",
         "form-1",
         "html-1",
-        "footer-1",
-      ]),
-    },
-  },
+        "footer-1"
+      ])
+    }
+  }
 }

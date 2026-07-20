@@ -1,6 +1,6 @@
+import { and, eq } from "drizzle-orm"
 import { z } from "zod"
 import { personalAccessTokens } from "~~/server/database/schema"
-import { and, eq } from "drizzle-orm"
 
 const paramSchema = z.object({
   tokenId: z.string().uuid()

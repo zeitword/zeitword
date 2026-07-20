@@ -18,12 +18,10 @@ const initials = computed(() => {
   return (name[0]?.charAt(0) || "") + (name[1]?.charAt(0) || "")
 })
 
-const { data: site } = await useFetch(
-  () => siteId.value ? `/api/sites/${siteId.value}` : null
-)
+const { data: site } = await useFetch(() => (siteId.value ? `/api/sites/${siteId.value}` : null))
 
-const { data: story } = await useFetch(
-  () => (siteId.value && (storyId.value || folderId.value))
+const { data: story } = await useFetch(() =>
+  siteId.value && (storyId.value || folderId.value)
     ? `/api/sites/${siteId.value}/stories/${storyId.value || folderId.value}`
     : null
 )

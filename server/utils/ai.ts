@@ -62,12 +62,14 @@ export async function trackUsage({
   modelId: string
   organisationId: string
 }) {
-  await useDrizzle().insert(languageModelUsages).values({
-    userId,
-    modelId,
-    organisationId,
-    inputTokens: usage.inputTokens ?? 0,
-    outputTokens: usage.outputTokens ?? 0,
-    totalTokens: usage.totalTokens ?? 0
-  })
+  await useDrizzle()
+    .insert(languageModelUsages)
+    .values({
+      userId,
+      modelId,
+      organisationId,
+      inputTokens: usage.inputTokens ?? 0,
+      outputTokens: usage.outputTokens ?? 0,
+      totalTokens: usage.totalTokens ?? 0
+    })
 }
