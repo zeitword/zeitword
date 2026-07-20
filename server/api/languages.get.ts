@@ -1,17 +1,15 @@
-import { languages } from "~~/server/database/schema"
-
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-  const allLanguages = await useDrizzle()
-    .select({
-      code: languages.code,
-      name: languages.name,
-      nativeName: languages.nativeName
-    })
-    .from(languages)
-    .orderBy(languages.name)
+  const allLanguages = await db.query.languages.findMany({
+    columns: {
+      code: true,
+      name: true,
+      nativeName: true
+    },
+    orderBy: { name: "asc" }
+  })
 
   return allLanguages
 })

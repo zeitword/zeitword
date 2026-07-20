@@ -1,26 +1,36 @@
-import { organisations, users } from "~~/server/database/schema"
-
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
-  const [user] = await useDrizzle()
-    .select({
-      id: users.id,
-      email: users.email,
-      name: users.name,
-      organisationId: organisations.id,
-      organisationName: organisations.name,
-      deletedAt: users.deletedAt
-    })
-    .from(users)
-    .innerJoin(organisations, eq(organisations.id, secure.organisationId))
-    .where(eq(users.id, secure.userId))
+  const user = await db.query.users.findFirst({
+    columns: {
+      id: true,
+      email: true,
+      name: true,
+      organisationId: true,
+      deletedAt: true
+    },
+    with: {
+      organisation: {
+        columns: { name: true }
+      }
+    },
+    where: {
+      id: secure.userId,
+      organisationId: secure.organisationId
+    }
+  })
 
   // Check if user is archived
   if (user?.deletedAt) {
     throw createError({ statusCode: 401, statusMessage: "Account has been archived" })
   }
 
-  return user
+  if (!user?.organisation) return undefined
+
+  const { organisation, ...userData } = user
+  return {
+    ...userData,
+    organisationName: organisation.name
+  }
 })

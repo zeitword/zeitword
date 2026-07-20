@@ -15,10 +15,12 @@ export default defineEventHandler(async (event) => {
     const body = await readValidatedBody(event, bodySchema.parse)
 
     // check if the user already exists
-    const existing = await useDrizzle().select().from(users).where(eq(users.email, body.email))
-    if (existing.length > 0) return {}
+    const existing = await db.query.users.findFirst({
+      columns: { id: true },
+      where: { email: body.email }
+    })
+    if (existing) return {}
 
-    const db = useDrizzle()
     const hashedPassword = await hashPassword(body.password)
 
     const { user, session } = await db.transaction(async (tx) => {
@@ -29,6 +31,7 @@ export default defineEventHandler(async (event) => {
           name: body.organisationName
         })
         .returning()
+      if (!org) throw createError({ statusCode: 500, message: "Failed to create organisation" })
 
       const [user] = await tx
         .insert(users)
@@ -39,6 +42,7 @@ export default defineEventHandler(async (event) => {
           organisationId: org.id
         })
         .returning()
+      if (!user) throw createError({ statusCode: 500, message: "Failed to create user" })
 
       const [session] = await tx
         .insert(sessions)
@@ -47,6 +51,7 @@ export default defineEventHandler(async (event) => {
           userId: user.id
         })
         .returning()
+      if (!session) throw createError({ statusCode: 500, message: "Failed to create session" })
 
       return { user, session }
     })

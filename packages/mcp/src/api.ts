@@ -76,9 +76,7 @@ export class ZeitwordApi {
 
   // ── Content Enrichment ─────────────────────────────────────────────
 
-  private isBlock(
-    obj: any
-  ): obj is {
+  private isBlock(obj: any): obj is {
     componentId: string
     content: any
     order?: string

@@ -10,13 +10,10 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   const { password, token } = await readValidatedBody(event, bodySchema.parse)
 
-  const result = await useDrizzle()
-    .select()
-    .from(users)
-    .where(eq(users.resetPasswordToken, token))
-    .limit(1)
-  if (result.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
-  const user = result[0]
+  const user = await db.query.users.findFirst({
+    where: { resetPasswordToken: token }
+  })
+  if (!user) throw createError({ statusCode: 401, message: "Bad credentials" })
 
   // Check if both reset password token and expiration date are set
   if (!user.resetPasswordToken || !user.resetPasswordExpiresAt)
@@ -33,7 +30,7 @@ export default defineEventHandler(async (event) => {
   // Update the password
   const hashedPassword = await hashPassword(password)
 
-  await useDrizzle()
+  await db
     .update(users)
     .set({
       password: hashedPassword,

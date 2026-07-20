@@ -13,3 +13,5 @@ const database = drizzle(process.env.NUXT_DSN!, {
 export function useDrizzle() {
   return database
 }
+
+export const db = database

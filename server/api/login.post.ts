@@ -3,7 +3,7 @@ import type { H3Event } from "h3"
 import { nanoid } from "nanoid"
 import { z } from "zod"
 
-import { sessions, users } from "../database/schema"
+import { sessions } from "../database/schema"
 
 const bodySchema = z.object({
   email: z.email(),
@@ -17,9 +17,10 @@ export default defineEventHandler(async (event) => {
   await enforceLoginRateLimit(event, email)
 
   // Find user
-  const results = await useDrizzle().select().from(users).where(eq(users.email, email)).limit(1)
-  if (results.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
-  const user = results[0]
+  const user = await db.query.users.findFirst({
+    where: { email }
+  })
+  if (!user) throw createError({ statusCode: 401, message: "Bad credentials" })
 
   // Without a password, we can't login
   if (!user.password) throw createError({ statusCode: 401, message: "Bad credentials" })
@@ -34,7 +35,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Create a user session
-  const created = await useDrizzle()
+  const [session] = await db
     .insert(sessions)
     .values({
       token: nanoid(64),
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
     })
     .returning()
 
-  const session = created[0]
+  if (!session) throw createError({ statusCode: 500, message: "Failed to create session" })
 
   await setUserSession(event, {
     user: {

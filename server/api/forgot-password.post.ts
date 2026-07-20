@@ -7,7 +7,7 @@ import { z } from "zod"
 import { users } from "../database/schema"
 
 const bodySchema = z.object({
-  email: z.string().email()
+  email: z.email()
 })
 
 export default defineEventHandler(async (event) => {
@@ -48,9 +48,10 @@ async function enforceForgotPasswordRateLimit(event: H3Event, email: string) {
 }
 
 async function backgroundProcessEmail({ email }: { email: string }) {
-  const result = await useDrizzle().select().from(users).where(eq(users.email, email)).limit(1)
-  if (result.length !== 1) throw createError({ statusCode: 401, message: "Bad credentials" })
-  const user = result[0]
+  const user = await db.query.users.findFirst({
+    where: { email }
+  })
+  if (!user) throw createError({ statusCode: 401, message: "Bad credentials" })
 
   if (!user.email) return {}
 
@@ -64,7 +65,7 @@ async function backgroundProcessEmail({ email }: { email: string }) {
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24)
 
   // Set the reset password token and expiration date
-  await useDrizzle()
+  await db
     .update(users)
     .set({
       resetPasswordToken: passwordResetToken,
