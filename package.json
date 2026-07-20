@@ -12,7 +12,8 @@
     "db:migrate": "drizzle-kit migrate",
     "s3:update-cors": "bun run scripts/update-s3-cors.ts",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix"
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
@@ -39,7 +40,7 @@
     "ai": "^6.0.191",
     "auth-utils": "^1.0.0",
     "date-fns": "^4.1.0",
-    "drizzle-orm": "^1.0.0-beta.15-859cf75",
+    "drizzle-orm": "^1.0.0-rc.4",
     "iso-639-1": "^3.1.5",
     "lexorank": "^1.0.5",
     "lodash-es": "^4.17.21",
@@ -64,7 +65,7 @@
     "@types/bun": "^1.3.1",
     "@types/pg": "^8.15.6",
     "dotenv": "^17.2.3",
-    "drizzle-kit": "^1.0.0-beta.15-859cf75",
+    "drizzle-kit": "^1.0.0-rc.4",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "tsx": "^4.20.6"

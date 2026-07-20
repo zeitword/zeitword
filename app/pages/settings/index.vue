@@ -124,7 +124,10 @@ function formatDate(date: string) {
                 Invite User
               </DButton>
             </div>
-            <DList v-if="activeUsers.length > 0">
+            <DList
+              v-if="activeUsers.length > 0"
+              class="shadow-none"
+            >
               <DListItem
                 v-for="user in activeUsers"
                 :key="user.id"

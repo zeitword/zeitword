@@ -1,0 +1,1 @@
+- run `npm run fmt` after you're done with your work

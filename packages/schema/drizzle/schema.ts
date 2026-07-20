@@ -1,6 +1,6 @@
 import {
   integer,
-  pgTable,
+  snakeCase,
   uuid,
   text,
   pgEnum,
@@ -45,13 +45,13 @@ const organisationId = {
 }
 
 // Tables
-export const organisations = pgTable("organisations", {
+export const organisations = snakeCase.table("organisations", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   ...timestamps
 })
 
-export const users = pgTable("users", {
+export const users = snakeCase.table("users", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   email: text().notNull().unique(),
@@ -62,7 +62,7 @@ export const users = pgTable("users", {
   ...timestamps
 })
 
-export const userInvitations = pgTable("user_invitations", {
+export const userInvitations = snakeCase.table("user_invitations", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   email: text().notNull().unique(),
   token: text().notNull().unique(),
@@ -75,7 +75,7 @@ export const userInvitations = pgTable("user_invitations", {
   ...timestamps
 })
 
-export const sessions = pgTable(
+export const sessions = snakeCase.table(
   "sessions",
   {
     token: text().notNull().unique(),
@@ -87,7 +87,7 @@ export const sessions = pgTable(
   (t) => [primaryKey({ columns: [t.token, t.userId] })]
 )
 
-export const components = pgTable(
+export const components = snakeCase.table(
   "components",
   {
     id: uuid().primaryKey().$defaultFn(uuidv7),
@@ -104,7 +104,7 @@ export const components = pgTable(
   (t) => [unique().on(t.siteId, t.name)]
 )
 
-export const componentFields = pgTable(
+export const componentFields = snakeCase.table(
   "component_fields",
   {
     componentId: uuid()
@@ -128,7 +128,7 @@ export const componentFields = pgTable(
   (t) => [primaryKey({ columns: [t.componentId, t.fieldKey] })]
 )
 
-export const fieldOptions = pgTable(
+export const fieldOptions = snakeCase.table(
   "field_options",
   {
     id: uuid().primaryKey().$defaultFn(uuidv7),
@@ -146,7 +146,7 @@ export const fieldOptions = pgTable(
   (t) => [unique().on(t.componentId, t.fieldKey, t.optionValue)]
 )
 
-export const stories = pgTable(
+export const stories = snakeCase.table(
   "stories",
   {
     id: uuid().primaryKey().$defaultFn(uuidv7),
@@ -165,7 +165,7 @@ export const stories = pgTable(
   (t) => [uniqueIndex("slug_idx").on(t.slug, t.siteId)]
 )
 
-export const sites = pgTable("sites", {
+export const sites = snakeCase.table("sites", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   name: text().notNull(),
   domain: text().notNull().default(""),
@@ -173,7 +173,7 @@ export const sites = pgTable("sites", {
   ...timestamps
 })
 
-export const waitlist = pgTable("waitlist", {
+export const waitlist = snakeCase.table("waitlist", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
   email: text().notNull().unique(),
   confirmed: boolean().notNull().default(false),
