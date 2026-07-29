@@ -102,13 +102,10 @@ watch(
 <template>
   <div>
     <div
-      class="bg-neutral flex w-full flex-col rounded-lg"
+      class="bg-neutral flex w-full flex-col"
       v-if="block"
       ref="blockRef"
-      :class="{
-        'ring-primary ring-2': isTargeted,
-        'ring-danger ring-1': hasErrors && !isTargeted
-      }"
+      :class="{ 'ring-primary ring-2': isTargeted }"
     >
       <div class="group flex w-full items-center gap-2 px-2 py-2 perspective-normal">
         <slot name="controls" />
