@@ -149,11 +149,6 @@ const debouncedValidation = useDebounceFn(runValidation, 400)
 
 watch([content, () => story.value?.component?.id], () => debouncedValidation(), { deep: true })
 
-// issues of the currently selected language
-const languageIssues = computed(() =>
-  enrichedIssues.value.filter((issue) => issue.path[0] === selectedLanguage.value)
-)
-
 // errors passed down to fields, keyed "language:blockId1:...:fieldKey"
 const errorMap = computed<Record<string, string>>(() => {
   const map: Record<string, string> = {}
@@ -215,13 +210,6 @@ function focusNextIssue(direction: 1 | -1) {
   focusIssue(enrichedIssues.value[next]!)
 }
 
-function focusNextLanguageIssue() {
-  const issue = enrichedIssues.value.find(
-    (candidate) => candidate.path[0] !== selectedLanguage.value
-  )
-  if (issue) focusIssue(issue)
-}
-
 async function save() {
   if (!story.value || !story.value.component) return
 
@@ -232,7 +220,7 @@ async function save() {
     toast.warning({
       description: `Cannot save: ${count} field${count === 1 ? "" : "s"} need${
         count === 1 ? "s" : ""
-      } attention. Use the validation panel to jump to ${count === 1 ? "it" : "them"}.`
+      } attention. Use the header arrows to review ${count === 1 ? "it" : "them"}.`
     })
     focusNextIssue(1)
     return
@@ -505,15 +493,59 @@ async function autoTranslate() {
     <template #center>
       <Transition name="slide-fade-up">
         <div
-          v-if="hasChanges"
-          class="text-warn bg-warn-subtle border-warn text-copy flex h-9 min-w-lg items-center justify-between gap-3 rounded-xl border pr-1 pl-3"
+          v-if="hasChanges || enrichedIssues.length > 0"
+          class="text-copy flex h-9 max-w-3xl min-w-xl items-center justify-between gap-3 rounded-xl border pr-1 pl-3"
+          :class="
+            enrichedIssues.length > 0
+              ? 'text-danger-strong bg-danger-subtle border-danger'
+              : 'text-warn bg-warn-subtle border-warn'
+          "
         >
-          <div class="flex items-center gap-1">
-            <FileWarningIcon class="size-4" />
-            <p>Unsaved story</p>
+          <div class="flex min-w-0 items-center gap-1.5">
+            <FileWarningIcon class="size-4 shrink-0" />
+            <p
+              v-if="enrichedIssues.length === 0"
+              class="shrink-0"
+            >
+              Unsaved story
+            </p>
+            <p
+              v-else
+              class="line-clamp-1"
+            >
+              <template v-if="activeIssue">
+                <span class="font-medium">{{ activeIssue.label }}:</span>
+                {{ activeIssue.message }}
+              </template>
+              <template v-else>
+                {{ enrichedIssues.length }} field{{ enrichedIssues.length === 1 ? "" : "s" }}
+                need attention
+              </template>
+            </p>
           </div>
-          <div class="flex items-center gap-1">
+          <div class="flex shrink-0 items-center gap-1">
+            <template v-if="enrichedIssues.length > 0">
+              <DButton
+                variant="secondary"
+                size="sm"
+                :icon-left="ChevronLeftIcon"
+                aria-label="Previous issue"
+                @click="focusNextIssue(-1)"
+              />
+              <span class="text-copy-sm min-w-10 text-center tabular-nums">
+                {{ activeIssueIndex >= 0 ? activeIssueIndex + 1 : 0 }} /
+                {{ enrichedIssues.length }}
+              </span>
+              <DButton
+                variant="secondary"
+                size="sm"
+                :icon-left="ChevronRightIcon"
+                aria-label="Next issue"
+                @click="focusNextIssue(1)"
+              />
+            </template>
             <DButton
+              v-if="hasChanges"
               variant="secondary"
               size="sm"
               @click="resetChanges"
@@ -521,6 +553,7 @@ async function autoTranslate() {
               Reset
             </DButton>
             <DButton
+              v-if="hasChanges"
               variant="primary"
               size="sm"
               @click="save"
@@ -539,16 +572,6 @@ async function autoTranslate() {
         @click="toggleTranslationModal"
         variant="secondary"
       />
-      <button
-        v-if="enrichedIssues.length > 0"
-        type="button"
-        class="bg-danger-subtle text-danger-strong flex h-9 items-center gap-1.5 rounded-lg px-3 transition hover:brightness-95"
-        title="Go to the next validation issue"
-        @click="focusNextIssue(1)"
-      >
-        <FileWarningIcon class="size-4" />
-        <span class="text-copy-sm font-medium tabular-nums">{{ enrichedIssues.length }}</span>
-      </button>
       <DSelect
         :model-value="selectedLanguage"
         :options="languageOptions"
@@ -593,68 +616,6 @@ async function autoTranslate() {
       :class="!renderPreview && !showJson ? 'w-full' : 'max-w-[500px]'"
     >
       <div class="mx-auto flex w-full max-w-4xl flex-col gap-2">
-        <div
-          v-if="languageIssues.length > 0"
-          class="bg-danger-subtle border-danger mb-2 flex flex-col gap-2 rounded-lg border p-3"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <div class="text-danger-strong flex items-center gap-2">
-              <FileWarningIcon class="size-4 shrink-0" />
-              <p class="text-copy-sm font-medium">
-                {{ languageIssues.length }} field{{ languageIssues.length === 1 ? "" : "s" }} need{{
-                  languageIssues.length === 1 ? "s" : ""
-                }}
-                attention
-              </p>
-            </div>
-            <div class="flex items-center gap-1">
-              <DButton
-                variant="secondary"
-                size="sm"
-                :icon-left="ChevronLeftIcon"
-                aria-label="Previous issue"
-                @click="focusNextIssue(-1)"
-              />
-              <span class="text-copy-sm text-neutral-subtle min-w-10 text-center tabular-nums">
-                {{ activeIssueIndex >= 0 ? activeIssueIndex + 1 : 0 }} /
-                {{ enrichedIssues.length }}
-              </span>
-              <DButton
-                variant="secondary"
-                size="sm"
-                :icon-left="ChevronRightIcon"
-                aria-label="Next issue"
-                @click="focusNextIssue(1)"
-              />
-            </div>
-          </div>
-          <ul class="text-copy-sm flex flex-col gap-0.5">
-            <li
-              v-for="issue in languageIssues"
-              :key="issueIdentity(issue)"
-            >
-              <button
-                type="button"
-                class="hover:bg-neutral-strong flex w-full items-baseline gap-2 rounded-md px-1.5 py-1 text-left transition"
-                :class="[activeIssueIdentity === issueIdentity(issue) ? 'bg-neutral-strong' : '']"
-                @click="focusIssue(issue)"
-              >
-                <span class="text-neutral-subtle shrink-0">{{ issue.label }}:</span>
-                <span>{{ issue.message }}</span>
-              </button>
-            </li>
-          </ul>
-          <button
-            v-if="enrichedIssues.length > languageIssues.length"
-            type="button"
-            class="text-danger-strong text-copy-sm self-start underline underline-offset-2"
-            @click="focusNextLanguageIssue"
-          >
-            {{ enrichedIssues.length - languageIssues.length }} more
-            {{ enrichedIssues.length - languageIssues.length === 1 ? "issue" : "issues" }} in other
-            languages
-          </button>
-        </div>
         <template
           v-for="field in sortedFields"
           :key="field.fieldKey"
