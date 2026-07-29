@@ -239,8 +239,15 @@ async function save() {
       enrichedIssues.value = enrichIssues(issues, content.value)
       focusNextIssue(1)
     } else {
+      console.error("Failed to save story", saveError)
+      const statusMessage = saveError?.data?.statusMessage
+      const isGenericServerError =
+        !statusMessage || ["Server Error", "Internal Server Error"].includes(statusMessage)
+
       toast.error({
-        description: saveError?.data?.statusMessage || "Failed to save story"
+        description: isGenericServerError
+          ? "We couldn't save your changes. Please try again."
+          : statusMessage
       })
     }
   }
