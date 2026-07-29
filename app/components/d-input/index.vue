@@ -14,6 +14,8 @@ type Props = {
   trailingBackground?: boolean
   min?: number
   max?: number
+  minlength?: number
+  maxlength?: number
 }
 
 const {
@@ -30,7 +32,9 @@ const {
   leadingBackground = true,
   trailingBackground = true,
   min,
-  max
+  max,
+  minlength,
+  maxlength
 } = defineProps<Props>()
 
 const [model, modifiers] = defineModel<string | number>({
@@ -96,6 +100,10 @@ defineExpose({
       :autocomplete="autocomplete"
       :label="label"
       :disabled="disabled"
+      :min="min"
+      :max="max"
+      :minlength="minlength"
+      :maxlength="maxlength"
       v-model="model"
       class="text-copy texte-neutral h-full w-full px-2.5 outline-none"
       :class="[hideArrows ? 'hide-arrows' : '']"

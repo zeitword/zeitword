@@ -46,9 +46,11 @@ const sortedAssets = ref<AssetObject[]>([])
 const sortableInstance = ref<Sortable | null>(null)
 const isMounted = ref(false)
 
+const hasMax = computed(() => props.field.maxValue !== null && props.field.maxValue !== undefined)
+
 const isMaxReached = computed(() => {
-  if (!props.field.maxValue) return false
-  return sortedAssets.value.length >= props.field.maxValue
+  if (!hasMax.value) return false
+  return sortedAssets.value.length >= props.field.maxValue!
 })
 
 const assetConfig = props.field.config as AssetConfig
@@ -73,10 +75,10 @@ onFileDialogChange(async (selectedFiles) => {
 async function handleFileUploads(files: File[]) {
   if (isUploading.value || isMaxReached.value) return
 
-  const availableSlots = props.field.maxValue
-    ? props.field.maxValue - sortedAssets.value.length
+  const availableSlots = hasMax.value
+    ? props.field.maxValue! - sortedAssets.value.length
     : files.length
-  if (availableSlots <= 0 && props.field.maxValue) {
+  if (availableSlots <= 0 && hasMax.value) {
     console.warn("Cannot add more assets, limit reached.")
     return
   }
@@ -359,10 +361,10 @@ function handleUpdateAlt(assetId: string, newAlt: string) {
 function handlePickerSelect(selectedAssets: DAsset[]) {
   if (selectedAssets.length === 0) return
 
-  const availableSlots = props.field.maxValue
-    ? props.field.maxValue - sortedAssets.value.length
+  const availableSlots = hasMax.value
+    ? props.field.maxValue! - sortedAssets.value.length
     : selectedAssets.length
-  if (availableSlots <= 0 && props.field.maxValue) return
+  if (availableSlots <= 0 && hasMax.value) return
 
   const assetsToAdd = selectedAssets.slice(0, availableSlots)
 
@@ -504,7 +506,7 @@ function handlePickerSelect(selectedAssets: DAsset[]) {
       </div>
       <div
         class="mt-1 flex justify-end p-1"
-        v-if="field.maxValue"
+        v-if="hasMax"
       >
         <p
           class="text-copy-sm text-neutral-subtle flex gap-0.5 rounded-md px-2 py-0.5"

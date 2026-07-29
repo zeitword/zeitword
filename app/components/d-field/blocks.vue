@@ -14,6 +14,13 @@ type Props = {
   currentLanguage: string
   defaultLanguage: string
   defaultLanguageValue?: any
+  // validation errors keyed "language:blockId1:blockId2:...:fieldKey"
+  errors?: Record<string, string>
+  // ids of the blocks this field (and its blocks) is nested in
+  blockIds?: string[]
+  // chain of block ids that should expand to reveal the targeted field
+  expandPath?: string[]
+  activeErrorKey?: string
 }
 
 const {
@@ -23,7 +30,11 @@ const {
   targetBlockId,
   currentLanguage,
   defaultLanguage,
-  defaultLanguageValue
+  defaultLanguageValue,
+  errors = {},
+  blockIds = [],
+  expandPath = [],
+  activeErrorKey
 } = defineProps<Props>()
 
 const emit = defineEmits<{
@@ -240,8 +251,25 @@ onBeforeUnmount(() => {
 })
 
 const isMaxReached = computed(() => {
-  if (!field.maxValue) return false
+  if (field.maxValue === null || field.maxValue === undefined) return false
   return sortedBlocks.value.length >= field.maxValue
+})
+
+// number of distinct issues inside each block of this field, used for the
+// badge on collapsed block headers
+const issueCountByBlockId = computed<Record<string, number>>(() => {
+  const counts: Record<string, Set<string>> = {}
+  const prefix = `${currentLanguage}:${blockIds.length ? blockIds.join(":") + ":" : ""}`
+  for (const key of Object.keys(errors)) {
+    if (!key.startsWith(prefix)) continue
+    const rest = key.slice(prefix.length)
+    // first segment of an issue inside this blocks field is a block id
+    const [blockId] = rest.split(":")
+    if (!blockId) continue
+    counts[blockId] ??= new Set()
+    counts[blockId].add(key)
+  }
+  return Object.fromEntries(Object.entries(counts).map(([id, set]) => [id, set.size]))
 })
 
 const searchInput = ref<HTMLInputElement | null>(null)
@@ -279,6 +307,11 @@ function closeAddModal() {
           :current-language="currentLanguage"
           :default-language="defaultLanguage"
           :default-language-value="defaultLanguageValue?.find((b) => b.id === block.id)"
+          :errors="errors"
+          :block-ids="blockIds"
+          :expand-path="expandPath"
+          :active-error-key="activeErrorKey"
+          :error-count="issueCountByBlockId[block.id] || 0"
           class="border-neutral overflow-hidden border-b last:border-none"
           @update:value="updateNestedBlock(index, $event)"
           @delete-block="(id) => deleteBlock(id)"
@@ -298,8 +331,9 @@ function closeAddModal() {
 
     <div class="flex items-center justify-between p-1">
       <button
-        @click="openAddModal()"
-        class="text-neutral-subtle text-copy group/button relative inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 ring-blue-500 transition-all outline-none focus-visible:ring-2"
+        :disabled="isMaxReached"
+        @click="!isMaxReached && openAddModal()"
+        class="text-neutral-subtle text-copy group/button relative inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 ring-blue-500 transition-all outline-none focus-visible:ring-2 disabled:pointer-events-none"
         :class="[isMaxReached ? 'scale-50 opacity-0' : '']"
       >
         <div
@@ -311,7 +345,7 @@ function closeAddModal() {
         </div>
       </button>
       <p
-        v-if="field.maxValue"
+        v-if="field.maxValue !== null && field.maxValue !== undefined"
         class="text-copy-sm text-neutral-subtle flex gap-0.5 rounded-md px-2 py-0.5"
         :class="[isMaxReached ? 'bg-neutral-strong' : '']"
       >

@@ -36,8 +36,8 @@ const formData = ref<FormData>({
   description: "",
   displayName: "",
   defaultValue: "",
-  minValue: 0,
-  maxValue: 0,
+  minValue: null,
+  maxValue: null,
   options: [],
   componentWhitelist: [],
   config: null
@@ -168,22 +168,38 @@ const componentOptions = computed(() => {
 })
 
 async function save() {
+  // number inputs submit strings; normalize min/max back to numbers
+  const normalizeNumber = (value: unknown) => {
+    if (value === null || value === undefined || value === "") return null
+    const parsed = Number(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  const minValue = normalizeNumber(formData.value.minValue)
+  const maxValue = normalizeNumber(formData.value.maxValue)
+
+  if (minValue !== null && maxValue !== null && minValue > maxValue) {
+    toast.error({ description: "Minimum value cannot be greater than maximum value" })
+    return
+  }
+
   try {
-    console.log(formData.value.componentWhitelist)
     await $fetch(
       `/api/sites/${siteId.value}/components/${componentId.value}/fields/${fieldKey.value}`,
       {
         method: "PUT",
         body: {
-          ...formData.value
+          ...formData.value,
+          minValue,
+          maxValue
         }
       }
     )
     refresh()
     toast.success({ description: "Field saved successfully" })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving field:", error)
-    toast.error({ description: "Error saving field" })
+    toast.error({ description: error?.data?.statusMessage || "Error saving field" })
   }
 }
 
@@ -438,6 +454,29 @@ async function deleteField() {
               :options="assetTypes"
             />
           </DFormGroup>
+
+          <template v-if="formData.fieldType === 'assets'">
+            <DFormGroup>
+              <DFormLabel name="minimum-value">Minimum Assets</DFormLabel>
+              <DInput
+                id="minimum-value"
+                name="minimum-value"
+                type="number"
+                :min="0"
+                v-model="formData.minValue"
+              />
+            </DFormGroup>
+            <DFormGroup>
+              <DFormLabel name="maximum-value">Maximum Assets</DFormLabel>
+              <DInput
+                id="maximum-value"
+                name="maximum-value"
+                type="number"
+                :min="0"
+                v-model="formData.maxValue"
+              />
+            </DFormGroup>
+          </template>
         </template>
 
         <!-- Options and Options -->
@@ -505,6 +544,29 @@ async function deleteField() {
               Add Option
             </DButton>
           </DFormGroup>
+
+          <template v-if="formData.fieldType === 'options'">
+            <DFormGroup>
+              <DFormLabel name="minimum-value">Minimum Selections</DFormLabel>
+              <DInput
+                id="minimum-value"
+                name="minimum-value"
+                type="number"
+                :min="0"
+                v-model="formData.minValue"
+              />
+            </DFormGroup>
+            <DFormGroup>
+              <DFormLabel name="maximum-value">Maximum Selections</DFormLabel>
+              <DInput
+                id="maximum-value"
+                name="maximum-value"
+                type="number"
+                :min="0"
+                v-model="formData.maxValue"
+              />
+            </DFormGroup>
+          </template>
         </template>
 
         <div class="flex justify-end gap-2">

@@ -13,6 +13,15 @@ type Props = {
   currentLanguage: string
   defaultLanguage: string
   defaultLanguageValue?: { id: string; content: { [key: string]: any }; order: string }
+  // validation errors keyed "language:blockId1:blockId2:...:fieldKey"
+  errors?: Record<string, string>
+  // ids of the blocks this block is nested in
+  blockIds?: string[]
+  // chain of block ids that should expand to reveal the targeted field
+  expandPath?: string[]
+  // number of issues inside this block (badge on the header)
+  errorCount?: number
+  activeErrorKey?: string
 }
 
 const {
@@ -22,7 +31,12 @@ const {
   isTargeted = false,
   currentLanguage,
   defaultLanguage,
-  defaultLanguageValue
+  defaultLanguageValue,
+  errors = {},
+  blockIds = [],
+  expandPath = [],
+  errorCount = 0,
+  activeErrorKey
 } = defineProps<Props>()
 
 const isBlockOpen = ref(false)
@@ -30,6 +44,11 @@ const emit = defineEmits<{
   (e: "update:value", value: any): void
   (e: "delete-block", path: string): void
 }>()
+
+const hasErrors = computed(() => errorCount > 0)
+
+// the chain of block ids this block sits inside, including itself
+const ownBlockIds = computed(() => [...blockIds, blockContent.id])
 
 function updateNestedBlockField(fieldKey: string, value: any) {
   if (!blockContent) return
@@ -66,15 +85,30 @@ watch(
     }
   }
 )
+
+// expand blocks along the chain that leads to the targeted field; the
+// last block in the chain scrolls itself into view via isTargeted above
+watch(
+  () => expandPath,
+  (chain) => {
+    if (chain.includes(blockContent.id)) {
+      isBlockOpen.value = true
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
   <div>
     <div
-      class="bg-neutral flex w-full flex-col"
+      class="bg-neutral flex w-full flex-col rounded-lg"
       v-if="block"
       ref="blockRef"
-      :class="{ 'ring-primary ring-2': isTargeted }"
+      :class="{
+        'ring-primary ring-2': isTargeted,
+        'ring-danger ring-1': hasErrors && !isTargeted
+      }"
     >
       <div class="group flex w-full items-center gap-2 px-2 py-2 perspective-normal">
         <slot name="controls" />
@@ -89,12 +123,19 @@ watch(
             />
           </div>
           <div
-            class="text-copy text-neutral flex flex-1 items-baseline gap-2 transition-all duration-75 select-none group-active:scale-98"
+            class="text-copy text-neutral flex flex-1 items-center gap-2 transition-all duration-75 select-none group-active:scale-98"
           >
             <div class="text-nowrap">{{ block.displayName }}</div>
             <div class="text-neutral-subtle line-clamp-1">
               {{ blockContent.content[block.previewField] }}
             </div>
+            <span
+              v-if="hasErrors"
+              class="bg-danger-subtle text-danger-strong grid size-5 shrink-0 place-items-center rounded-full text-xs font-medium"
+              :title="`${errorCount} validation issue${errorCount === 1 ? '' : 's'}`"
+            >
+              {{ errorCount }}
+            </span>
           </div>
         </button>
         <div
@@ -130,6 +171,10 @@ watch(
                     ? defaultLanguageValue.content[field.fieldKey]
                     : undefined
                 "
+                :errors="errors"
+                :block-ids="ownBlockIds"
+                :expand-path="expandPath"
+                :active-error-key="activeErrorKey"
                 @update:value="updateNestedBlockField(field.fieldKey, $event)"
                 @delete-block="(nestedPath) => $emit('delete-block', nestedPath)"
               />

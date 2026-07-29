@@ -21,16 +21,41 @@ const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(z.string(), jsonSchema)])
 )
 
-const fieldSchema = z.object({
-  name: z.string().min(1).max(255),
-  fieldType: z.enum(fieldTypeEnum.enumValues),
-  displayName: z.string().min(1).max(255),
-  required: z.boolean().optional(),
-  description: z.string().optional(),
-  defaultValue: z.string().optional(),
-  componentWhitelist: z.array(z.string()).optional(),
-  options: z.array(z.object({ optionName: z.string(), optionValue: z.string() })).optional()
-})
+const fieldSchema = z
+  .object({
+    name: z.string().min(1).max(255),
+    fieldType: z.enum(fieldTypeEnum.enumValues),
+    displayName: z.string().min(1).max(255),
+    required: z.boolean().optional(),
+    description: z.string().optional(),
+    defaultValue: z.string().optional(),
+    minValue: z.number().int().nullable().optional(),
+    maxValue: z.number().int().nullable().optional(),
+    componentWhitelist: z.array(z.string()).optional(),
+    options: z.array(z.object({ optionName: z.string(), optionValue: z.string() })).optional()
+  })
+  .superRefine((field, ctx) => {
+    if (field.fieldType !== "number" && ((field.minValue ?? 0) < 0 || (field.maxValue ?? 0) < 0)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["minValue"],
+        message: "Minimum and maximum counts cannot be negative"
+      })
+    }
+    if (
+      field.minValue !== null &&
+      field.minValue !== undefined &&
+      field.maxValue !== null &&
+      field.maxValue !== undefined &&
+      field.minValue > field.maxValue
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["minValue"],
+        message: "Minimum value cannot be greater than maximum value"
+      })
+    }
+  })
 
 const bodySchema = z.object({
   defaultLanguage: z.string().min(2).max(16),
@@ -231,6 +256,8 @@ export default defineEventHandler(async (event) => {
           description: field.description,
           displayName: field.displayName,
           defaultValue: field.defaultValue,
+          minValue: field.minValue,
+          maxValue: field.maxValue,
           componentWhitelist: field.componentWhitelist ?? [],
           siteId,
           organisationId: auth.organisationId

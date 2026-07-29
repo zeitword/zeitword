@@ -1,8 +1,17 @@
 <script setup lang="ts">
 import { LexoRank } from "lexorank"
 import { merge, set } from "lodash-es"
-import { FileJsonIcon, FileWarningIcon, LanguagesIcon, ArrowRightIcon } from "lucide-vue-next"
+import {
+  FileJsonIcon,
+  FileWarningIcon,
+  LanguagesIcon,
+  ArrowRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from "lucide-vue-next"
 import { uuidv7 } from "uuidv7"
+
+import type { EnrichedIssue } from "~/composables/useContentValidation"
 
 definePageMeta({ layout: "story" })
 
@@ -24,7 +33,8 @@ const {
 } = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
   query: computed(() => ({
     lang: selectedLanguage.value
-  }))
+  })),
+  watch: false
 })
 
 if (error.value) {
@@ -51,16 +61,32 @@ watch(
   { deep: true }
 )
 
-async function handleLanguageChange(newLang: string) {
-  if (hasChanges.value) {
-    toast.warning({ description: "Please save your changes before switching languages" })
-    return
-  }
+function cloneContent<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value))
+}
 
-  selectedLanguage.value = newLang
+async function ensureLanguageLoaded(language: string) {
+  if (content.value[language] !== undefined) return
+
+  const loadedStory = await $fetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
+    query: { lang: language }
+  })
+  const languageContent = cloneContent(loadedStory.content?.[language] || {})
+
+  // Loading a language is not an edit. Update the baseline first so the
+  // content watcher keeps the existing dirty state unchanged.
+  contentOriginal.value[language] = cloneContent(languageContent)
+  content.value[language] = languageContent
+}
+
+async function handleLanguageChange(newLang: string) {
+  if (!newLang || newLang === selectedLanguage.value) return
+
   try {
-    await refresh()
+    await ensureLanguageLoaded(newLang)
+    selectedLanguage.value = newLang
   } catch (error) {
+    console.error(error)
     toast.error({ description: "Failed to switch language" })
   }
 }
@@ -93,8 +119,124 @@ const shouldShowPreview = computed(() => {
   )
 })
 
+const {
+  load: loadValidationSchema,
+  validate: validateContent,
+  enrichIssues,
+  issueKey: buildIssueKey
+} = useContentValidation()
+
+watch(
+  () => story.value?.component?.id,
+  async (componentId) => {
+    if (!componentId) return
+    await loadValidationSchema(siteId.value, componentId)
+    runValidation()
+  },
+  { immediate: true }
+)
+
+// all issues across every language, enriched with block ids and labels
+const enrichedIssues = ref<EnrichedIssue[]>([])
+
+function runValidation() {
+  const issues = validateContent(content.value, story.value?.defaultLanguage)
+  enrichedIssues.value = enrichIssues(issues, content.value)
+}
+
+// live validation, after edits and initially (debounced)
+const debouncedValidation = useDebounceFn(runValidation, 400)
+
+watch([content, () => story.value?.component?.id], () => debouncedValidation(), { deep: true })
+
+// issues of the currently selected language
+const languageIssues = computed(() =>
+  enrichedIssues.value.filter((issue) => issue.path[0] === selectedLanguage.value)
+)
+
+// errors passed down to fields, keyed "language:blockId1:...:fieldKey"
+const errorMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const issue of enrichedIssues.value) {
+    const language = String(issue.path[0])
+    const key = buildIssueKey(issue, language)
+    if (!(key in map)) map[key] = issue.message
+  }
+  return map
+})
+
+function issueIdentity(issue: EnrichedIssue) {
+  return `${issue.path.join(".")}:${issue.message}`
+}
+
+const activeIssueIdentity = ref<string | null>(null)
+const activeIssueIndex = computed(() =>
+  activeIssueIdentity.value
+    ? enrichedIssues.value.findIndex((issue) => issueIdentity(issue) === activeIssueIdentity.value)
+    : -1
+)
+const activeIssue = computed(() => enrichedIssues.value[activeIssueIndex.value])
+const activeErrorKey = computed(() => {
+  const issue = activeIssue.value
+  return issue ? buildIssueKey(issue, String(issue.path[0])) : undefined
+})
+
+async function focusIssue(requestedIssue: EnrichedIssue) {
+  const language = String(requestedIssue.path[0])
+
+  try {
+    await ensureLanguageLoaded(language)
+    selectedLanguage.value = language
+
+    // A server issue can refer to a language that was not loaded when the
+    // response arrived. Re-validating now resolves its block indexes to ids.
+    runValidation()
+    const issue =
+      enrichedIssues.value.find(
+        (candidate) => issueIdentity(candidate) === issueIdentity(requestedIssue)
+      ) || requestedIssue
+
+    activeIssueIdentity.value = issueIdentity(issue)
+    expandPath.value = [...issue.blockIds]
+    targetBlockId.value = issue.blockId ?? null
+  } catch (error) {
+    console.error(error)
+    toast.error({ description: `Failed to open the ${language} validation issue` })
+  }
+}
+
+function focusNextIssue(direction: 1 | -1) {
+  const count = enrichedIssues.value.length
+  if (count === 0) return
+
+  const current = activeIssueIndex.value
+  const next =
+    current < 0 ? (direction === 1 ? 0 : count - 1) : (current + direction + count) % count
+  focusIssue(enrichedIssues.value[next]!)
+}
+
+function focusNextLanguageIssue() {
+  const issue = enrichedIssues.value.find(
+    (candidate) => candidate.path[0] !== selectedLanguage.value
+  )
+  if (issue) focusIssue(issue)
+}
+
 async function save() {
   if (!story.value || !story.value.component) return
+
+  // re-validate before saving; the debounced watch might not have run yet
+  runValidation()
+  if (enrichedIssues.value.length > 0) {
+    const count = enrichedIssues.value.length
+    toast.warning({
+      description: `Cannot save: ${count} field${count === 1 ? "" : "s"} need${
+        count === 1 ? "s" : ""
+      } attention. Use the validation panel to jump to ${count === 1 ? "it" : "them"}.`
+    })
+    focusNextIssue(1)
+    return
+  }
 
   try {
     await $fetch(`/api/sites/${siteId.value}/stories/${story.value.id}`, {
@@ -109,8 +251,22 @@ async function save() {
     await refresh()
     hasChanges.value = false
     toast.success({ description: "The story has been saved." })
-  } catch (saveError) {
-    toast.error({ description: "Failed to save story" })
+  } catch (saveError: any) {
+    const issues = saveError?.data?.data?.issues
+    if (Array.isArray(issues)) {
+      enrichedIssues.value = enrichIssues(issues, content.value)
+      const count = enrichedIssues.value.length
+      toast.warning({
+        description: `Cannot save: ${count} field${count === 1 ? "" : "s"} need${
+          count === 1 ? "s" : ""
+        } attention`
+      })
+      focusNextIssue(1)
+    } else {
+      toast.error({
+        description: saveError?.data?.statusMessage || "Failed to save story"
+      })
+    }
   }
 }
 
@@ -265,6 +421,9 @@ type ComponentPayload = {
 
 const targetBlockId = ref<string | null>(null)
 
+// chain of block ids leading to the currently focused validation issue
+const expandPath = ref<string[]>([])
+
 function openBlock(blockId: string) {
   const findAndOpenBlock = (blocks: any[]) => {
     for (const block of blocks) {
@@ -380,6 +539,16 @@ async function autoTranslate() {
         @click="toggleTranslationModal"
         variant="secondary"
       />
+      <button
+        v-if="enrichedIssues.length > 0"
+        type="button"
+        class="bg-danger-subtle text-danger-strong flex h-9 items-center gap-1.5 rounded-lg px-3 transition hover:brightness-95"
+        title="Go to the next validation issue"
+        @click="focusNextIssue(1)"
+      >
+        <FileWarningIcon class="size-4" />
+        <span class="text-copy-sm font-medium tabular-nums">{{ enrichedIssues.length }}</span>
+      </button>
       <DSelect
         :model-value="selectedLanguage"
         :options="languageOptions"
@@ -424,6 +593,68 @@ async function autoTranslate() {
       :class="!renderPreview && !showJson ? 'w-full' : 'max-w-[500px]'"
     >
       <div class="mx-auto flex w-full max-w-4xl flex-col gap-2">
+        <div
+          v-if="languageIssues.length > 0"
+          class="bg-danger-subtle border-danger mb-2 flex flex-col gap-2 rounded-lg border p-3"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-danger-strong flex items-center gap-2">
+              <FileWarningIcon class="size-4 shrink-0" />
+              <p class="text-copy-sm font-medium">
+                {{ languageIssues.length }} field{{ languageIssues.length === 1 ? "" : "s" }} need{{
+                  languageIssues.length === 1 ? "s" : ""
+                }}
+                attention
+              </p>
+            </div>
+            <div class="flex items-center gap-1">
+              <DButton
+                variant="secondary"
+                size="sm"
+                :icon-left="ChevronLeftIcon"
+                aria-label="Previous issue"
+                @click="focusNextIssue(-1)"
+              />
+              <span class="text-copy-sm text-neutral-subtle min-w-10 text-center tabular-nums">
+                {{ activeIssueIndex >= 0 ? activeIssueIndex + 1 : 0 }} /
+                {{ enrichedIssues.length }}
+              </span>
+              <DButton
+                variant="secondary"
+                size="sm"
+                :icon-left="ChevronRightIcon"
+                aria-label="Next issue"
+                @click="focusNextIssue(1)"
+              />
+            </div>
+          </div>
+          <ul class="text-copy-sm flex flex-col gap-0.5">
+            <li
+              v-for="issue in languageIssues"
+              :key="issueIdentity(issue)"
+            >
+              <button
+                type="button"
+                class="hover:bg-neutral-strong flex w-full items-baseline gap-2 rounded-md px-1.5 py-1 text-left transition"
+                :class="[activeIssueIdentity === issueIdentity(issue) ? 'bg-neutral-strong' : '']"
+                @click="focusIssue(issue)"
+              >
+                <span class="text-neutral-subtle shrink-0">{{ issue.label }}:</span>
+                <span>{{ issue.message }}</span>
+              </button>
+            </li>
+          </ul>
+          <button
+            v-if="enrichedIssues.length > languageIssues.length"
+            type="button"
+            class="text-danger-strong text-copy-sm self-start underline underline-offset-2"
+            @click="focusNextLanguageIssue"
+          >
+            {{ enrichedIssues.length - languageIssues.length }} more
+            {{ enrichedIssues.length - languageIssues.length === 1 ? "issue" : "issues" }} in other
+            languages
+          </button>
+        </div>
         <template
           v-for="field in sortedFields"
           :key="field.fieldKey"
@@ -435,6 +666,9 @@ async function autoTranslate() {
             :current-language="selectedLanguage"
             :default-language="story.defaultLanguage"
             :default-language-value="content[story.defaultLanguage]?.[field.fieldKey]"
+            :errors="errorMap"
+            :expand-path="expandPath"
+            :active-error-key="activeErrorKey"
             @update:value="updateNestedField([selectedLanguage, field.fieldKey], $event)"
             @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
           />

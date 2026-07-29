@@ -75,6 +75,8 @@ async function importSchema() {
             required: field.required ?? false,
             description: field.description ?? null,
             displayName: field.displayName ?? null,
+            minValue: field.minValue ?? null,
+            maxValue: field.maxValue ?? null,
             componentWhitelist: field.componentWhitelist ?? [],
             siteId,
             organisationId,
@@ -87,6 +89,8 @@ async function importSchema() {
               required: field.required ?? false,
               description: field.description ?? null,
               displayName: field.displayName ?? null,
+              minValue: field.minValue ?? null,
+              maxValue: field.maxValue ?? null,
               componentWhitelist: field.componentWhitelist ?? [],
               order: rank.toString()
             }

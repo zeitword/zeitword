@@ -1,11 +1,14 @@
 import { z } from "zod"
 import { stories } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
-import { getValidationSchemaForComponent } from "~~/server/utils/validation"
+import {
+  buildValidationSchemaForComponent,
+  getSiteComponentResolver
+} from "~~/server/utils/validation"
 
 const createStorySchema = z.object({
   slug: z
-    .stringFormat("slug", /^[a-z0-9\/-]+$/)
+    .stringFormat("slug", /^[a-z0-9/-]+$/)
     .min(1)
     .lowercase(),
   title: z.string().min(1),
@@ -18,19 +21,16 @@ export default defineEventHandler(async (event) => {
   // Authenticate using API key
   const auth = await requireApiKey(event)
 
-  // Validate request body
+  // first pass: validate structure only so the component schema can be built
   const schemaData = await readValidatedBody(
     event,
     createStorySchema.extend({ language: z.enum(auth.site.availableLanguages) }).parse
   )
-  const schema = await getValidationSchemaForComponent(
-    schemaData.componentId,
-    schemaData.content,
-    auth.organisationId,
-    auth.siteId
-  )
+  const resolveComponent = await getSiteComponentResolver(auth.organisationId, auth.siteId)
+  const schema = buildValidationSchemaForComponent(schemaData.componentId, resolveComponent)
   const fullContentSchema = createStorySchema.extend({
-    content: schema
+    content: schema,
+    language: z.enum(auth.site.availableLanguages).optional()
   })
 
   const data = await readValidatedBody(event, fullContentSchema.parse)
@@ -69,6 +69,13 @@ export default defineEventHandler(async (event) => {
       organisationId: auth.organisationId
     })
     .returning()
+
+  if (!story) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Could not create story"
+    })
+  }
 
   return {
     id: story.id,

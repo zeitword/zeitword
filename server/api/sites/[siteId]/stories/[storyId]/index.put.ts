@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { stories } from "~~/server/database/schema"
+import { throwValidationError, validateStoryContent } from "~~/server/utils/validation"
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 type Literal = z.infer<typeof literalSchema>
@@ -49,8 +50,32 @@ export default defineEventHandler(async (event) => {
   if (data.componentId !== undefined) updateData.componentId = data.componentId
   if (data.content !== undefined) {
     updateData.content = {
-      ...(currentStory.content || {}),
-      ...((data.content as object) || {})
+      ...currentStory.content,
+      ...(data.content as object)
+    }
+  }
+
+  // enforce field constraints (required/min/max/whitelist) when content or
+  // the component changes
+  if (updateData.content !== undefined || updateData.componentId !== undefined) {
+    const componentId = (updateData.componentId as string) ?? currentStory.componentId
+    const content = (updateData.content as Record<string, unknown>) ?? currentStory.content
+
+    if (!componentId) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Story has no component; content cannot be validated"
+      })
+    }
+
+    const result = await validateStoryContent(
+      content as Record<string, unknown>,
+      componentId,
+      organisationId,
+      siteId
+    )
+    if (!result.success) {
+      throwValidationError(result.issues)
     }
   }
 

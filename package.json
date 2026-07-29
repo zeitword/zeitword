@@ -14,7 +14,8 @@
     "s3:update-cors": "bun run scripts/update-s3-cors.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt"
+    "fmt": "oxfmt",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
@@ -69,7 +70,8 @@
     "drizzle-kit": "^1.0.0-rc.4",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "vitest": "^4.1.10"
   },
   "trustedDependencies": [
     "@parcel/watcher",

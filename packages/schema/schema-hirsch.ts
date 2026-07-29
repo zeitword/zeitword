@@ -7,6 +7,8 @@ type DField = {
   type: DFieldType
   required?: boolean
   description?: string
+  minValue?: number
+  maxValue?: number
   options?: { key: string; value: string }[]
   componentWhitelist?: string[]
 }
