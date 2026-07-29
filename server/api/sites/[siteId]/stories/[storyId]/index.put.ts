@@ -68,11 +68,17 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const componentChanged =
+      data.componentId !== undefined && data.componentId !== currentStory.componentId
+    const languagesToValidate =
+      data.content !== undefined && !componentChanged ? Object.keys(data.content) : undefined
+
     const result = await validateStoryContent(
       content as Record<string, unknown>,
       componentId,
       organisationId,
-      siteId
+      siteId,
+      languagesToValidate
     )
     if (!result.success) {
       throwValidationError(result.issues)

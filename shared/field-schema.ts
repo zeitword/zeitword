@@ -404,13 +404,16 @@ export function validateStoryContent(
   content: Record<string, unknown>,
   componentId: string,
   resolveComponent: ComponentResolver,
-  defaultLanguage?: string
+  defaultLanguage?: string,
+  languagesToValidate?: string[]
 ): StoryContentIssue[] {
   const rootSchema = buildValidationSchemaForComponent(componentId, resolveComponent)
   const issues: StoryContentIssue[] = []
   const defaultContent = defaultLanguage ? content[defaultLanguage] : undefined
+  const languageFilter = languagesToValidate ? new Set(languagesToValidate) : undefined
 
   for (const [language, languageContent] of Object.entries(content || {})) {
+    if (languageFilter && !languageFilter.has(language)) continue
     if (!languageContent || typeof languageContent !== "object") continue
     const value =
       defaultLanguage && language !== defaultLanguage

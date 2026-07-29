@@ -176,7 +176,8 @@ export async function validateStoryContent(
   content: Record<string, unknown>,
   componentId: string,
   organisationId: string,
-  siteId: string
+  siteId: string,
+  languagesToValidate?: string[]
 ): Promise<{ success: boolean; issues: { path: (string | number)[]; message: string }[] }> {
   const [resolveComponent, [site]] = await Promise.all([
     getSiteComponentResolver(organisationId, siteId),
@@ -190,7 +191,8 @@ export async function validateStoryContent(
     content,
     componentId,
     resolveComponent,
-    site?.defaultLanguage
+    site?.defaultLanguage,
+    languagesToValidate
   )
   return { success: issues.length === 0, issues }
 }

@@ -26,16 +26,15 @@ const selectedLanguage = ref(site.value?.defaultLanguage || "en")
 
 const showJson = ref(false)
 
-const {
-  data: story,
-  error,
-  refresh
-} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
-  query: computed(() => ({
-    lang: selectedLanguage.value
-  })),
-  watch: false
-})
+const { data: story, error } = await useFetch(
+  `/api/sites/${siteId.value}/stories/${storyId.value}`,
+  {
+    query: computed(() => ({
+      lang: selectedLanguage.value
+    })),
+    watch: false
+  }
+)
 
 if (error.value) {
   toast.error({ description: "Failed to load story" })
@@ -210,6 +209,15 @@ function focusNextIssue(direction: 1 | -1) {
   focusIssue(enrichedIssues.value[next]!)
 }
 
+function getChangedLanguageContent() {
+  return Object.fromEntries(
+    Object.entries(content.value).filter(
+      ([language, languageContent]) =>
+        JSON.stringify(languageContent) !== JSON.stringify(contentOriginal.value[language])
+    )
+  )
+}
+
 async function save() {
   if (!story.value || !story.value.component) return
 
@@ -226,11 +234,11 @@ async function save() {
       body: {
         slug: story.value.slug,
         title: story.value.title,
-        content: content.value,
+        content: getChangedLanguageContent(),
         componentId: story.value.component.id
       }
     })
-    await refresh()
+    contentOriginal.value = cloneContent(content.value)
     hasChanges.value = false
     toast.success({ description: "The story has been saved." })
   } catch (saveError: any) {

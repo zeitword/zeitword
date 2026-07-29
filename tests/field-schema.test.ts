@@ -344,6 +344,19 @@ describe("validateStoryContent", () => {
     expect(structureIssues[0]!.path.join(".")).toBe("de.blocks")
   })
 
+  it("validates only the languages edited in a partial save", () => {
+    const content = {
+      en: { blocks: [{ componentId: "c-text", content: { title: "Valid" } }] },
+      de: { blocks: [] }
+    }
+
+    expect(validateStoryContent(content, "c-page", resolver, "en", ["en"])).toEqual([])
+
+    const issues = validateStoryContent(content, "c-page", resolver, "en", ["de"])
+    expect(issues).toHaveLength(1)
+    expect(issues[0]!.path.join(".")).toBe("de.blocks")
+  })
+
   it("carries the required detail code through nested blocks", () => {
     const issues = validateStoryContent(
       { en: { blocks: [{ componentId: "c-text", content: { title: "" } }] } },
