@@ -216,12 +216,6 @@ async function save() {
   // re-validate before saving; the debounced watch might not have run yet
   runValidation()
   if (enrichedIssues.value.length > 0) {
-    const count = enrichedIssues.value.length
-    toast.warning({
-      description: `Cannot save: ${count} field${count === 1 ? "" : "s"} need${
-        count === 1 ? "s" : ""
-      } attention. Use the header arrows to review ${count === 1 ? "it" : "them"}.`
-    })
     focusNextIssue(1)
     return
   }
@@ -243,12 +237,6 @@ async function save() {
     const issues = saveError?.data?.data?.issues
     if (Array.isArray(issues)) {
       enrichedIssues.value = enrichIssues(issues, content.value)
-      const count = enrichedIssues.value.length
-      toast.warning({
-        description: `Cannot save: ${count} field${count === 1 ? "" : "s"} need${
-          count === 1 ? "s" : ""
-        } attention`
-      })
       focusNextIssue(1)
     } else {
       toast.error({
@@ -511,16 +499,10 @@ async function autoTranslate() {
             </p>
             <p
               v-else
-              class="line-clamp-1"
+              class="shrink-0"
             >
-              <template v-if="activeIssue">
-                <span class="font-medium">{{ activeIssue.label }}:</span>
-                {{ activeIssue.message }}
-              </template>
-              <template v-else>
-                {{ enrichedIssues.length }} field{{ enrichedIssues.length === 1 ? "" : "s" }}
-                need attention
-              </template>
+              {{ enrichedIssues.length }} field{{ enrichedIssues.length === 1 ? "" : "s" }} need
+              attention
             </p>
           </div>
           <div class="flex shrink-0 items-center gap-1">
