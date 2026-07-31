@@ -126,6 +126,10 @@ export async function getStoryContent({
     [selectedLang]: mergeWithFallback(defaultContent, selectedContent),
     ...(selectedLang !== defaultLang && { [defaultLang]: defaultContent })
   }
+  const rawContent = {
+    [selectedLang]: selectedContent,
+    ...(selectedLang !== defaultLang && { [defaultLang]: defaultContent })
+  }
 
   // 2. If it's a STORY, fetch fields and options
   if (itemData.type === storyTypeEnum.enumValues[0] && itemData.component?.id) {
@@ -178,6 +182,7 @@ export async function getStoryContent({
       title: itemData.title,
       componentId: itemData.componentId,
       content,
+      rawContent,
       selectedLanguage: selectedLang,
       defaultLanguage: defaultLang,
       type: itemData.type,
@@ -194,6 +199,7 @@ export async function getStoryContent({
       slug: itemData.slug,
       title: itemData.title,
       content,
+      rawContent,
       selectedLanguage: selectedLang,
       defaultLanguage: defaultLang,
       type: itemData.type,

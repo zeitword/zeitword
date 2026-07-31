@@ -10,6 +10,8 @@ import {
   ChevronRightIcon
 } from "lucide-vue-next"
 import { uuidv7 } from "uuidv7"
+import { withDefaultBlockStructure } from "~~/shared/block-structure"
+import { mergeWithFallback } from "~~/shared/field-schema"
 
 import type { EnrichedIssue } from "~/composables/useContentValidation"
 
@@ -40,11 +42,14 @@ if (error.value) {
   toast.error({ description: "Failed to load story" })
 }
 
-const content = ref(JSON.parse(JSON.stringify(story.value?.content || {})))
+const initialContent = story.value?.rawContent || story.value?.content || {}
+const content = ref(JSON.parse(JSON.stringify(initialContent)))
 const contentOriginal = ref(JSON.parse(JSON.stringify(content.value)))
 
+const { data: availableComponents } = await useFetch(`/api/sites/${siteId.value}/components`)
+
 watch(story, (updated) => {
-  content.value = JSON.parse(JSON.stringify(updated?.content || {}))
+  content.value = JSON.parse(JSON.stringify(updated?.rawContent || updated?.content || {}))
   contentOriginal.value = JSON.parse(JSON.stringify(content.value))
 })
 
@@ -70,10 +75,23 @@ async function ensureLanguageLoaded(language: string) {
   const loadedStory = await $fetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
     query: { lang: language }
   })
-  const languageContent = cloneContent(loadedStory.content?.[language] || {})
+  const rawLanguageContent = cloneContent(
+    loadedStory.rawContent?.[language] || loadedStory.content?.[language] || {}
+  )
+  const defaultLanguage = story.value?.defaultLanguage || site.value?.defaultLanguage || "en"
+  const defaultContent = content.value[defaultLanguage] || {}
+  const languageContent =
+    language === defaultLanguage
+      ? rawLanguageContent
+      : withDefaultBlockStructure(
+          rawLanguageContent,
+          defaultContent,
+          story.value?.component?.fields || [],
+          availableComponents.value || []
+        )
 
-  // Loading a language is not an edit. Update the baseline first so the
-  // content watcher keeps the existing dirty state unchanged.
+  // Loading a language or projecting fallback block structure is not an
+  // edit. Update the baseline first so the dirty state stays unchanged.
   contentOriginal.value[language] = cloneContent(languageContent)
   content.value[language] = languageContent
 }
@@ -104,9 +122,12 @@ const renderPreview = computed(() => {
 })
 
 const previewContent = computed(() => {
-  const langContent = content.value[selectedLanguage.value]
-  // Only return content if it exists and has data, otherwise return empty object
-  return langContent && Object.keys(langContent).length > 0 ? langContent : {}
+  const language = selectedLanguage.value
+  const languageContent = content.value[language] || {}
+  const defaultLanguage = story.value?.defaultLanguage
+
+  if (!defaultLanguage || language === defaultLanguage) return languageContent
+  return mergeWithFallback(content.value[defaultLanguage] || {}, languageContent)
 })
 
 const shouldShowPreview = computed(() => {
@@ -273,8 +294,6 @@ function updateNestedFieldRefined(path: string[], value: any) {
   hasChanges.value = true
 }
 
-const { data: availableComponents } = await useFetch(`/api/sites/${siteId.value}/components`)
-
 function addBlock({ componentId }: { componentId: string }) {
   const component = availableComponents.value?.find((c) => c.id === componentId)
   if (!component) {
@@ -389,7 +408,7 @@ function deleteBlock() {
   const idToDelete = selectedBlockId.value
   if (!idToDelete) return
   if (!story.value) return
-  const deleted = findAndDeleteById(content.value, idToDelete)
+  const deleted = findAndDeleteById(content.value[selectedLanguage.value], idToDelete)
   if (!deleted) {
     console.warn(`Block with id ${idToDelete} not found.`)
   }

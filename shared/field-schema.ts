@@ -346,18 +346,56 @@ export type StoryContentIssue = {
 }
 
 /**
- * Applies the CMS language fallback rules. Explicit arrays are preserved so
- * each language keeps its own block structure, while missing or empty scalar
- * content falls back to the default language.
+ * Applies the CMS language fallback rules. Ordinary arrays stay explicit.
+ * Empty block arrays inherit the default structure, while non-empty translated
+ * block arrays remain authoritative and matching blocks merge content by id.
  */
+function isBlockValue(value: unknown): value is Record<string, unknown> & {
+  id?: string
+  componentId: string
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as Record<string, unknown>).componentId === "string"
+  )
+}
+
+function mergeArrayWithFallback(defaultValue: unknown[], translatedValue: unknown[]): unknown[] {
+  const isDefaultBlockList = defaultValue.length > 0 && defaultValue.every(isBlockValue)
+  if (!isDefaultBlockList) return translatedValue
+
+  // An empty translated block field means that no translated structure has
+  // been created yet. Other array field types remain explicit empty arrays.
+  if (translatedValue.length === 0) return defaultValue
+  if (!translatedValue.every(isBlockValue)) return translatedValue
+
+  return translatedValue.map((translatedBlock) => {
+    if (!translatedBlock.id) return translatedBlock
+    const defaultBlock = defaultValue.find(
+      (candidate) =>
+        isBlockValue(candidate) &&
+        candidate.id === translatedBlock.id &&
+        candidate.componentId === translatedBlock.componentId
+    )
+    return defaultBlock ? mergeWithFallback(defaultBlock, translatedBlock) : translatedBlock
+  })
+}
+
 export function mergeWithFallback(defaultValue: unknown, translatedValue: unknown): unknown {
-  if (!defaultValue) return translatedValue
-  if (!translatedValue) return defaultValue
+  if (defaultValue === undefined || defaultValue === null) return translatedValue
+  if (translatedValue === undefined || translatedValue === null || translatedValue === "") {
+    return defaultValue
+  }
+  if (Array.isArray(defaultValue) && Array.isArray(translatedValue)) {
+    return mergeArrayWithFallback(defaultValue, translatedValue)
+  }
   if (
     typeof defaultValue !== "object" ||
-    defaultValue === null ||
     typeof translatedValue !== "object" ||
-    translatedValue === null
+    Array.isArray(defaultValue) ||
+    Array.isArray(translatedValue)
   ) {
     return translatedValue
   }
@@ -368,13 +406,13 @@ export function mergeWithFallback(defaultValue: unknown, translatedValue: unknow
 
   for (const [key, value] of Object.entries(translated)) {
     if (typeof value === "object" && value !== null) {
-      const isArrayLike =
-        Array.isArray(value) || Object.keys(value).every((part) => !isNaN(Number(part)))
-      result[key] = isArrayLike
-        ? Array.isArray(value)
-          ? value
-          : Object.values(value)
-        : mergeWithFallback(fallback[key] || {}, value)
+      const valueKeys = Object.keys(value)
+      const isNumericObject =
+        !Array.isArray(value) &&
+        valueKeys.length > 0 &&
+        valueKeys.every((part) => !isNaN(Number(part)))
+      const normalizedValue = isNumericObject ? Object.values(value) : value
+      result[key] = mergeWithFallback(fallback[key], normalizedValue)
     } else if (value !== null && value !== "") {
       result[key] = value
     }

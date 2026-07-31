@@ -318,43 +318,108 @@ describe("validateStoryContent", () => {
     expect(issues[1]!.path.join(".")).toBe("de.blocks.0.content.title")
   })
 
-  it("uses default-language content fallbacks but preserves translated block structure", () => {
-    const defaultBlock = { componentId: "c-text", content: { title: "Default" } }
+  it("uses the default block structure for an untranslated language", () => {
+    const defaultBlock = {
+      id: "block-1",
+      componentId: "c-text",
+      content: { title: "Default" }
+    }
 
-    const fallbackIssues = validateStoryContent(
+    for (const translatedContent of [{}, { blocks: [] }]) {
+      const issues = validateStoryContent(
+        {
+          en: { blocks: [defaultBlock] },
+          de: translatedContent
+        },
+        "c-page",
+        resolver,
+        "en"
+      )
+      expect(issues).toEqual([])
+    }
+  })
+
+  it("merges sparse translated block content by stable block id", () => {
+    const issues = validateStoryContent(
       {
-        en: { blocks: [defaultBlock] },
-        de: {}
+        en: {
+          blocks: [
+            {
+              id: "block-1",
+              componentId: "c-text",
+              content: { title: "Default", tagline: "Default tagline" }
+            }
+          ]
+        },
+        de: {
+          blocks: [
+            {
+              id: "block-1",
+              componentId: "c-text",
+              content: { title: "Deutsch" }
+            }
+          ]
+        }
       },
       "c-page",
       resolver,
       "en"
     )
-    expect(fallbackIssues).toEqual([])
 
-    const structureIssues = validateStoryContent(
+    expect(issues).toEqual([])
+  })
+
+  it("validates a sparse translated block shell before any field is edited", () => {
+    const issues = validateStoryContent(
       {
-        en: { blocks: [defaultBlock] },
-        de: { blocks: [] }
+        en: {
+          blocks: [{ id: "block-1", componentId: "c-text", content: { title: "Default" } }]
+        },
+        de: {
+          blocks: [{ id: "block-1", componentId: "c-text", content: {} }]
+        }
       },
       "c-page",
       resolver,
       "en"
     )
-    expect(structureIssues[0]!.path.join(".")).toBe("de.blocks")
+
+    expect(issues).toEqual([])
+  })
+
+  it("does not inherit content for an unrelated translated block", () => {
+    const issues = validateStoryContent(
+      {
+        en: {
+          blocks: [{ id: "block-1", componentId: "c-text", content: { title: "Default" } }]
+        },
+        de: {
+          blocks: [{ id: "block-2", componentId: "c-text", content: {} }]
+        }
+      },
+      "c-page",
+      resolver,
+      "en"
+    )
+
+    expect(issues[0]!.path.join(".")).toBe("de.blocks.0.content.title")
   })
 
   it("validates only the languages edited in a partial save", () => {
     const content = {
-      en: { blocks: [{ componentId: "c-text", content: { title: "Valid" } }] },
-      de: { blocks: [] }
+      en: {
+        blocks: [{ id: "block-1", componentId: "c-text", content: { title: "Valid" } }]
+      },
+      de: {
+        blocks: [{ id: "block-2", componentId: "c-text", content: { title: "" } }]
+      }
     }
 
     expect(validateStoryContent(content, "c-page", resolver, "en", ["en"])).toEqual([])
 
     const issues = validateStoryContent(content, "c-page", resolver, "en", ["de"])
     expect(issues).toHaveLength(1)
-    expect(issues[0]!.path.join(".")).toBe("de.blocks")
+    expect(issues[0]!.path.join(".")).toBe("de.blocks.0.content.title")
   })
 
   it("carries the required detail code through nested blocks", () => {

@@ -63,7 +63,7 @@ const editor = useEditor({
 
 onMounted(() => {
   if (editor.value && initialContent.value) {
-    editor.value.commands.setContent(initialContent.value, true)
+    editor.value.commands.setContent(initialContent.value, false)
     const { level } = editor.value.getAttributes("heading")
     selectedHeading.value = level ? `h${level}` : null
   }
@@ -77,7 +77,7 @@ watch(
     if (isSame) return
 
     nextTick(() => {
-      editor.value.commands.setContent(newValue, true)
+      editor.value.commands.setContent(newValue, false)
     })
   },
   { immediate: false }

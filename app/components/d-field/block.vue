@@ -52,8 +52,13 @@ const ownBlockIds = computed(() => [...blockIds, blockContent.id])
 
 function updateNestedBlockField(fieldKey: string, value: any) {
   if (!blockContent) return
-  blockContent.content[fieldKey] = value
-  emit("update:value", blockContent)
+  emit("update:value", {
+    ...blockContent,
+    content: {
+      ...blockContent.content,
+      [fieldKey]: value
+    }
+  })
 }
 
 function deleteBlock() {
