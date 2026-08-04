@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm"
+import { eq, and, isNull } from "drizzle-orm"
 import { stories, components, sites } from "~~/server/database/schema"
 import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(stories)
     .innerJoin(components, eq(stories.componentId, components.id))
-    .where(and(eq(components.siteId, siteId), eq(stories.slug, "index")))
+    .where(and(eq(components.siteId, siteId), eq(stories.slug, "index"), isNull(stories.deletedAt)))
 
   if (!storyData) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm"
 import { siteLanguages, stories, sites } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
         content: stories.content
       })
       .from(stories)
-      .where(eq(stories.siteId, siteId))
+      .where(and(eq(stories.siteId, siteId), isNull(stories.deletedAt)))
 
     // 4. Remove the language from each story's content
     for (const story of siteStories) {

@@ -1,4 +1,4 @@
-import { eq, and, like, asc, count, desc, notLike } from "drizzle-orm"
+import { eq, and, like, asc, count, desc, notLike, isNull } from "drizzle-orm"
 import { sql } from "drizzle-orm"
 import { z } from "zod"
 import { stories } from "~~/server/database/schema"
@@ -33,7 +33,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, siteId),
-        eq(stories.organisationId, organisationId)
+        eq(stories.organisationId, organisationId),
+        isNull(stories.deletedAt)
       )
     )
 
@@ -49,7 +50,8 @@ export default defineEventHandler(async (event) => {
     eq(stories.siteId, siteId),
     eq(stories.organisationId, organisationId),
     like(stories.slug, childSlugPattern),
-    notLike(stories.slug, grandChildSlugPattern)
+    notLike(stories.slug, grandChildSlugPattern),
+    isNull(stories.deletedAt)
   )
 
   // Get total count for pagination

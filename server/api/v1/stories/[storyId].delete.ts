@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm"
+import { eq, and, isNull } from "drizzle-orm"
 import z from "zod"
 import { stories } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, auth.siteId),
-        eq(stories.organisationId, auth.organisationId)
+        eq(stories.organisationId, auth.organisationId),
+        isNull(stories.deletedAt)
       )
     )
 

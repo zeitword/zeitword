@@ -1,4 +1,4 @@
-import { eq, and, inArray } from "drizzle-orm"
+import { eq, and, inArray, isNull } from "drizzle-orm"
 import {
   stories,
   components,
@@ -45,7 +45,8 @@ export default defineEventHandler(async (event) => {
         and(
           inArray(stories.slug, parentSlugs),
           eq(stories.organisationId, organisationId),
-          eq(stories.siteId, siteId)
+          eq(stories.siteId, siteId),
+          isNull(stories.deletedAt)
         )
       )
       .limit(parentSlugs.length)
@@ -109,7 +110,8 @@ export async function getStoryContent({
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, siteId),
-        eq(stories.organisationId, organisationId)
+        eq(stories.organisationId, organisationId),
+        isNull(stories.deletedAt)
       )
     )
     .limit(1)

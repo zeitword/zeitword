@@ -1,3 +1,4 @@
+import { isNull } from "drizzle-orm"
 import {
   integer,
   snakeCase,
@@ -165,7 +166,7 @@ export const stories = snakeCase.table(
     ...organisationId,
     ...timestamps
   },
-  (t) => [uniqueIndex("slug_idx").on(t.slug, t.siteId)]
+  (t) => [uniqueIndex("slug_idx").on(t.slug, t.siteId).where(isNull(t.deletedAt))]
 )
 
 export const sites = snakeCase.table("sites", {

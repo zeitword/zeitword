@@ -34,7 +34,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, siteId),
-        eq(stories.organisationId, organisationId)
+        eq(stories.organisationId, organisationId),
+        isNull(stories.deletedAt)
       )
     )
     .limit(1)
@@ -61,7 +62,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, siteId),
-        eq(stories.organisationId, organisationId)
+        eq(stories.organisationId, organisationId),
+        isNull(stories.deletedAt)
       )
     )
     .returning()

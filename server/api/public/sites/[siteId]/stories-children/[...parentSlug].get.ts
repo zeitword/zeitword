@@ -1,4 +1,4 @@
-import { like, notLike, eq, and, or } from "drizzle-orm"
+import { like, notLike, eq, and, or, isNull } from "drizzle-orm"
 import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
 import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
@@ -38,7 +38,8 @@ export default defineEventHandler(async (event) => {
     .where(
       and(
         eq(stories.siteId, siteId),
-        or(...parentSlugVariations.map((slug) => eq(stories.slug, slug)))
+        or(...parentSlugVariations.map((slug) => eq(stories.slug, slug))),
+        isNull(stories.deletedAt)
       )
     )
     .limit(1)
@@ -55,7 +56,8 @@ export default defineEventHandler(async (event) => {
       .where(
         and(
           eq(components.siteId, siteId),
-          or(...parentSlugVariations.map((slug) => eq(stories.slug, slug)))
+          or(...parentSlugVariations.map((slug) => eq(stories.slug, slug))),
+          isNull(stories.deletedAt)
         )
       )
       .limit(1)
@@ -92,7 +94,7 @@ export default defineEventHandler(async (event) => {
           slug: stories.slug
         })
         .from(stories)
-        .where(eq(stories.id, translatedSlugEntry.storyId))
+        .where(and(eq(stories.id, translatedSlugEntry.storyId), isNull(stories.deletedAt)))
         .limit(1)
 
       if (storyExistsResults.length > 0) {
@@ -106,7 +108,13 @@ export default defineEventHandler(async (event) => {
           })
           .from(stories)
           .innerJoin(components, eq(stories.componentId, components.id))
-          .where(and(eq(components.siteId, siteId), eq(stories.id, translatedSlugEntry.storyId)))
+          .where(
+            and(
+              eq(components.siteId, siteId),
+              eq(stories.id, translatedSlugEntry.storyId),
+              isNull(stories.deletedAt)
+            )
+          )
           .limit(1)
 
         if (parentStoryByIdResults.length > 0) {
@@ -148,7 +156,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(components.siteId, siteId),
         like(stories.slug, childrenLikePattern),
-        notLike(stories.slug, grandchildrenNotLikePattern)
+        notLike(stories.slug, grandchildrenNotLikePattern),
+        isNull(stories.deletedAt)
       )
     )
 

@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm"
+import { eq, and, isNull } from "drizzle-orm"
 import { stories, storyTranslatedSlugs } from "~~/server/database/schema"
 
 export async function transformLinks(obj: any, language: string, siteId: string): Promise<any> {
@@ -38,7 +38,7 @@ export async function transformLinks(obj: any, language: string, siteId: string)
           const storyResults = await db
             .select({ slug: stories.slug })
             .from(stories)
-            .where(eq(stories.id, obj.storyId))
+            .where(and(eq(stories.id, obj.storyId), isNull(stories.deletedAt)))
             .limit(1)
 
           if (storyResults.length > 0) {

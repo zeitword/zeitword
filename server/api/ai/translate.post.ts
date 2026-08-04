@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateText, NoObjectGeneratedError, Output } from "ai"
-import { and, eq } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm"
 import { merge, set } from "lodash-es"
 import { z } from "zod"
 import { componentFields, stories } from "~~/server/database/schema"
@@ -28,7 +28,13 @@ export default defineEventHandler(async (event) => {
   const [story] = await useDrizzle()
     .select()
     .from(stories)
-    .where(and(eq(stories.id, storyId), eq(stories.organisationId, secure.organisationId)))
+    .where(
+      and(
+        eq(stories.id, storyId),
+        eq(stories.organisationId, secure.organisationId),
+        isNull(stories.deletedAt)
+      )
+    )
     .limit(1)
   if (!story) throw createError({ statusCode: 404, statusMessage: "Story not found" })
 

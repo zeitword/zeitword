@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm"
 import { stories } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
@@ -24,7 +24,8 @@ export default defineEventHandler(async (event) => {
           and(
             eq(stories.id, storyId),
             eq(stories.siteId, siteId),
-            eq(stories.organisationId, organisationId)
+            eq(stories.organisationId, organisationId),
+            isNull(stories.deletedAt)
           )
         )
 
@@ -35,14 +36,16 @@ export default defineEventHandler(async (event) => {
         })
       }
 
-      // 2. Delete *ONLY* the story.
+      // 2. Soft delete *ONLY* the story.
       const [deletedStory] = await tx
-        .delete(stories)
+        .update(stories)
+        .set({ deletedAt: new Date() })
         .where(
           and(
             eq(stories.id, storyId),
             eq(stories.siteId, siteId),
-            eq(stories.organisationId, organisationId)
+            eq(stories.organisationId, organisationId),
+            isNull(stories.deletedAt)
           )
         )
         .returning()
