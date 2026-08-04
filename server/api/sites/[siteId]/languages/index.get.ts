@@ -1,5 +1,5 @@
 import { eq, and } from "drizzle-orm"
-import { siteLanguages, languages } from "~~/server/database/schema"
+import { siteLanguages, languages, sites } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireUserSession(event)
@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     })
     .from(siteLanguages)
     .innerJoin(languages, eq(siteLanguages.languageCode, languages.code))
-    .where(eq(siteLanguages.siteId, siteId))
+    .innerJoin(sites, eq(siteLanguages.siteId, sites.id))
+    .where(and(eq(siteLanguages.siteId, siteId), eq(sites.organisationId, organisationId)))
     .orderBy(languages.name)
 
   return siteLangs
