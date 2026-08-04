@@ -1,4 +1,4 @@
-import { eq, and, notLike, asc, or, ilike, type SQL, count } from "drizzle-orm"
+import { eq, and, notLike, asc, or, ilike, isNull, type SQL, count } from "drizzle-orm"
 import { z } from "zod"
 import { stories, components } from "~~/server/database/schema"
 import { withPagination, withPaginationDecorator } from "~~/server/utils/pagination"
@@ -20,7 +20,8 @@ export default defineEventHandler(async (event) => {
   try {
     const conditions: (SQL | undefined)[] = [
       eq(stories.siteId, siteId),
-      eq(stories.organisationId, organisationId)
+      eq(stories.organisationId, organisationId),
+      isNull(stories.deletedAt)
     ]
 
     if (search) {

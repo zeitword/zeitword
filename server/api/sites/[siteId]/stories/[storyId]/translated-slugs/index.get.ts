@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm"
+import { eq, and, isNull } from "drizzle-orm"
 import { storyTranslatedSlugs, stories } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
@@ -20,7 +20,8 @@ export default defineEventHandler(async (event) => {
       and(
         eq(stories.id, storyId),
         eq(stories.siteId, siteId),
-        eq(stories.organisationId, secure.organisationId)
+        eq(stories.organisationId, secure.organisationId),
+        isNull(stories.deletedAt)
       )
     )
     .limit(1)

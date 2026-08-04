@@ -1,4 +1,4 @@
-import { eq, and, inArray, gte, desc, like, type SQL, count } from "drizzle-orm"
+import { eq, and, inArray, gte, desc, like, isNull, type SQL, count } from "drizzle-orm"
 import { z } from "zod"
 import { stories, components, storyTranslatedSlugs } from "~~/server/database/schema"
 import { requireApiKey } from "~~/server/utils/api-key-auth"
@@ -47,7 +47,8 @@ export default defineEventHandler(async (event) => {
   try {
     const conditions: (SQL | undefined)[] = [
       eq(stories.siteId, auth.siteId),
-      eq(stories.organisationId, auth.organisationId)
+      eq(stories.organisationId, auth.organisationId),
+      isNull(stories.deletedAt)
     ]
 
     if (query.ids?.length) {

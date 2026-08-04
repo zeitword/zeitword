@@ -1,4 +1,4 @@
-import { eq, and, or } from "drizzle-orm"
+import { eq, and, or, isNull } from "drizzle-orm"
 import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
 import { mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
@@ -36,7 +36,11 @@ export default defineEventHandler(async (event) => {
     })
     .from(stories)
     .where(
-      and(eq(stories.siteId, siteId), or(...slugVariations.map((slug) => eq(stories.slug, slug))))
+      and(
+        eq(stories.siteId, siteId),
+        or(...slugVariations.map((slug) => eq(stories.slug, slug))),
+        isNull(stories.deletedAt)
+      )
     )
 
   // If not found and using non-default language, try to find by translated slug
@@ -68,7 +72,13 @@ export default defineEventHandler(async (event) => {
           componentId: stories.componentId
         })
         .from(stories)
-        .where(and(eq(stories.siteId, siteId), eq(stories.id, translatedSlugResult[0].storyId)))
+        .where(
+          and(
+            eq(stories.siteId, siteId),
+            eq(stories.id, translatedSlugResult[0].storyId),
+            isNull(stories.deletedAt)
+          )
+        )
         .limit(1)
     } else if (requestedSlug.includes("/")) {
       // Step 2: Handle nested paths - check if any part is translated
@@ -99,7 +109,7 @@ export default defineEventHandler(async (event) => {
         const [originalStory] = await useDrizzle()
           .select({ slug: stories.slug })
           .from(stories)
-          .where(eq(stories.id, firstPartTranslation[0].storyId))
+          .where(and(eq(stories.id, firstPartTranslation[0].storyId), isNull(stories.deletedAt)))
           .limit(1)
 
         if (originalStory) {
@@ -126,7 +136,13 @@ export default defineEventHandler(async (event) => {
               componentId: stories.componentId
             })
             .from(stories)
-            .where(and(eq(stories.siteId, siteId), eq(stories.slug, reconstructedSlug)))
+            .where(
+              and(
+                eq(stories.siteId, siteId),
+                eq(stories.slug, reconstructedSlug),
+                isNull(stories.deletedAt)
+              )
+            )
             .limit(1)
         }
       }

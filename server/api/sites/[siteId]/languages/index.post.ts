@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm"
 import {
   siteLanguages,
   stories,
@@ -118,7 +118,7 @@ export default defineEventHandler(async (event) => {
         componentId: stories.componentId
       })
       .from(stories)
-      .where(eq(stories.siteId, siteId))
+      .where(and(eq(stories.siteId, siteId), isNull(stories.deletedAt)))
 
     // 4. Process each story
     for (const story of siteStories) {
