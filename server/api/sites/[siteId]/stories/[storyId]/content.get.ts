@@ -2,7 +2,9 @@ import { eq, and, isNull } from "drizzle-orm"
 import { stories } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  const { secure } = await requireUserSession(event)
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = secure
 
   const siteId = getRouterParam(event, "siteId")
   const storyId = getRouterParam(event, "storyId")

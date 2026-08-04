@@ -1,7 +1,9 @@
 import { sites } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  const { secure } = await requireUserSession(event)
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = secure
 
   const result = await useDrizzle()
     .select()

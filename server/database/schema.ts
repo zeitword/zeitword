@@ -192,20 +192,6 @@ export const siteApiKeys = snakeCase.table("site_api_keys", {
   ...timestamps
 })
 
-export const personalAccessTokens = snakeCase.table("personal_access_tokens", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  name: text().notNull(),
-  hash: text().notNull().unique(),
-  lastFourChars: text().notNull(),
-  userId: uuid()
-    .notNull()
-    .references(() => users.id),
-  ...organisationId,
-  expiresAt: timestamp({ withTimezone: true }),
-  lastUsedAt: timestamp({ withTimezone: true }),
-  ...timestamps
-})
-
 export const languages = snakeCase.table("languages", {
   code: text().primaryKey(),
   name: text().notNull(),
