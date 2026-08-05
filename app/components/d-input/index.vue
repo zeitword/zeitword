@@ -76,11 +76,17 @@ defineExpose({
   >
     <div
       v-if="$slots.leading || leading"
-      class="border-neutral flex items-center border-r px-4"
+      class="border-neutral flex max-w-[60%] min-w-0 shrink items-center border-r px-4 whitespace-nowrap"
       :class="leadingBackground ? 'bg-neutral-subtle' : ''"
+      :title="leading || undefined"
     >
       <template v-if="leading">
-        {{ leading }}
+        <span
+          dir="rtl"
+          class="min-w-0 truncate"
+        >
+          <bdi>{{ leading }}</bdi>
+        </span>
       </template>
       <template v-else>
         <slot name="leading"></slot>
@@ -97,7 +103,7 @@ defineExpose({
       :label="label"
       :disabled="disabled"
       v-model="model"
-      class="text-copy texte-neutral h-full w-full px-2.5 outline-none"
+      class="text-copy texte-neutral h-full w-full flex-1 px-2.5 outline-none"
       :class="[hideArrows ? 'hide-arrows' : '']"
     />
 
