@@ -75,7 +75,9 @@ async function processBlocks(tx: any, blocks: any[]): Promise<any[]> {
 }
 
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  const { secure } = await requireUserSession(event)
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = secure
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) {

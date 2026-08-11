@@ -1,5 +1,7 @@
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  const { secure } = await requireUserSession(event)
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
+  const { organisationId } = secure
 
   const id = getRouterParam(event, "siteId")
   if (!id) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })

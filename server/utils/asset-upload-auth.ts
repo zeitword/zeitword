@@ -17,10 +17,11 @@ export async function requireAssetUploadAuth(event: H3Event): Promise<{
     }
   }
 
-  const auth = await requireAuth(event)
+  const { secure } = await requireUserSession(event)
+  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
   return {
-    userId: auth.userId,
-    organisationId: auth.organisationId,
+    userId: secure.userId,
+    organisationId: secure.organisationId,
     siteId: null
   }
 }
