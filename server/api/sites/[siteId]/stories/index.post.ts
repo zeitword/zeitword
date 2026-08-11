@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { stories } from "~~/server/database/schema"
+import { throwValidationError, validateStoryContent } from "~~/server/utils/validation"
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()])
 type Literal = z.infer<typeof literalSchema>
@@ -24,6 +25,21 @@ export default defineEventHandler(async (event) => {
   if (!siteId) throw createError({ statusCode: 400, statusMessage: "Invalid ID" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
+
+  // newly created stories typically start with empty content ({}), so only
+  // enforce the component schema once there is something to check
+  const hasContent = data.content && Object.keys(data.content).length > 0
+  if (data.componentId && hasContent) {
+    const result = await validateStoryContent(
+      data.content as Record<string, unknown>,
+      data.componentId,
+      organisationId,
+      siteId
+    )
+    if (!result.success) {
+      throwValidationError(result.issues)
+    }
+  }
 
   try {
     const [story] = await useDrizzle()

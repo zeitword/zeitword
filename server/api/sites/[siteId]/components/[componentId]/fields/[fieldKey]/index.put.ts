@@ -42,8 +42,8 @@ const bodySchema = z.object({
   description: z.string().max(255).nullable().optional(),
   displayName: z.string().max(255).nullable().optional(),
   defaultValue: literalSchema.optional(),
-  minValue: z.number().min(0).nullable().optional(),
-  maxValue: z.number().min(0).nullable().optional(),
+  minValue: z.number().int().nullable().optional(),
+  maxValue: z.number().int().nullable().optional(),
   componentWhitelist: z.array(z.string()).optional(),
   options: z.array(optionSchema).optional(),
   config: jsonSchema.optional()
@@ -72,6 +72,41 @@ export default defineEventHandler(async (event) => {
   const data = await readValidatedBody(event, bodySchema.parse)
 
   const db = useDrizzle()
+
+  const [existingField] = await db
+    .select()
+    .from(componentFields)
+    .where(
+      and(
+        eq(componentFields.organisationId, organisationId),
+        eq(componentFields.componentId, componentId),
+        eq(componentFields.fieldKey, fieldKey),
+        eq(componentFields.siteId, siteId)
+      )
+    )
+    .limit(1)
+
+  if (!existingField) {
+    throw createError({ statusCode: 404, statusMessage: "Component Field Not Found" })
+  }
+
+  const resolvedFieldType = data.fieldType ?? existingField.type
+  const resolvedMin = data.minValue !== undefined ? data.minValue : existingField.minValue
+  const resolvedMax = data.maxValue !== undefined ? data.maxValue : existingField.maxValue
+
+  if (resolvedFieldType !== "number" && ((resolvedMin ?? 0) < 0 || (resolvedMax ?? 0) < 0)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Minimum and maximum counts cannot be negative"
+    })
+  }
+
+  if (resolvedMin !== null && resolvedMax !== null && resolvedMin > resolvedMax) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Minimum value cannot be greater than maximum value"
+    })
+  }
 
   const tx = await db.transaction(async (tx) => {
     const updateData: Record<string, unknown> = {}

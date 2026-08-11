@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import { LexoRank } from "lexorank"
 import { merge, set } from "lodash-es"
-import { FileJsonIcon, FileWarningIcon, LanguagesIcon, ArrowRightIcon } from "lucide-vue-next"
+import {
+  FileJsonIcon,
+  FileWarningIcon,
+  LanguagesIcon,
+  ArrowRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from "lucide-vue-next"
 import { uuidv7 } from "uuidv7"
+import { withDefaultBlockStructure } from "~~/shared/block-structure"
+import { mergeWithFallback } from "~~/shared/field-schema"
+
+import type { EnrichedIssue } from "~/composables/useContentValidation"
 
 definePageMeta({ layout: "story" })
 
@@ -17,25 +28,28 @@ const selectedLanguage = ref(site.value?.defaultLanguage || "en")
 
 const showJson = ref(false)
 
-const {
-  data: story,
-  error,
-  refresh
-} = await useFetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
-  query: computed(() => ({
-    lang: selectedLanguage.value
-  }))
-})
+const { data: story, error } = await useFetch(
+  `/api/sites/${siteId.value}/stories/${storyId.value}`,
+  {
+    query: computed(() => ({
+      lang: selectedLanguage.value
+    })),
+    watch: false
+  }
+)
 
 if (error.value) {
   toast.error({ description: "Failed to load story" })
 }
 
-const content = ref(JSON.parse(JSON.stringify(story.value?.content || {})))
+const initialContent = story.value?.rawContent || story.value?.content || {}
+const content = ref(JSON.parse(JSON.stringify(initialContent)))
 const contentOriginal = ref(JSON.parse(JSON.stringify(content.value)))
 
+const { data: availableComponents } = await useFetch(`/api/sites/${siteId.value}/components`)
+
 watch(story, (updated) => {
-  content.value = JSON.parse(JSON.stringify(updated?.content || {}))
+  content.value = JSON.parse(JSON.stringify(updated?.rawContent || updated?.content || {}))
   contentOriginal.value = JSON.parse(JSON.stringify(content.value))
 })
 
@@ -51,16 +65,45 @@ watch(
   { deep: true }
 )
 
-async function handleLanguageChange(newLang: string) {
-  if (hasChanges.value) {
-    toast.warning({ description: "Please save your changes before switching languages" })
-    return
-  }
+function cloneContent<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value))
+}
 
-  selectedLanguage.value = newLang
+async function ensureLanguageLoaded(language: string) {
+  if (content.value[language] !== undefined) return
+
+  const loadedStory = await $fetch(`/api/sites/${siteId.value}/stories/${storyId.value}`, {
+    query: { lang: language }
+  })
+  const rawLanguageContent = cloneContent(
+    loadedStory.rawContent?.[language] || loadedStory.content?.[language] || {}
+  )
+  const defaultLanguage = story.value?.defaultLanguage || site.value?.defaultLanguage || "en"
+  const defaultContent = content.value[defaultLanguage] || {}
+  const languageContent =
+    language === defaultLanguage
+      ? rawLanguageContent
+      : withDefaultBlockStructure(
+          rawLanguageContent,
+          defaultContent,
+          story.value?.component?.fields || [],
+          availableComponents.value || []
+        )
+
+  // Loading a language or projecting fallback block structure is not an
+  // edit. Update the baseline first so the dirty state stays unchanged.
+  contentOriginal.value[language] = cloneContent(languageContent)
+  content.value[language] = languageContent
+}
+
+async function handleLanguageChange(newLang: string) {
+  if (!newLang || newLang === selectedLanguage.value) return
+
   try {
-    await refresh()
+    await ensureLanguageLoaded(newLang)
+    selectedLanguage.value = newLang
   } catch (error) {
+    console.error(error)
     toast.error({ description: "Failed to switch language" })
   }
 }
@@ -79,9 +122,12 @@ const renderPreview = computed(() => {
 })
 
 const previewContent = computed(() => {
-  const langContent = content.value[selectedLanguage.value]
-  // Only return content if it exists and has data, otherwise return empty object
-  return langContent && Object.keys(langContent).length > 0 ? langContent : {}
+  const language = selectedLanguage.value
+  const languageContent = content.value[language] || {}
+  const defaultLanguage = story.value?.defaultLanguage
+
+  if (!defaultLanguage || language === defaultLanguage) return languageContent
+  return mergeWithFallback(content.value[defaultLanguage] || {}, languageContent)
 })
 
 const shouldShowPreview = computed(() => {
@@ -93,8 +139,115 @@ const shouldShowPreview = computed(() => {
   )
 })
 
+const {
+  load: loadValidationSchema,
+  validate: validateContent,
+  enrichIssues,
+  issueKey: buildIssueKey
+} = useContentValidation()
+
+watch(
+  () => story.value?.component?.id,
+  async (componentId) => {
+    if (!componentId) return
+    await loadValidationSchema(siteId.value, componentId)
+    runValidation()
+  },
+  { immediate: true }
+)
+
+// all issues across every language, enriched with block ids and labels
+const enrichedIssues = ref<EnrichedIssue[]>([])
+
+function runValidation() {
+  const issues = validateContent(content.value, story.value?.defaultLanguage)
+  enrichedIssues.value = enrichIssues(issues, content.value)
+}
+
+// live validation, after edits and initially (debounced)
+const debouncedValidation = useDebounceFn(runValidation, 400)
+
+watch([content, () => story.value?.component?.id], () => debouncedValidation(), { deep: true })
+
+// errors passed down to fields, keyed "language:blockId1:...:fieldKey"
+const errorMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const issue of enrichedIssues.value) {
+    const language = String(issue.path[0])
+    const key = buildIssueKey(issue, language)
+    if (!(key in map)) map[key] = issue.message
+  }
+  return map
+})
+
+function issueIdentity(issue: EnrichedIssue) {
+  return `${issue.path.join(".")}:${issue.message}`
+}
+
+const activeIssueIdentity = ref<string | null>(null)
+const activeIssueIndex = computed(() =>
+  activeIssueIdentity.value
+    ? enrichedIssues.value.findIndex((issue) => issueIdentity(issue) === activeIssueIdentity.value)
+    : -1
+)
+const activeIssue = computed(() => enrichedIssues.value[activeIssueIndex.value])
+const activeErrorKey = computed(() => {
+  const issue = activeIssue.value
+  return issue ? buildIssueKey(issue, String(issue.path[0])) : undefined
+})
+
+async function focusIssue(requestedIssue: EnrichedIssue) {
+  const language = String(requestedIssue.path[0])
+
+  try {
+    await ensureLanguageLoaded(language)
+    selectedLanguage.value = language
+
+    // A server issue can refer to a language that was not loaded when the
+    // response arrived. Re-validating now resolves its block indexes to ids.
+    runValidation()
+    const issue =
+      enrichedIssues.value.find(
+        (candidate) => issueIdentity(candidate) === issueIdentity(requestedIssue)
+      ) || requestedIssue
+
+    activeIssueIdentity.value = issueIdentity(issue)
+    expandPath.value = [...issue.blockIds]
+    targetBlockId.value = issue.blockId ?? null
+  } catch (error) {
+    console.error(error)
+    toast.error({ description: `Failed to open the ${language} validation issue` })
+  }
+}
+
+function focusNextIssue(direction: 1 | -1) {
+  const count = enrichedIssues.value.length
+  if (count === 0) return
+
+  const current = activeIssueIndex.value
+  const next =
+    current < 0 ? (direction === 1 ? 0 : count - 1) : (current + direction + count) % count
+  focusIssue(enrichedIssues.value[next]!)
+}
+
+function getChangedLanguageContent() {
+  return Object.fromEntries(
+    Object.entries(content.value).filter(
+      ([language, languageContent]) =>
+        JSON.stringify(languageContent) !== JSON.stringify(contentOriginal.value[language])
+    )
+  )
+}
+
 async function save() {
   if (!story.value || !story.value.component) return
+
+  // re-validate before saving; the debounced watch might not have run yet
+  runValidation()
+  if (enrichedIssues.value.length > 0) {
+    focusNextIssue(1)
+    return
+  }
 
   try {
     await $fetch(`/api/sites/${siteId.value}/stories/${story.value.id}`, {
@@ -102,15 +255,30 @@ async function save() {
       body: {
         slug: story.value.slug,
         title: story.value.title,
-        content: content.value,
+        content: getChangedLanguageContent(),
         componentId: story.value.component.id
       }
     })
-    await refresh()
+    contentOriginal.value = cloneContent(content.value)
     hasChanges.value = false
     toast.success({ description: "The story has been saved." })
-  } catch (saveError) {
-    toast.error({ description: "Failed to save story" })
+  } catch (saveError: any) {
+    const issues = saveError?.data?.data?.issues
+    if (Array.isArray(issues)) {
+      enrichedIssues.value = enrichIssues(issues, content.value)
+      focusNextIssue(1)
+    } else {
+      console.error("Failed to save story", saveError)
+      const statusMessage = saveError?.data?.statusMessage
+      const isGenericServerError =
+        !statusMessage || ["Server Error", "Internal Server Error"].includes(statusMessage)
+
+      toast.error({
+        description: isGenericServerError
+          ? "We couldn't save your changes. Please try again."
+          : statusMessage
+      })
+    }
   }
 }
 
@@ -125,8 +293,6 @@ function updateNestedFieldRefined(path: string[], value: any) {
   content.value = result
   hasChanges.value = true
 }
-
-const { data: availableComponents } = await useFetch(`/api/sites/${siteId.value}/components`)
 
 function addBlock({ componentId }: { componentId: string }) {
   const component = availableComponents.value?.find((c) => c.id === componentId)
@@ -242,7 +408,7 @@ function deleteBlock() {
   const idToDelete = selectedBlockId.value
   if (!idToDelete) return
   if (!story.value) return
-  const deleted = findAndDeleteById(content.value, idToDelete)
+  const deleted = findAndDeleteById(content.value[selectedLanguage.value], idToDelete)
   if (!deleted) {
     console.warn(`Block with id ${idToDelete} not found.`)
   }
@@ -264,6 +430,9 @@ type ComponentPayload = {
 }
 
 const targetBlockId = ref<string | null>(null)
+
+// chain of block ids leading to the currently focused validation issue
+const expandPath = ref<string[]>([])
 
 function openBlock(blockId: string) {
   const findAndOpenBlock = (blocks: any[]) => {
@@ -346,15 +515,53 @@ async function autoTranslate() {
     <template #center>
       <Transition name="slide-fade-up">
         <div
-          v-if="hasChanges"
-          class="text-warn bg-warn-subtle border-warn text-copy flex h-9 min-w-lg items-center justify-between gap-3 rounded-xl border pr-1 pl-3"
+          v-if="hasChanges || enrichedIssues.length > 0"
+          class="text-copy flex h-9 max-w-3xl min-w-xl items-center justify-between gap-3 rounded-xl border pr-1 pl-3"
+          :class="
+            enrichedIssues.length > 0
+              ? 'text-danger-strong bg-danger-subtle border-danger'
+              : 'text-warn bg-warn-subtle border-warn'
+          "
         >
-          <div class="flex items-center gap-1">
-            <FileWarningIcon class="size-4" />
-            <p>Unsaved story</p>
+          <div class="flex min-w-0 items-center gap-1.5">
+            <FileWarningIcon class="size-4 shrink-0" />
+            <p
+              v-if="enrichedIssues.length === 0"
+              class="shrink-0"
+            >
+              Unsaved story
+            </p>
+            <p
+              v-else
+              class="shrink-0"
+            >
+              {{ enrichedIssues.length }} field{{ enrichedIssues.length === 1 ? "" : "s" }} need
+              attention
+            </p>
           </div>
-          <div class="flex items-center gap-1">
+          <div class="flex shrink-0 items-center gap-1">
+            <template v-if="enrichedIssues.length > 0">
+              <DButton
+                variant="secondary"
+                size="sm"
+                :icon-left="ChevronLeftIcon"
+                aria-label="Previous issue"
+                @click="focusNextIssue(-1)"
+              />
+              <span class="text-copy-sm min-w-10 text-center tabular-nums">
+                {{ activeIssueIndex >= 0 ? activeIssueIndex + 1 : 0 }} /
+                {{ enrichedIssues.length }}
+              </span>
+              <DButton
+                variant="secondary"
+                size="sm"
+                :icon-left="ChevronRightIcon"
+                aria-label="Next issue"
+                @click="focusNextIssue(1)"
+              />
+            </template>
             <DButton
+              v-if="hasChanges"
               variant="secondary"
               size="sm"
               @click="resetChanges"
@@ -362,6 +569,7 @@ async function autoTranslate() {
               Reset
             </DButton>
             <DButton
+              v-if="hasChanges"
               variant="primary"
               size="sm"
               @click="save"
@@ -435,6 +643,9 @@ async function autoTranslate() {
             :current-language="selectedLanguage"
             :default-language="story.defaultLanguage"
             :default-language-value="content[story.defaultLanguage]?.[field.fieldKey]"
+            :errors="errorMap"
+            :expand-path="expandPath"
+            :active-error-key="activeErrorKey"
             @update:value="updateNestedField([selectedLanguage, field.fieldKey], $event)"
             @delete-block="(idToDelete) => openDeleteModal(idToDelete)"
           />

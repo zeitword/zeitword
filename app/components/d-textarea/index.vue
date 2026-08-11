@@ -4,9 +4,20 @@ type Props = {
   cols?: number
   placeholder?: string
   disabled?: boolean
+  required?: boolean
+  minlength?: number
+  maxlength?: number
 }
 
-const { rows = 5, cols = 50, placeholder = "", disabled = false } = defineProps<Props>()
+const {
+  rows = 5,
+  cols = 50,
+  placeholder = "",
+  disabled = false,
+  required = false,
+  minlength,
+  maxlength
+} = defineProps<Props>()
 
 const model = defineModel<string>()
 </script>
@@ -18,5 +29,8 @@ const model = defineModel<string>()
     :cols="cols"
     :placeholder="placeholder"
     :disabled="disabled"
+    :required="required"
+    :minlength="minlength"
+    :maxlength="maxlength"
   ></textarea>
 </template>
