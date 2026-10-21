@@ -1,38 +1,25 @@
-ARG NODE_VERSION=23-alpine
-ARG BUN_VERSION=1.2.19
+ARG NODE_VERSION=24.22.0-alpine
+ARG BUN_VERSION=1.4.3-alpine
 
-# Use the official Node.js image
-# See available tags at https://hub.docker.com/_/node
-FROM node:${NODE_VERSION} AS base
+FROM oven/bun:${BUN_VERSION} AS bun
 
+FROM node:${NODE_VERSION} AS build
 WORKDIR /usr/src/app
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
-# Install Bun in the specified version
-RUN apk update && apk add --no-cache bash curl unzip
-RUN curl https://bun.sh/install | bash -s
-
-ENV PATH="${PATH}:/root/.bun/bin"
-
-# Install dependencies in a separate layer for better caching
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
-
-# Copy dependencies and source code
-FROM base AS prerelease
-COPY --from=install /temp/dev/node_modules node_modules
+# Prepare Nuxt only after its configuration and source files are available.
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
+RUN bun run postinstall && bun run build
 
-# Build the project
-RUN bun run build
-
-# Prepare the final production image
-FROM base AS release
-COPY --from=install /temp/dev/node_modules node_modules
-COPY --from=prerelease /usr/src/app/.output .output
-COPY --from=prerelease /usr/src/app/package.json .
-
-# Run the app
+# Nuxt's output includes all required runtime dependencies.
+FROM node:${NODE_VERSION} AS release
+WORKDIR /usr/src/app
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3000
+COPY --from=build --chown=node:node /usr/src/app/.output ./.output
+USER node
 EXPOSE 3000
 CMD ["node", ".output/server/index.mjs"]

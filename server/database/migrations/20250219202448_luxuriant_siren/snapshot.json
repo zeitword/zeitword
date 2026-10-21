@@ -1,18 +1,603 @@
 {
+  "type": "base",
+  "version": "9",
+  "dialect": "postgres",
   "id": "5ea882a7-97ea-4495-a6a6-efde9ca2d29e",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
-  "version": "8",
-  "dialect": "postgres",
+  "footprints": [
+    {
+      "statementType": "create_enum",
+      "statementTarget": [
+        "enum",
+        "public",
+        "field_type"
+      ],
+      "writes": [
+        "s|enum|public.field_type",
+        "n|enum|public.field_type",
+        "e|enum|public.field_type",
+        "n|type|public.field_type"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "component_fields"
+      ],
+      "writes": [
+        "s|tbl|public.component_fields",
+        "n|tbl|public.component_fields",
+        "e|tbl|public.component_fields",
+        "n|rel|public.component_fields",
+        "n|type|public.component_fields",
+        "n|rel|public.component_fields_component_id_field_key_pk"
+      ],
+      "reads": [
+        "n|sch|public",
+        "n|enum|public.field_type"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "components"
+      ],
+      "writes": [
+        "s|tbl|public.components",
+        "n|tbl|public.components",
+        "e|tbl|public.components",
+        "n|rel|public.components",
+        "n|type|public.components",
+        "n|rel|public.components_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "field_options"
+      ],
+      "writes": [
+        "s|tbl|public.field_options",
+        "n|tbl|public.field_options",
+        "e|tbl|public.field_options",
+        "n|rel|public.field_options",
+        "n|type|public.field_options",
+        "n|rel|public.field_options_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "organisations"
+      ],
+      "writes": [
+        "s|tbl|public.organisations",
+        "n|tbl|public.organisations",
+        "e|tbl|public.organisations",
+        "n|rel|public.organisations",
+        "n|type|public.organisations",
+        "n|rel|public.organisations_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions"
+      ],
+      "writes": [
+        "s|tbl|public.sessions",
+        "n|tbl|public.sessions",
+        "e|tbl|public.sessions",
+        "n|rel|public.sessions",
+        "n|type|public.sessions",
+        "n|rel|public.sessions_token_user_id_pk",
+        "n|rel|public.sessions_token_unique"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "sites"
+      ],
+      "writes": [
+        "s|tbl|public.sites",
+        "n|tbl|public.sites",
+        "e|tbl|public.sites",
+        "n|rel|public.sites",
+        "n|type|public.sites",
+        "n|rel|public.sites_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "stories"
+      ],
+      "writes": [
+        "s|tbl|public.stories",
+        "n|tbl|public.stories",
+        "e|tbl|public.stories",
+        "n|rel|public.stories",
+        "n|type|public.stories",
+        "n|rel|public.stories_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "users"
+      ],
+      "writes": [
+        "s|tbl|public.users",
+        "n|tbl|public.users",
+        "e|tbl|public.users",
+        "n|rel|public.users",
+        "n|type|public.users",
+        "n|rel|public.users_pkey",
+        "n|rel|public.users_email_unique"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "stories",
+        "slug_idx"
+      ],
+      "writes": [
+        "s|idx|public.slug_idx",
+        "n|idx|public.slug_idx",
+        "e|idx|public.slug_idx",
+        "n|rel|public.slug_idx"
+      ],
+      "reads": [
+        "n|tbl|public.stories",
+        "n|sch|public",
+        "n|col|public.stories.slug",
+        "n|col|public.stories.site_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "component_fields"
+      ],
+      "writes": [
+        "s|fk|public.component_fields.component_fields_component_id_components_id_fk",
+        "n|fk|public.component_fields.component_fields_component_id_components_id_fk",
+        "e|fk|public.component_fields.component_fields_component_id_components_id_fk",
+        "n|con|public.component_fields.component_fields_component_id_components_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.component_fields",
+        "n|sch|public",
+        "n|tbl|public.components",
+        "n|sch|public",
+        "n|col|public.component_fields.component_id",
+        "n|col|public.components.id",
+        "e|uniqueness|public.components.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "component_fields"
+      ],
+      "writes": [
+        "s|fk|public.component_fields.component_fields_site_id_sites_id_fk",
+        "n|fk|public.component_fields.component_fields_site_id_sites_id_fk",
+        "e|fk|public.component_fields.component_fields_site_id_sites_id_fk",
+        "n|con|public.component_fields.component_fields_site_id_sites_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.component_fields",
+        "n|sch|public",
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|col|public.component_fields.site_id",
+        "n|col|public.sites.id",
+        "e|uniqueness|public.sites.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "component_fields"
+      ],
+      "writes": [
+        "s|fk|public.component_fields.component_fields_organisation_id_organisations_id_fk",
+        "n|fk|public.component_fields.component_fields_organisation_id_organisations_id_fk",
+        "e|fk|public.component_fields.component_fields_organisation_id_organisations_id_fk",
+        "n|con|public.component_fields.component_fields_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.component_fields",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.component_fields.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "components"
+      ],
+      "writes": [
+        "s|fk|public.components.components_site_id_sites_id_fk",
+        "n|fk|public.components.components_site_id_sites_id_fk",
+        "e|fk|public.components.components_site_id_sites_id_fk",
+        "n|con|public.components.components_site_id_sites_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.components",
+        "n|sch|public",
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|col|public.components.site_id",
+        "n|col|public.sites.id",
+        "e|uniqueness|public.sites.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "components"
+      ],
+      "writes": [
+        "s|fk|public.components.components_organisation_id_organisations_id_fk",
+        "n|fk|public.components.components_organisation_id_organisations_id_fk",
+        "e|fk|public.components.components_organisation_id_organisations_id_fk",
+        "n|con|public.components.components_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.components",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.components.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "field_options"
+      ],
+      "writes": [
+        "s|fk|public.field_options.field_options_component_id_components_id_fk",
+        "n|fk|public.field_options.field_options_component_id_components_id_fk",
+        "e|fk|public.field_options.field_options_component_id_components_id_fk",
+        "n|con|public.field_options.field_options_component_id_components_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.field_options",
+        "n|sch|public",
+        "n|tbl|public.components",
+        "n|sch|public",
+        "n|col|public.field_options.component_id",
+        "n|col|public.components.id",
+        "e|uniqueness|public.components.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "field_options"
+      ],
+      "writes": [
+        "s|fk|public.field_options.field_options_site_id_sites_id_fk",
+        "n|fk|public.field_options.field_options_site_id_sites_id_fk",
+        "e|fk|public.field_options.field_options_site_id_sites_id_fk",
+        "n|con|public.field_options.field_options_site_id_sites_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.field_options",
+        "n|sch|public",
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|col|public.field_options.site_id",
+        "n|col|public.sites.id",
+        "e|uniqueness|public.sites.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "field_options"
+      ],
+      "writes": [
+        "s|fk|public.field_options.field_options_organisation_id_organisations_id_fk",
+        "n|fk|public.field_options.field_options_organisation_id_organisations_id_fk",
+        "e|fk|public.field_options.field_options_organisation_id_organisations_id_fk",
+        "n|con|public.field_options.field_options_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.field_options",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.field_options.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions"
+      ],
+      "writes": [
+        "s|fk|public.sessions.sessions_user_id_users_id_fk",
+        "n|fk|public.sessions.sessions_user_id_users_id_fk",
+        "e|fk|public.sessions.sessions_user_id_users_id_fk",
+        "n|con|public.sessions.sessions_user_id_users_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.sessions",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.sessions.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "sites"
+      ],
+      "writes": [
+        "s|fk|public.sites.sites_organisation_id_organisations_id_fk",
+        "n|fk|public.sites.sites_organisation_id_organisations_id_fk",
+        "e|fk|public.sites.sites_organisation_id_organisations_id_fk",
+        "n|con|public.sites.sites_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.sites.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "stories"
+      ],
+      "writes": [
+        "s|fk|public.stories.stories_component_id_components_id_fk",
+        "n|fk|public.stories.stories_component_id_components_id_fk",
+        "e|fk|public.stories.stories_component_id_components_id_fk",
+        "n|con|public.stories.stories_component_id_components_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.stories",
+        "n|sch|public",
+        "n|tbl|public.components",
+        "n|sch|public",
+        "n|col|public.stories.component_id",
+        "n|col|public.components.id",
+        "e|uniqueness|public.components.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "stories"
+      ],
+      "writes": [
+        "s|fk|public.stories.stories_site_id_sites_id_fk",
+        "n|fk|public.stories.stories_site_id_sites_id_fk",
+        "e|fk|public.stories.stories_site_id_sites_id_fk",
+        "n|con|public.stories.stories_site_id_sites_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.stories",
+        "n|sch|public",
+        "n|tbl|public.sites",
+        "n|sch|public",
+        "n|col|public.stories.site_id",
+        "n|col|public.sites.id",
+        "e|uniqueness|public.sites.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "stories"
+      ],
+      "writes": [
+        "s|fk|public.stories.stories_organisation_id_organisations_id_fk",
+        "n|fk|public.stories.stories_organisation_id_organisations_id_fk",
+        "e|fk|public.stories.stories_organisation_id_organisations_id_fk",
+        "n|con|public.stories.stories_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.stories",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.stories.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "users"
+      ],
+      "writes": [
+        "s|fk|public.users.users_organisation_id_organisations_id_fk",
+        "n|fk|public.users.users_organisation_id_organisations_id_fk",
+        "e|fk|public.users.users_organisation_id_organisations_id_fk",
+        "n|con|public.users.users_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.users.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    }
+  ],
   "ddl": [
     {
-      "isRlsEnabled": false,
-      "name": "component_fields",
       "schema": "public",
+      "name": "component_fields",
+      "isRlsEnabled": false,
       "entityType": "tables"
     },
     {
+      "schema": "public",
+      "name": "components",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "field_options",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "organisations",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "sessions",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "sites",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "stories",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "users",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "field_type",
+      "values": [
+        "blocks",
+        "text",
+        "textarea",
+        "richtext",
+        "markdown",
+        "number",
+        "datetime",
+        "boolean",
+        "option",
+        "options",
+        "asset",
+        "assets",
+        "link",
+        "section",
+        "custom"
+      ],
+      "entityType": "enums"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "component_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -20,12 +605,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "component_id",
-      "schema": "public",
-      "table": "component_fields",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "field_key",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -33,12 +618,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "field_key",
-      "schema": "public",
-      "table": "component_fields",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "type",
       "type": "field_type",
       "typeSchema": "public",
       "notNull": true,
@@ -46,12 +631,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "type",
-      "schema": "public",
-      "table": "component_fields",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "required",
       "type": "boolean",
       "typeSchema": null,
       "notNull": true,
@@ -59,25 +644,12 @@
       "default": "false",
       "generated": null,
       "identity": null,
-      "name": "required",
-      "schema": "public",
-      "table": "component_fields",
       "entityType": "columns"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "component_fields",
       "name": "description",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -85,12 +657,12 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
       "name": "display_name",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -98,25 +670,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
       "name": "default_value",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
-      "type": "integer",
+      "type": "text",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
       "name": "min_value",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
       "type": "integer",
       "typeSchema": null,
       "notNull": false,
@@ -124,25 +696,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
       "name": "max_value",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
+      "type": "integer",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
       "name": "site_id",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -150,90 +722,12 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
       "name": "organisation_id",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "columns"
-    },
-    {
-      "columns": [
-        "component_id",
-        "field_key"
-      ],
-      "nameExplicit": false,
-      "name": "component_fields_component_id_field_key_pk",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "pks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "component_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "components",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "component_fields_component_id_components_id_fk",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "site_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "sites",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "component_fields_site_id_sites_id_fk",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organisation_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "organisations",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "component_fields_organisation_id_organisations_id_fk",
-      "schema": "public",
-      "table": "component_fields",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "components",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "components_pkey",
-      "schema": "public",
-      "table": "components",
-      "entityType": "pks"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -241,25 +735,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "id",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "name",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -267,25 +761,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "display_name",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "preview_image",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": false,
@@ -293,25 +787,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "preview_field",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
+      "type": "text",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "site_id",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -319,25 +813,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "organisation_id",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "now()",
+      "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
       "name": "created_at",
-      "schema": "public",
-      "table": "components",
-      "entityType": "columns"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -345,12 +839,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "components",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "components",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "components",
+      "name": "deleted_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -358,75 +865,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "deleted_at",
-      "schema": "public",
-      "table": "components",
       "entityType": "columns"
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "site_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "sites",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "components_site_id_sites_id_fk",
-      "schema": "public",
-      "table": "components",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organisation_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "organisations",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "components_organisation_id_organisations_id_fk",
-      "schema": "public",
-      "table": "components",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "field_options",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "field_options_pkey",
       "schema": "public",
       "table": "field_options",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
       "name": "id",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -434,25 +878,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
       "name": "component_id",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
-      "type": "text",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
       "name": "field_key",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -460,12 +904,12 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
       "name": "option_name",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -473,25 +917,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
       "name": "option_value",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
+      "type": "text",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
       "name": "site_id",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -499,79 +943,12 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
       "name": "organisation_id",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "columns"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "component_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "components",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "field_options_component_id_components_id_fk",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "site_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "sites",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "field_options_site_id_sites_id_fk",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "fks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organisation_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "organisations",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "field_options_organisation_id_organisations_id_fk",
-      "schema": "public",
-      "table": "field_options",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "organisations",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "organisations_pkey",
-      "schema": "public",
-      "table": "organisations",
-      "entityType": "pks"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -579,12 +956,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "organisations",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "organisations",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "organisations",
+      "name": "name",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -592,25 +982,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "organisations",
       "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "organisations",
       "name": "created_at",
-      "schema": "public",
-      "table": "organisations",
-      "entityType": "columns"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -618,12 +995,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "organisations",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "organisations",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "organisations",
+      "name": "deleted_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -631,151 +1021,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "deleted_at",
-      "schema": "public",
-      "table": "organisations",
       "entityType": "columns"
     },
     {
-      "isRlsEnabled": false,
-      "name": "sessions",
       "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "table": "sessions",
       "name": "token",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "columns"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "user_id",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "deleted_at",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "columns"
-    },
-    {
-      "columns": [
-        "token",
-        "user_id"
-      ],
-      "nameExplicit": false,
-      "name": "sessions_token_user_id_pk",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "pks"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "token"
-      ],
-      "nullsNotDistinct": false,
-      "name": "sessions_token_unique",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "uniques"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "sessions_user_id_users_id_fk",
-      "schema": "public",
-      "table": "sessions",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "sites",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "sites_pkey",
-      "schema": "public",
-      "table": "sites",
-      "entityType": "pks"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "sites",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -783,12 +1034,90 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "name",
-      "schema": "public",
-      "table": "sites",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sessions",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "deleted_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sites",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sites",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sites",
+      "name": "domain",
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -796,12 +1125,12 @@
       "default": "''",
       "generated": null,
       "identity": null,
-      "name": "domain",
-      "schema": "public",
-      "table": "sites",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sites",
+      "name": "organisation_id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -809,25 +1138,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "organisation_id",
-      "schema": "public",
-      "table": "sites",
       "entityType": "columns"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "sites",
       "name": "created_at",
-      "schema": "public",
-      "table": "sites",
-      "entityType": "columns"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -835,12 +1151,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "sites",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "sites",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sites",
+      "name": "deleted_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -848,45 +1177,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "deleted_at",
-      "schema": "public",
-      "table": "sites",
       "entityType": "columns"
     },
     {
-      "nameExplicit": false,
-      "columns": [
-        "organisation_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "organisations",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "sites_organisation_id_organisations_id_fk",
-      "schema": "public",
-      "table": "sites",
-      "entityType": "fks"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "stories",
-      "schema": "public",
-      "entityType": "tables"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "stories_pkey",
       "schema": "public",
       "table": "stories",
-      "entityType": "pks"
-    },
-    {
+      "name": "id",
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -894,25 +1190,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "id",
-      "schema": "public",
-      "table": "stories",
       "entityType": "columns"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "stories",
       "name": "slug",
-      "schema": "public",
-      "table": "stories",
-      "entityType": "columns"
-    },
-    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -920,12 +1203,25 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "title",
-      "schema": "public",
-      "table": "stories",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "stories",
+      "name": "title",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
+      "name": "content",
       "type": "jsonb",
       "typeSchema": null,
       "notNull": true,
@@ -933,25 +1229,12 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "content",
-      "schema": "public",
-      "table": "stories",
       "entityType": "columns"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
+      "schema": "public",
+      "table": "stories",
       "name": "component_id",
-      "schema": "public",
-      "table": "stories",
-      "entityType": "columns"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -959,12 +1242,12 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
       "name": "site_id",
-      "schema": "public",
-      "table": "stories",
-      "entityType": "columns"
-    },
-    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -972,25 +1255,25 @@
       "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
       "name": "organisation_id",
-      "schema": "public",
-      "table": "stories",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "now()",
+      "default": null,
       "generated": null,
       "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
       "name": "created_at",
-      "schema": "public",
-      "table": "stories",
-      "entityType": "columns"
-    },
-    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -998,12 +1281,25 @@
       "default": "now()",
       "generated": null,
       "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "stories",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "stories",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
+      "name": "deleted_at",
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": false,
@@ -1011,12 +1307,142 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "deleted_at",
-      "schema": "public",
-      "table": "stories",
       "entityType": "columns"
     },
     {
+      "schema": "public",
+      "table": "users",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "email",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "password",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "reset_password_token",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "reset_password_expires_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "organisation_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "deleted_at",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
+      "name": "slug_idx",
       "nameExplicit": true,
       "columns": [
         {
@@ -1039,12 +1465,12 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "slug_idx",
-      "schema": "public",
-      "table": "stories",
       "entityType": "indexes"
     },
     {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "component_fields_component_id_components_id_fk",
       "nameExplicit": false,
       "columns": [
         "component_id"
@@ -1056,12 +1482,12 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
-      "name": "stories_component_id_components_id_fk",
-      "schema": "public",
-      "table": "stories",
       "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "component_fields_site_id_sites_id_fk",
       "nameExplicit": false,
       "columns": [
         "site_id"
@@ -1073,12 +1499,12 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
-      "name": "stories_site_id_sites_id_fk",
-      "schema": "public",
-      "table": "stories",
       "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "component_fields_organisation_id_organisations_id_fk",
       "nameExplicit": false,
       "columns": [
         "organisation_id"
@@ -1090,207 +1516,298 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
-      "name": "stories_organisation_id_organisations_id_fk",
-      "schema": "public",
-      "table": "stories",
       "entityType": "fks"
     },
     {
-      "isRlsEnabled": false,
-      "name": "users",
       "schema": "public",
-      "entityType": "tables"
+      "table": "components",
+      "name": "components_site_id_sites_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "site_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "sites",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
     },
     {
+      "schema": "public",
+      "table": "components",
+      "name": "components_organisation_id_organisations_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "organisation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organisations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
+      "name": "field_options_component_id_components_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "component_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "components",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
+      "name": "field_options_site_id_sites_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "site_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "sites",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "field_options",
+      "name": "field_options_organisation_id_organisations_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "organisation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organisations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "sessions_user_id_users_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "sites",
+      "name": "sites_organisation_id_organisations_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "organisation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organisations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
+      "name": "stories_component_id_components_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "component_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "components",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
+      "name": "stories_site_id_sites_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "site_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "sites",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "stories",
+      "name": "stories_organisation_id_organisations_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "organisation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organisations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "users_organisation_id_organisations_id_fk",
+      "nameExplicit": false,
+      "columns": [
+        "organisation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "organisations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "component_fields",
+      "name": "component_fields_component_id_field_key_pk",
+      "columns": [
+        "component_id",
+        "field_key"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "components",
+      "name": "components_pkey",
       "columns": [
         "id"
       ],
       "nameExplicit": false,
-      "name": "users_pkey",
-      "schema": "public",
-      "table": "users",
       "entityType": "pks"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "id",
       "schema": "public",
-      "table": "users",
-      "entityType": "columns"
+      "table": "field_options",
+      "name": "field_options_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
       "schema": "public",
-      "table": "users",
-      "entityType": "columns"
+      "table": "organisations",
+      "name": "organisations_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "email",
       "schema": "public",
-      "table": "users",
-      "entityType": "columns"
+      "table": "sessions",
+      "name": "sessions_token_user_id_pk",
+      "columns": [
+        "token",
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "password",
       "schema": "public",
-      "table": "users",
-      "entityType": "columns"
+      "table": "sites",
+      "name": "sites_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
     },
     {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "reset_password_token",
       "schema": "public",
-      "table": "users",
-      "entityType": "columns"
+      "table": "stories",
+      "name": "stories_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
     },
     {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "reset_password_expires_at",
       "schema": "public",
       "table": "users",
-      "entityType": "columns"
+      "name": "users_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "organisation_id",
+      "schema": "public",
+      "table": "sessions",
+      "name": "sessions_token_unique",
+      "nameExplicit": false,
+      "columns": [
+        "token"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
       "schema": "public",
       "table": "users",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "schema": "public",
-      "table": "users",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "schema": "public",
-      "table": "users",
-      "entityType": "columns"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "deleted_at",
-      "schema": "public",
-      "table": "users",
-      "entityType": "columns"
-    },
-    {
+      "name": "users_email_unique",
       "nameExplicit": false,
       "columns": [
         "email"
       ],
       "nullsNotDistinct": false,
-      "name": "users_email_unique",
-      "schema": "public",
-      "table": "users",
       "entityType": "uniques"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "organisation_id"
-      ],
-      "schemaTo": "public",
-      "tableTo": "organisations",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "users_organisation_id_organisations_id_fk",
-      "schema": "public",
-      "table": "users",
-      "entityType": "fks"
-    },
-    {
-      "values": [
-        "blocks",
-        "text",
-        "textarea",
-        "richtext",
-        "markdown",
-        "number",
-        "datetime",
-        "boolean",
-        "option",
-        "options",
-        "asset",
-        "assets",
-        "link",
-        "section",
-        "custom"
-      ],
-      "name": "field_type",
-      "schema": "public",
-      "entityType": "enums"
     }
-  ],
-  "renames": []
+  ]
 }
