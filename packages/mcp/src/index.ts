@@ -717,7 +717,7 @@ Example content for a site with default language "de":
           .optional()
           .describe('"story" (default) for content pages, "folder" for grouping'),
         content: z
-          .record(z.any())
+          .record(z.string(), z.any())
           .optional()
           .describe("Content object keyed by language code (e.g., { en: { ... } })"),
         componentId: z.string().optional().describe("UUID of the component type this story uses")
@@ -760,7 +760,7 @@ Use this to set up a page's full block structure in one call. For targeted edits
         storyId: z.string().describe("The UUID of the story"),
         language: z.string().describe('Language code (e.g., "en", "de")'),
         content: z
-          .record(z.any())
+          .record(z.string(), z.any())
           .describe('Full content object for this language (e.g., { title: "...", blocks: [...] })')
       },
       annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }
@@ -788,7 +788,9 @@ IMPORTANT: If the story's component has multiple blocks-type fields (e.g. "links
         storyId: z.string().describe("The UUID of the story"),
         language: z.string().describe('Language code (e.g., "en", "de")'),
         componentId: z.string().describe("UUID of the component type for this block"),
-        content: z.record(z.any()).describe("Block content matching the component's schema"),
+        content: z
+          .record(z.string(), z.any())
+          .describe("Block content matching the component's schema"),
         position: z
           .string()
           .optional()
@@ -827,7 +829,7 @@ Use get_story to find block IDs in the story content.`,
         language: z.string().describe('Language code (e.g., "en", "de")'),
         blockId: z.string().describe("The ID of the block to update"),
         content: z
-          .record(z.any())
+          .record(z.string(), z.any())
           .describe("New content for the block (full replacement, not merge)")
       },
       annotations: { destructiveHint: false, idempotentHint: true, openWorldHint: false }

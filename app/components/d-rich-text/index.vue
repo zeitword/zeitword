@@ -38,7 +38,9 @@ const editor = useEditor({
       heading: {
         levels: [1, 2, 3]
       },
-      horizontalRule: false
+      horizontalRule: false,
+      link: false,
+      underline: false
     }),
     Underline,
     HorizontalRule,
@@ -51,11 +53,15 @@ const editor = useEditor({
       class: "prose prose-sm p-5 focus:outline-none"
     }
   },
-  onBeforeCreate: ({ editor }) => {
+  onBeforeCreate: () => {
     initialContent.value = props.modelValue
   },
   onUpdate: ({ editor }) => {
     emit("update:modelValue", editor.getHTML())
+    const { level } = editor.getAttributes("heading")
+    selectedHeading.value = level ? `h${level}` : null
+  },
+  onSelectionUpdate: ({ editor }) => {
     const { level } = editor.getAttributes("heading")
     selectedHeading.value = level ? `h${level}` : null
   }
@@ -63,7 +69,7 @@ const editor = useEditor({
 
 onMounted(() => {
   if (editor.value && initialContent.value) {
-    editor.value.commands.setContent(initialContent.value, true)
+    editor.value.commands.setContent(initialContent.value, { emitUpdate: false })
     const { level } = editor.value.getAttributes("heading")
     selectedHeading.value = level ? `h${level}` : null
   }
@@ -77,7 +83,10 @@ watch(
     if (isSame) return
 
     nextTick(() => {
-      editor.value.commands.setContent(newValue, true)
+      if (!editor.value || editor.value.isDestroyed) return
+      editor.value.commands.setContent(newValue, { emitUpdate: false })
+      const { level } = editor.value.getAttributes("heading")
+      selectedHeading.value = level ? `h${level}` : null
     })
   },
   { immediate: false }
@@ -89,19 +98,13 @@ onBeforeUnmount(() => {
 
 const setHeading = (level) => {
   if (!editor.value) return
-  const numericLevel = parseInt(level.slice(1), 10)
-  editor.value.chain().focus().toggleHeading({ level: numericLevel }).run()
-}
-
-watch(selectedHeading, (newHeading) => {
-  if (!editor.value) return
-
-  if (newHeading) {
-    setHeading(newHeading)
+  if (level) {
+    const numericLevel = parseInt(level.slice(1), 10)
+    editor.value.chain().focus().setHeading({ level: numericLevel }).run()
   } else {
     editor.value.chain().focus().setParagraph().run()
   }
-})
+}
 
 const headingOptions = computed(() => [
   { display: "Heading 1", value: "h1", icon: Heading1Icon },
@@ -176,7 +179,8 @@ const setLink = () => {
       <!-- Headings Dropdown (using d-select) -->
       <DSelect
         :options="headingOptions"
-        v-model="selectedHeading"
+        :model-value="selectedHeading"
+        @update:model-value="setHeading"
         placeholder="Heading"
         :get-option-value="(option) => option.value"
         size="sm"

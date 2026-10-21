@@ -8,11 +8,10 @@ import { schema } from "./schema-theme"
 const organisationId = process.env.ORGANISATION_ID
 const siteId = process.env.SITE_ID
 
-if (!organisationId || !siteId) {
-  throw new Error("ORGANISATION_ID and SITE_ID must be set in .env")
-}
-
 async function importSchema() {
+  if (!organisationId || !siteId) {
+    throw new Error("ORGANISATION_ID and SITE_ID must be set in .env")
+  }
   const drizzle = useDrizzle()
 
   const [site] = await drizzle.select().from(sites).where(eq(sites.id, siteId))

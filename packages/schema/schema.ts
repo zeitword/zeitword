@@ -258,7 +258,7 @@ export const schema: DSchema = {
     displayName: "Link",
     fields: {
       inverse: { displayName: "Inverse", type: "boolean" },
-      ...linkField
+      link: linkField
     }
   },
   "base-boxed-icon": {

@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite"
 export default defineNuxtConfig({
   compatibilityDate: "latest",
   future: { compatibilityVersion: 5 },
+  // Required by our server handlers and nuxt-auth-utils under Nuxt 5 defaults.
+  experimental: { nitroAutoImports: true },
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
@@ -17,7 +19,7 @@ export default defineNuxtConfig({
   css: ["@/app.css"],
   modules: ["@vueuse/nuxt", "nuxt-auth-utils", "@nuxt/fonts", "@nuxt/image"],
 
-  fonts: { experimental: { processCSSVariables: true } },
+  fonts: { processCSSVariables: true },
 
   runtimeConfig: {
     s3: {

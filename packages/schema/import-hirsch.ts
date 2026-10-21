@@ -8,11 +8,10 @@ import { schema } from "./schema-hirsch"
 const organisationId = process.env.ORGANISATION_ID
 const siteId = "019d447f-eec5-7635-8bf0-0614fc1f2540"
 
-if (!organisationId) {
-  throw new Error("ORGANISATION_ID must be set in .env")
-}
-
 async function importSchema() {
+  if (!organisationId) {
+    throw new Error("ORGANISATION_ID must be set in .env")
+  }
   const drizzle = useDrizzle()
 
   const [site] = await drizzle.select().from(sites).where(eq(sites.id, siteId))

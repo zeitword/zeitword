@@ -2,14 +2,14 @@ name: "zeitword"
 
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:18.6-alpine
     ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
   s3:
-    image: chrislusf/seaweedfs
+    image: chrislusf/seaweedfs:4.48
     ports:
       - "8333:8333"
     command: "server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data"
