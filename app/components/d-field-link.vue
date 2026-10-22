@@ -6,7 +6,7 @@ import {
   XIcon,
   LinkIcon,
   ExternalLinkIcon
-} from "lucide-vue-next"
+} from "@lucide/vue"
 import {
   ComboboxRoot,
   ComboboxAnchor,

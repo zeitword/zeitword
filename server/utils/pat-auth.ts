@@ -1,6 +1,6 @@
 import type { H3Event } from "h3"
 
-import { eq, and, isNull, or, gt } from "drizzle-orm"
+import { eq, and, isNull } from "drizzle-orm"
 import { personalAccessTokens, users } from "~~/server/database/schema"
 
 export interface PatAuthResult {

@@ -7,7 +7,7 @@ Updates the S3 bucket CORS policy to allow uploads from the frontend application
 ### Usage
 
 ```bash
-bun run s3:update-cors
+mise exec -- npm run s3:update-cors
 ```
 
 ### Prerequisites

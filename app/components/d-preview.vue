@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { EyeOffIcon } from "@lucide/vue"
 import { useDebounceFn } from "@vueuse/core"
-import { EyeOffIcon } from "lucide-vue-next"
 
 const siteId = useRouteParams("siteId")
 

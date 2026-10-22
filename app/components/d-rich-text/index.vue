@@ -1,9 +1,4 @@
 <script setup>
-import HorizontalRule from "@tiptap/extension-horizontal-rule"
-import Link from "@tiptap/extension-link"
-import Underline from "@tiptap/extension-underline"
-import StarterKit from "@tiptap/starter-kit"
-import { useEditor, EditorContent } from "@tiptap/vue-3"
 import {
   BoldIcon,
   ItalicIcon,
@@ -18,7 +13,12 @@ import {
   Heading2Icon,
   Heading3Icon,
   LinkIcon
-} from "lucide-vue-next"
+} from "@lucide/vue"
+import HorizontalRule from "@tiptap/extension-horizontal-rule"
+import Link from "@tiptap/extension-link"
+import Underline from "@tiptap/extension-underline"
+import StarterKit from "@tiptap/starter-kit"
+import { useEditor, EditorContent } from "@tiptap/vue-3"
 
 const props = defineProps({
   modelValue: {

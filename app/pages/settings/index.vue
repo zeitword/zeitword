@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  LucideMail,
-  LucideUser,
-  LucideArchive,
-  LucideArchiveRestore,
-  LucideX
-} from "lucide-vue-next"
+import { LucideMail, LucideUser, LucideArchive, LucideArchiveRestore, LucideX } from "@lucide/vue"
 
 interface User {
   id: string

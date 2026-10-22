@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm"
-// bun run scripts/move-site-to-org.ts <siteId> <newOrganizationId> [--dry-run]
+// node --env-file-if-exists=.env --import tsx scripts/move-site-to-org.ts <siteId> <newOrganizationId> [--dry-run]
 import { useDrizzle, tables } from "~~/server/utils/drizzle"
 
 async function moveSiteToOrganization(siteId: string, newOrganizationId: string) {

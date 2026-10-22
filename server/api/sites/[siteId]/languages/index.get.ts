@@ -1,8 +1,8 @@
-import { eq, and } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { siteLanguages, languages } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) {

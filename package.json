@@ -10,12 +10,12 @@
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "api-key:create": "bun scripts/create-site-api-key.ts",
-    "s3:update-cors": "bun run scripts/update-s3-cors.ts",
+    "api-key:create": "node --env-file-if-exists=.env --import tsx scripts/create-site-api-key.ts",
+    "s3:update-cors": "node --env-file-if-exists=.env --import tsx scripts/update-s3-cors.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
-    "test": "bun test tests/frontend tests/server",
+    "test": "vitest run",
     "test:e2e": "node tests/e2e/dependency-upgrade.mjs"
   },
   "dependencies": {
@@ -47,7 +47,7 @@
     "iso-639-1": "^3.1.6",
     "lexorank": "^1.0.5",
     "lodash-es": "^4.18.1",
-    "lucide-vue-next": "^1.0.0",
+    "@lucide/vue": "^1.61.0",
     "nanoid": "^6.0.2",
     "nuxt": "^4.6.2",
     "nuxt-auth-utils": "^0.5.32",
@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/bun": "^1.4.3",
+    "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
     "@vue/compiler-sfc": "^3.5.44",
     "dotenv": "^18.0.8",
@@ -74,19 +74,20 @@
     "oxfmt": "^0.74.0",
     "oxlint": "^1.89.0",
     "playwright": "^1.64.1",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.5"
   },
-  "trustedDependencies": [
-    "@parcel/watcher",
-    "esbuild",
-    "vue-demi"
-  ],
-  "packageManager": "bun@1.4.3",
   "engines": {
-    "node": "^24.22.1 || ^26.12.1",
-    "bun": ">=1.4.3"
+    "node": "^26.12.1"
   },
   "overrides": {
+    "archiver-utils": {
+      "glob": "^13.0.6"
+    },
     "postcss-selector-parser": "^7.1.7"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   }
 }

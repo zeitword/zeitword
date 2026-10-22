@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Trash2, FolderIcon, LetterTextIcon, SearchIcon, SettingsIcon } from "lucide-vue-next"
+import { Trash2, FolderIcon, LetterTextIcon, SearchIcon, SettingsIcon } from "@lucide/vue"
 
 export type Item = {
   id: string

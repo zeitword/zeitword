@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { UploadCloudIcon, LoaderCircleIcon, ImageIcon } from "@lucide/vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
-import { UploadCloudIcon, LoaderCircleIcon, ImageIcon } from "lucide-vue-next"
 import { ref, computed } from "vue"
 
 import type { AssetConfig, AssetType, AssetObject } from "~/types"

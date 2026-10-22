@@ -1,1 +1,3 @@
-- run `npm run fmt` after you're done with your work
+- Use mise-managed tools for this repository (`mise exec -- <command>`).
+- Use Node.js and npm for scripts, dependencies, and tests.
+- Run `mise exec -- npm run fmt` after you're done with your work.

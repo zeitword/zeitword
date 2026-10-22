@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon } from "@lucide/vue"
 import { useSortable } from "@vueuse/integrations/useSortable"
-import { ArrowLeftIcon, PlusIcon, Trash2Icon, GripVerticalIcon } from "lucide-vue-next"
 import { uuidv7 } from "uuidv7"
 
 import type { AssetConfig, RichTextConfig } from "~/types"

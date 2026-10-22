@@ -1,6 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { generateText, Output } from "ai"
-import { expect, test } from "bun:test"
+import assert from "node:assert/strict"
+import { test } from "vitest"
 import { z } from "zod"
 
 test("OpenAI Responses structured translations retain field paths and usage accounting", async () => {
@@ -49,10 +50,10 @@ test("OpenAI Responses structured translations retain field paths and usage acco
     }),
     prompt: "Translate Hello to German while preserving the field path."
   })
-  expect(request.model).toBe("gpt-5.4-mini")
-  expect(request.text.format.type).toBe("json_schema")
-  expect(result.output).toEqual(translated)
-  expect(result.usage.inputTokens).toBe(10)
-  expect(result.usage.outputTokens).toBe(5)
-  expect(result.usage.totalTokens).toBe(15)
+  assert.equal(request.model, "gpt-5.4-mini")
+  assert.equal(request.text.format.type, "json_schema")
+  assert.deepEqual(result.output, translated)
+  assert.equal(result.usage.inputTokens, 10)
+  assert.equal(result.usage.outputTokens, 5)
+  assert.equal(result.usage.totalTokens, 15)
 })

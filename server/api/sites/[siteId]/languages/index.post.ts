@@ -1,11 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm"
-import {
-  siteLanguages,
-  stories,
-  sites,
-  components,
-  componentFields
-} from "~~/server/database/schema"
+import { siteLanguages, stories, sites, componentFields } from "~~/server/database/schema"
 
 type FieldType = {
   fieldKey: string
@@ -75,7 +69,7 @@ async function processBlocks(tx: any, blocks: any[]): Promise<any[]> {
 }
 
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   if (!siteId) {

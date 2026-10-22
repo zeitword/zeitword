@@ -86,7 +86,6 @@ async function migrateStoryContentAssets(isDryRun: boolean) {
         continue
       }
 
-      let contentChanged = false
       const originalContentString = JSON.stringify(story.content)
 
       try {
@@ -94,7 +93,6 @@ async function migrateStoryContentAssets(isDryRun: boolean) {
         const updatedContentString = JSON.stringify(updatedContent)
 
         if (originalContentString !== updatedContentString) {
-          contentChanged = true
         } else {
           if (isDryRun) {
           }

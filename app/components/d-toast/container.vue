@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XIcon } from "lucide-vue-next"
+import { XIcon } from "@lucide/vue"
 import {
   ToastProvider,
   ToastRoot,

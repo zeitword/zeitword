@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useDropZone } from "@vueuse/core"
 import {
   ReplaceIcon,
   Trash2Icon,
@@ -8,7 +7,8 @@ import {
   MusicIcon,
   UploadCloudIcon,
   ChevronDownIcon
-} from "lucide-vue-next"
+} from "@lucide/vue"
+import { useDropZone } from "@vueuse/core"
 import { ref, computed } from "vue"
 
 import type { AssetObject } from "~/types"

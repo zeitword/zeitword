@@ -17,7 +17,7 @@ function extractIdFromUrl(url: string): string | null {
     if (potentialId && potentialId.includes("-") && potentialId.length > 30) {
       return potentialId
     }
-  } catch (e) {
+  } catch {
     /* Ignore errors during extraction */
   }
   return null
@@ -147,7 +147,6 @@ async function migrateStoryContentImages(isDryRun: boolean) {
         continue
       }
 
-      let contentChanged = false
       const originalContentString = JSON.stringify(story.content)
 
       try {
@@ -155,7 +154,6 @@ async function migrateStoryContentImages(isDryRun: boolean) {
         const updatedContentString = JSON.stringify(updatedContent)
 
         if (originalContentString !== updatedContentString) {
-          contentChanged = true
         } else {
           if (isDryRun) {
             // Optional: Log if no changes needed during dry run

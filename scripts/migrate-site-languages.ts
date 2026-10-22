@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm"
 // zeitword/scripts/migrate-site-languages.ts
 import { useDrizzle, tables } from "~~/server/utils/drizzle"
 

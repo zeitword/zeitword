@@ -29,7 +29,7 @@ Zeitword is built with modern and reliable technologies:
 - **Database**: PostgreSQL
 - **ORM**: Drizzle
 - **Storage**: MinIO/S3-compatible
-- **Development**: Bun
+- **Development**: Node.js and npm, managed with mise
 
 ## Getting Started
 
@@ -48,12 +48,12 @@ Zeitword is built with modern and reliable technologies:
    git clone https://github.com/yourusername/zeitword.git
    cd zeitword
 
-   # Trust and install Node.js 24.22.1 and Bun 1.4.3
+   # Trust and install Node.js 26.12.1
    mise trust
    mise install
 
    # Install dependencies
-   bun install --frozen-lockfile
+   mise exec -- npm ci
    ```
 
 2. **Start the Infrastructure**
@@ -78,12 +78,12 @@ Zeitword is built with modern and reliable technologies:
 4. **Run Migrations**
 
    ```bash
-   bunx drizzle-kit migrate
+   mise exec -- npm run db:migrate
    ```
 
 5. **Start Development Server**
    ```bash
-   bun dev
+   mise exec -- npm run dev
    ```
 
 ### Local Development Services
@@ -110,10 +110,10 @@ Zeitword uses Drizzle ORM for database operations. Here are common commands:
 
 ```bash
 # Generate migrations after schema changes
-bunx drizzle-kit generate
+mise exec -- npm run db:generate
 
 # Apply migrations to the database
-bunx drizzle-kit migrate
+mise exec -- npm run db:migrate
 ```
 
 ## Environment Setup

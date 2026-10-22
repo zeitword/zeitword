@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LucideKey } from "lucide-vue-next"
+import { LucideKey } from "@lucide/vue"
 
 definePageMeta({
   layout: "site"

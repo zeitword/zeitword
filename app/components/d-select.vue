@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDownIcon, ChevronUpIcon, CheckIcon } from "lucide-vue-next"
+import { ChevronDownIcon, ChevronUpIcon, CheckIcon } from "@lucide/vue"
 import {
   SelectRoot,
   SelectTrigger,

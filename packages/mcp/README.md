@@ -6,13 +6,13 @@ MCP (Model Context Protocol) server for Zeitword CMS. Allows AI assistants to ma
 
 ```bash
 cd packages/mcp
-bun install   # also runs `tsc` via the prepare script
+mise exec -- npm ci   # also runs `tsc` via the prepare script
 ```
 
 If you need to rebuild manually:
 
 ```bash
-bun run build
+mise exec -- npm run build
 ```
 
 The build output (`build/`) is gitignored and regenerated automatically on install via the `prepare` script.
@@ -42,7 +42,7 @@ Add to your MCP config:
 }
 ```
 
-Make sure you've run `bun install` in `packages/mcp` first so the build output exists.
+Make sure you've run `mise exec -- npm ci` in `packages/mcp` first so the build output exists.
 
 ### Environment variables
 

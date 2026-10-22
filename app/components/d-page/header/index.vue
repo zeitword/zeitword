@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { LogOutIcon } from "lucide-vue-next"
+import { LogOutIcon } from "@lucide/vue"
 
 type Props = {
   navigation: Array<{ name: string; to: string }>

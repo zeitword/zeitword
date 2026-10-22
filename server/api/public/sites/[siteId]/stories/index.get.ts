@@ -1,6 +1,6 @@
 import { eq, and, isNull } from "drizzle-orm"
 import { stories, components, sites } from "~~/server/database/schema"
-import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
+import { mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
