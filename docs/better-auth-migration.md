@@ -1,5 +1,7 @@
 # Better Auth rollout
 
+For the subsequent multi-workspace migration, see [multi-organisation membership](multi-organisation.md). The single-organisation behaviour below describes the initial Better Auth cutover.
+
 Authentication uses Better Auth 1.7.12 with the Drizzle Relations v2 adapter. The app retains one organisation per user. Better Auth's logical models map to the existing `users` table and lowercase plural `auth_accounts`, `auth_sessions`, `auth_verifications`, and `auth_rate_limits` tables. All columns use snake_case.
 
 ## Before deploying

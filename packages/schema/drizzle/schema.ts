@@ -16,6 +16,7 @@ import { uuidv7 } from "uuidv7"
 import { organisations } from "../../../server/database/schema"
 export {
   organisations,
+  organisationMembers,
   users,
   sessions,
   accounts,

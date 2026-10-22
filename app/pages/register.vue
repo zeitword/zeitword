@@ -10,7 +10,7 @@ const organisationName = ref("")
 const errorMsg = ref("")
 const loading = ref(false)
 
-async function login() {
+async function register() {
   try {
     loading.value = true
     errorMsg.value = ""
@@ -24,8 +24,17 @@ async function login() {
       }
     })
     await navigateTo("/")
-  } catch (e) {
-    errorMsg.value = "Invalid credentials"
+  } catch (error: any) {
+    if (error.statusCode === 409) {
+      errorMsg.value =
+        "Unable to register with this email. Sign in or reset your password. To add another organisation, choose New organisation in the workspace menu after signing in."
+    } else if (error.statusCode === 400) {
+      errorMsg.value = "Check all fields. Your password must be between 8 and 128 characters."
+    } else if (error.statusCode === 429) {
+      errorMsg.value = "Too many attempts. Please try again shortly."
+    } else {
+      errorMsg.value = "Unable to create your account. Please try again."
+    }
   } finally {
     loading.value = false
   }
@@ -38,7 +47,7 @@ async function login() {
       <h1 class="mb-4 text-center text-2xl font-semibold text-neutral-900">Zeitword</h1>
 
       <form
-        @submit.prevent="login"
+        @submit.prevent="register"
         class="flex flex-col gap-4"
       >
         <div class="flex flex-col gap-1">
@@ -73,6 +82,8 @@ async function login() {
             id="password"
             name="password"
             required
+            minlength="8"
+            maxlength="128"
             placeholder="Your Password"
           />
         </div>

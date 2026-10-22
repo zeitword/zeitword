@@ -7,7 +7,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireAppSession(event)
+  const { secure, session } = await requireAppSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const data = await readValidatedBody(event, bodySchema.parse)
@@ -20,16 +20,24 @@ export default defineEventHandler(async (event) => {
   const hashedSecret = await hashPassword(secret)
   const lastFourChars = secret.slice(-4)
 
-  const [token] = await useDrizzle()
-    .insert(personalAccessTokens)
-    .values({
-      userId: secure.userId,
-      organisationId: secure.organisationId,
-      hash: hashedSecret,
-      lastFourChars,
-      name: data.name
-    })
-    .returning()
+  const token = await db.transaction(async (tx) => {
+    await lockOrganisation(tx, secure.organisationId)
+    const membership = await requireMembership(tx, secure.userId, secure.organisationId)
+    if (membership.authVersion !== session.membershipVersion) {
+      throw createError({ statusCode: 403, statusMessage: "Organisation access has changed" })
+    }
+    const [created] = await tx
+      .insert(personalAccessTokens)
+      .values({
+        userId: secure.userId,
+        organisationId: secure.organisationId,
+        hash: hashedSecret,
+        lastFourChars,
+        name: data.name
+      })
+      .returning()
+    return created!
+  })
 
   const completeToken = `zwpat_${token.id}_${secret}`
   return {

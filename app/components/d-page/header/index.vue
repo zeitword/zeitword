@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { LogOutIcon } from "@lucide/vue"
-
 type Props = {
   navigation: Array<{ name: string; to: string }>
 }
@@ -11,7 +9,7 @@ const storyId = useRouteParams<string>("storyId")
 const folderId = useRouteParams<string>("folderId")
 const activeStoryId = computed(() => storyId.value || folderId.value)
 
-const { data: me } = await useFetch(`/api/me`)
+const { data: me } = await useFetch(`/api/me`, { key: "current-user" })
 
 const initials = computed(() => {
   if (!me.value) return ""
@@ -61,10 +59,7 @@ const visibleBreadcrumbItems = computed(() => {
           <z-logo />
         </NuxtLink>
         <DPageHeaderSeparator />
-        <DPageHeaderBreadcrumbLink
-          :name="me?.organisationName as string"
-          to="/sites"
-        />
+        <DOrganisationSwitcher />
         <template v-if="siteId && site">
           <DPageHeaderSeparator />
           <DPageHeaderBreadcrumbLink
@@ -103,13 +98,6 @@ const visibleBreadcrumbItems = computed(() => {
         </div>
       </div>
       <div class="flex shrink-0 items-center gap-2">
-        <DThemeSwitcher />
-        <DButton
-          :icon-left="LogOutIcon"
-          variant="secondary"
-          size="md"
-          to="/logout"
-        />
         <div
           class="bg-neutral-inverse text-neutral-inverse text-copy-sm grid size-8 place-items-center rounded-full font-semibold uppercase"
         >

@@ -1,8 +1,10 @@
 import type { H3Event } from "h3"
 
+import { and, eq, isNull } from "drizzle-orm"
 import { AsyncLocalStorage } from "node:async_hooks"
 
 import { createAuth, type AuthDatabase } from "../auth"
+import { organisationMembers, organisations } from "../database/schema"
 import { db } from "./drizzle"
 
 let auth: ReturnType<typeof createAuth> | undefined
@@ -23,7 +25,7 @@ export function handleAuthRequest(event: H3Event) {
     if (!publicPaths.includes(path) && !path.startsWith("/reset-password/")) {
       // Apply Zeitword's current-account checks to Better Auth's session-based
       // account-management endpoints, not only to CMS endpoints.
-      await requireAppSession(event)
+      await requireAccountSession(event)
     }
     return useAuth().handler(authRequest(event))
   })
@@ -69,7 +71,7 @@ export function useAuth(database?: AuthDatabase) {
   return instance
 }
 
-export async function requireAppSession(event: H3Event) {
+export async function requireAccountSession(event: H3Event) {
   if (!["GET", "HEAD", "OPTIONS"].includes(event.method)) {
     const origin = getHeader(event, "origin")
     if (
@@ -81,11 +83,30 @@ export async function requireAppSession(event: H3Event) {
   }
   const result = await useAuth().api.getSession({ headers: authHeaders(event) })
   if (!result) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
-  return {
-    user: result.user,
-    session: result.session,
-    secure: { userId: result.user.id, organisationId: result.user.organisationId }
-  }
+  return result
+}
+
+export async function requireAppSession(event: H3Event) {
+  const result = await requireAccountSession(event)
+  const organisationId = result.session.organisationId
+  if (!organisationId)
+    throw createError({ statusCode: 403, statusMessage: "Select an organisation" })
+  const [membership] = await db
+    .select({ role: organisationMembers.role })
+    .from(organisationMembers)
+    .innerJoin(organisations, eq(organisations.id, organisationMembers.organisationId))
+    .where(
+      and(
+        eq(organisationMembers.userId, result.user.id),
+        eq(organisationMembers.organisationId, organisationId),
+        eq(organisationMembers.authVersion, result.session.membershipVersion),
+        isNull(organisationMembers.deletedAt),
+        isNull(organisations.deletedAt)
+      )
+    )
+  if (!membership)
+    throw createError({ statusCode: 403, statusMessage: "Organisation access has been revoked" })
+  return { ...result, secure: { userId: result.user.id, organisationId, role: membership.role } }
 }
 
 // The custom onboarding routes are outside the Better Auth handler, so enforce

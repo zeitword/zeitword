@@ -2,7 +2,12 @@ import { addDays } from "date-fns"
 import { nanoid } from "nanoid"
 import { Resend } from "resend"
 import { z } from "zod"
-import { userInvitations, users, organisations } from "~~/server/database/schema"
+import {
+  userInvitations,
+  users,
+  organisations,
+  organisationMembers
+} from "~~/server/database/schema"
 
 const bodySchema = z.object({
   email: z.email()
@@ -19,14 +24,20 @@ export default defineEventHandler(async (event) => {
   const [existingUser] = await useDrizzle()
     .select()
     .from(users)
-    .where(eq(users.email, normalizedEmail))
+    .innerJoin(organisationMembers, eq(organisationMembers.userId, users.id))
+    .where(
+      and(
+        eq(users.email, normalizedEmail),
+        eq(organisationMembers.organisationId, secure.organisationId),
+        isNull(organisationMembers.deletedAt)
+      )
+    )
     .limit(1)
 
-  if (existingUser && existingUser.deletedAt === null) {
-    // Active user — cannot invite someone already in an org
+  if (existingUser) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Cannot invite user as they are already part of another organization"
+      statusMessage: "This user is already a member of this organisation"
     })
   }
 
@@ -41,12 +52,16 @@ export default defineEventHandler(async (event) => {
   const token = nanoid(64)
   const expiresAt = addDays(new Date(), 30)
 
-  // Look up any existing invitation for this email (pending, accepted, or deleted)
-  // Always update rather than insert to avoid the unique constraint on email
+  // Invitations are scoped to one organisation, including resends.
   const [existingInvitation] = await useDrizzle()
     .select()
     .from(userInvitations)
-    .where(eq(userInvitations.email, normalizedEmail))
+    .where(
+      and(
+        eq(userInvitations.email, normalizedEmail),
+        eq(userInvitations.organisationId, secure.organisationId)
+      )
+    )
     .limit(1)
 
   let invitation: typeof existingInvitation

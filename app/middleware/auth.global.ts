@@ -25,6 +25,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (!session) {
       return navigateTo("/login")
     }
+    if (to.path !== "/organisations") {
+      const memberships = await $fetch("/api/organisations")
+      if (!memberships.organisations.some((org) => org.id === memberships.activeOrganisationId)) {
+        return navigateTo("/organisations")
+      }
+    }
   }
 
   if (to.path === "/") {
