@@ -10,8 +10,6 @@ const organisationName = ref("")
 const errorMsg = ref("")
 const loading = ref(false)
 
-const { fetch: refresh } = useUserSession()
-
 async function login() {
   try {
     loading.value = true
@@ -25,7 +23,6 @@ async function login() {
         organisationName: organisationName.value
       }
     })
-    await refresh()
     await navigateTo("/")
   } catch (e) {
     errorMsg.value = "Invalid credentials"

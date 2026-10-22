@@ -126,11 +126,16 @@ For local development, the `.env.example` comes pre-configured for the included 
 
    ```env
    NUXT_DSN="postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
-   NUXT_SESSION_PASSWORD="your-secure-session-password"
+   NUXT_AUTH_SECRET="your-random-auth-secret-at-least-32-characters"
+   NUXT_PUBLIC_APP_URL="http://localhost:3000"
    ```
 
    - `NUXT_DSN`: PostgreSQL connection string
-   - `NUXT_SESSION_PASSWORD`: Secret key for session encryption (this MUST be atleast 32 chars)
+   - `NUXT_AUTH_SECRET`: Random Better Auth signing secret, at least 32 characters
+   - `NUXT_PUBLIC_APP_URL`: Canonical app origin (the public HTTPS origin in production), used for auth cookies, origin validation and recovery links
+   - `NUXT_AUTH_TRUSTED_PROXY_IPS`: Optional comma-separated socket IPs of reverse proxies that overwrite `X-Forwarded-For`, used for auth rate limiting
+
+   Existing installations must follow [the Better Auth migration rollout](docs/better-auth-migration.md).
 
 2. **S3 Storage Configuration**
 

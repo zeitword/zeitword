@@ -2,7 +2,7 @@ import { isNull } from "drizzle-orm"
 import { userInvitations, users } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
+  const { secure } = await requireAppSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   // Get pending invitations (not accepted and not deleted)

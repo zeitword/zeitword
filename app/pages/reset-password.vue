@@ -14,13 +14,11 @@ const success = ref(false)
 async function requestPasswordReset() {
   loading.value = true
   try {
-    await $fetch("/api/reset-password", {
-      method: "POST",
-      body: {
-        password: password.value,
-        token: token.value
-      }
+    const { error } = await authClient.resetPassword({
+      newPassword: password.value,
+      token: typeof token.value === "string" ? token.value : ""
     })
+    if (error) throw error
     success.value = true
     await navigateTo("/login")
   } catch (e: any) {

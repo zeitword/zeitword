@@ -8,20 +8,15 @@ const password = ref("")
 const errorMsg = ref("")
 const loading = ref(false)
 
-const { fetch: refresh } = useUserSession()
-
 async function login() {
   try {
     loading.value = true
     errorMsg.value = ""
-    await $fetch("/api/login", {
-      method: "POST",
-      body: {
-        email: email.value,
-        password: password.value
-      }
+    const { error } = await authClient.signIn.email({
+      email: email.value,
+      password: password.value
     })
-    await refresh()
+    if (error) throw error
     await navigateTo("/sites")
   } catch (e) {
     errorMsg.value = "Invalid credentials"

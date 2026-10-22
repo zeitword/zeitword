@@ -24,7 +24,8 @@ docker run --rm -d --name zeitword-regression-db \
 docker exec zeitword-regression-db pg_isready -U postgres
 
 export NUXT_DSN='postgresql://postgres:local-test-only@127.0.0.1:55432/zeitword_test'
-export NUXT_SESSION_PASSWORD='local-regression-only-at-least-32-characters'
+export NUXT_AUTH_SECRET='local-regression-only-at-least-32-characters'
+export NUXT_PUBLIC_APP_URL='http://127.0.0.1:3100'
 mise exec -- npm run db:migrate
 mise exec -- npm run build
 HOST=127.0.0.1 PORT=3100 mise exec -- node .output/server/index.mjs
@@ -40,6 +41,22 @@ docker stop zeitword-regression-db
 ```
 
 No external AI, email, or S3 credentials are needed for this test. Live email delivery, paid AI calls, and production data migrations are not covered.
+
+## Authentication migration end-to-end test
+
+The auth test requires a **fresh, empty, disposable PostgreSQL database**. It applies the old migrations, inserts legacy credentials, PATs, site API keys and an invitation, then applies the Better Auth migration. It starts and stops the built app itself on port 3198 (`TEST_PORT` overrides it).
+
+```sh
+docker run --rm -d --name zeitword-auth-test-db \
+  -e POSTGRES_PASSWORD=auth-test-only -e POSTGRES_DB=zeitword_auth_test \
+  -p 127.0.0.1:55440:5432 postgres:18.6-alpine
+mise exec -- npm run build
+TEST_DSN=postgresql://postgres:auth-test-only@127.0.0.1:55440/zeitword_auth_test \
+  mise exec -- npm run test:e2e:auth
+docker stop zeitword-auth-test-db
+```
+
+Playwright exercises the HTTP API and Chromium login/logout. Checks include case-collision migration rollback, exact hash/ID preservation, transactional registration (including an injected session-insert failure), concurrent invitation acceptance, server-owned organisation fields, archived-user transfer and revocation, password-reset generation/consumption/replay, and expired sessions. Recovery email delivery is replaced with an in-process capture using the same auth configuration. Actual Resend delivery requires deployment verification.
 
 ## Version and security constraints
 

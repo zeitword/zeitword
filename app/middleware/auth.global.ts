@@ -13,14 +13,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path.startsWith("/api")) return
 
   if (to.path === "/logout") {
-    await useUserSession().clear()
+    const { error } = await authClient.signOut()
+    if (error) throw createError({ statusCode: error.status, statusMessage: error.message })
     return navigateTo("/login")
   }
 
   const isPublicRoute = publicRoutes.includes(to.path) || to.path.startsWith("/accept-invitation")
 
   if (!isPublicRoute) {
-    if (!useUserSession().loggedIn.value) {
+    const { data: session } = await authClient.getSession()
+    if (!session) {
       return navigateTo("/login")
     }
   }

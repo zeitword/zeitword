@@ -7,7 +7,7 @@ const paramSchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
+  const { secure } = await requireAppSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const { siteId } = await getValidatedRouterParams(event, paramSchema.parse)
