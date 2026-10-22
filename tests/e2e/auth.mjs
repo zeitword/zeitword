@@ -527,6 +527,11 @@ try {
   await page.goto("/logout")
   await page.waitForURL("**/login")
   assert.deepEqual(errors, [])
+  // Soft-deleted sites must disappear from both the list and direct lookups.
+  await signIn(legacy, email, newPassword)
+  await sql("update sites set deleted_at=now() where id=$1", [siteId])
+  assert.deepEqual(await ok(await legacy.get("/api/sites")), [])
+  assert.equal((await legacy.get(`/api/sites/${siteId}`)).status(), 404)
   console.log(
     "PASS: migration rollback, legacy credentials/PATs, multi-org membership isolation, scoped revocation, invitations, password recovery, browser workspace creation/switching and login/logout"
   )

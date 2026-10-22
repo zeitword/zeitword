@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
   const [site] = await useDrizzle().query.sites.findMany({
     where: {
       id,
-      organisationId
+      organisationId,
+      deletedAt: { isNull: true }
     },
     with: {
       languages: {
@@ -19,5 +20,6 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  if (!site) throw createError({ statusCode: 404, statusMessage: "Site not found" })
   return site
 })
