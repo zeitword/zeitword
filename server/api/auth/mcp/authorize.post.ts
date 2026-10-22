@@ -12,7 +12,7 @@ const bodySchema = z.object({
  * Requires an active user session (the user must be logged in).
  */
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
+  const { secure } = await requireAppSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const { callbackPort } = await readValidatedBody(event, bodySchema.parse)

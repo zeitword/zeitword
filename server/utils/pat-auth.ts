@@ -64,13 +64,14 @@ export async function validatePat(token: string): Promise<PatAuthResult> {
       .select({
         id: users.id,
         name: users.name,
-        email: users.email
+        email: users.email,
+        organisationId: users.organisationId
       })
       .from(users)
       .where(and(eq(users.id, tokenRecord.userId), isNull(users.deletedAt)))
       .limit(1)
 
-    if (!user) {
+    if (!user || user.organisationId !== tokenRecord.organisationId) {
       throw createError({
         statusCode: 401,
         statusMessage: "User not found"
@@ -141,7 +142,7 @@ export async function requireAuth(event: H3Event): Promise<{
   }
 
   // Fall back to session auth
-  const { secure } = await requireUserSession(event)
+  const { secure } = await requireAppSession(event)
   if (!secure) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
   }

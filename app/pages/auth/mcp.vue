@@ -4,7 +4,8 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { user } = useUserSession()
+const { data: session } = authClient.useSession()
+const user = computed(() => session.value?.user)
 
 const callbackPort = computed(() => {
   const port = route.query.port

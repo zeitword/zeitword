@@ -9,7 +9,7 @@ const bodySchema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  const { secure } = await requireUserSession(event)
+  const { secure } = await requireAppSession(event)
   if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
 
   const { email } = await readValidatedBody(event, bodySchema.parse)
@@ -30,19 +30,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (existingUser && existingUser.deletedAt !== null) {
-    // Archived user — unarchive them and move to this org
-    await useDrizzle()
-      .update(users)
-      .set({ deletedAt: null, organisationId: secure.organisationId, updatedAt: new Date() })
-      .where(eq(users.id, existingUser.id))
-  }
-
   // Get organization name for email
   const [org] = await useDrizzle()
     .select({ name: organisations.name })
     .from(organisations)
     .where(eq(organisations.id, secure.organisationId))
+  if (!org) throw createError({ statusCode: 404, statusMessage: "Organisation not found" })
 
   // Generate token and set expiry to 30 days
   const token = nanoid(64)
@@ -86,10 +79,10 @@ export default defineEventHandler(async (event) => {
 
   // Send invitation email
   const config = useRuntimeConfig()
-  const resend = new Resend(config.resend)
   const acceptLink = `${config.public.appUrl}/accept-invitation/${token}`
 
   try {
+    const resend = new Resend(config.resend)
     await resend.emails.send({
       from: "Zeitword <no-reply@zeitword.com>",
       to: normalizedEmail,
@@ -106,5 +99,11 @@ export default defineEventHandler(async (event) => {
     // Don't throw error - invitation is created, email failure shouldn't block the process
   }
 
-  return { success: true, invitation }
+  // The token is mailbox proof at acceptance. Do not return it to the inviter.
+  return {
+    success: true,
+    invitation: invitation
+      ? { id: invitation.id, email: invitation.email, expiresAt: invitation.expiresAt }
+      : undefined
+  }
 })

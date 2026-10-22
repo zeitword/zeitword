@@ -1,78 +1,60 @@
-import { nanoid } from "nanoid"
 import { z } from "zod"
 
-import { organisations, sessions, users } from "../database/schema"
+import { accounts, organisations, users } from "../database/schema"
 
-const bodySchema = z.object({
-  name: z.string(),
-  email: z.email(),
-  password: z.string().min(8),
-  organisationName: z.string().min(1)
-})
+const bodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(255),
+    email: z.email().transform((email) => email.toLowerCase()),
+    password: z.string().min(8).max(128),
+    organisationName: z.string().trim().min(1).max(255)
+  })
+  .strict()
 
 export default defineEventHandler(async (event) => {
+  requireAuthOrigin(event)
+  const body = await readValidatedBody(event, bodySchema.parse)
+  await limitOnboarding(event)
+  const password = await hashPassword(body.password)
   try {
-    const body = await readValidatedBody(event, bodySchema.parse)
-
-    // check if the user already exists
-    const existing = await db.query.users.findFirst({
-      columns: { id: true },
-      where: { email: body.email }
-    })
-    if (existing) return {}
-
-    const hashedPassword = await hashPassword(body.password)
-
-    const { user, session } = await db.transaction(async (tx) => {
-      // Create organisation
-      const [org] = await tx
+    // The Better Auth instance is bound to this transaction, including its
+    // credential lookup and session insert. Cookies are returned only on commit.
+    return await db.transaction(async (tx) => {
+      const [organisation] = await tx
         .insert(organisations)
-        .values({
-          name: body.organisationName
-        })
+        .values({ name: body.organisationName })
         .returning()
-      if (!org) throw createError({ statusCode: 500, message: "Failed to create organisation" })
-
+      if (!organisation) throw new Error("Failed to create organisation")
       const [user] = await tx
         .insert(users)
         .values({
           name: body.name,
           email: body.email,
-          password: hashedPassword,
-          organisationId: org.id
+          organisationId: organisation.id
         })
         .returning()
-      if (!user) throw createError({ statusCode: 500, message: "Failed to create user" })
-
-      const [session] = await tx
-        .insert(sessions)
-        .values({
-          token: nanoid(64),
-          userId: user.id
-        })
-        .returning()
-      if (!session) throw createError({ statusCode: 500, message: "Failed to create session" })
-
-      return { user, session }
-    })
-
-    await setUserSession(event, {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        organisationId: user.organisationId
-      },
-      secure: {
+      if (!user) throw new Error("Failed to create user")
+      await tx.insert(accounts).values({
         userId: user.id,
-        sessionToken: session.token,
-        organisationId: user.organisationId
-      }
+        accountId: user.id,
+        providerId: "credential",
+        password
+      })
+      const response = await useAuth(tx).api.signInEmail({
+        body: { email: body.email, password: body.password },
+        headers: authHeaders(event),
+        asResponse: true
+      })
+      if (!response.ok) throw createError({ statusCode: 400, statusMessage: "Registration failed" })
+      return response
     })
-
-    return {}
   } catch (error) {
-    console.error(error)
-    return {}
+    if (isUniqueViolation(error))
+      throw createError({
+        statusCode: 409,
+        statusMessage:
+          "Unable to register with this email. Try signing in or resetting your password."
+      })
+    throw error
   }
 })

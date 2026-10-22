@@ -13,6 +13,17 @@ import {
 } from "drizzle-orm/pg-core"
 import { uuidv7 } from "uuidv7"
 
+import { organisations } from "../../../server/database/schema"
+export {
+  organisations,
+  users,
+  sessions,
+  accounts,
+  verifications,
+  authRateLimits,
+  userInvitations
+} from "../../../server/database/schema"
+
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -43,49 +54,6 @@ const organisationId = {
     .notNull()
     .references(() => organisations.id)
 }
-
-// Tables
-export const organisations = snakeCase.table("organisations", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  name: text().notNull(),
-  ...timestamps
-})
-
-export const users = snakeCase.table("users", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  name: text().notNull(),
-  email: text().notNull().unique(),
-  password: text(),
-  resetPasswordToken: text(),
-  resetPasswordExpiresAt: timestamp({ withTimezone: true }),
-  ...organisationId,
-  ...timestamps
-})
-
-export const userInvitations = snakeCase.table("user_invitations", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  email: text().notNull().unique(),
-  token: text().notNull().unique(),
-  invitedBy: uuid()
-    .notNull()
-    .references(() => users.id),
-  expiresAt: timestamp({ withTimezone: true }).notNull(),
-  acceptedAt: timestamp({ withTimezone: true }),
-  ...organisationId,
-  ...timestamps
-})
-
-export const sessions = snakeCase.table(
-  "sessions",
-  {
-    token: text().notNull().unique(),
-    userId: uuid()
-      .notNull()
-      .references(() => users.id),
-    ...timestamps
-  },
-  (t) => [primaryKey({ columns: [t.token, t.userId] })]
-)
 
 export const components = snakeCase.table(
   "components",

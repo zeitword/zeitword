@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite"
 export default defineNuxtConfig({
   compatibilityDate: "latest",
   future: { compatibilityVersion: 5 },
-  // Required by our server handlers and nuxt-auth-utils under Nuxt 5 defaults.
+  // Required by our server handlers under Nuxt 5 defaults.
   experimental: { nitroAutoImports: true },
   vite: {
     plugins: [tailwindcss()],
@@ -17,11 +17,13 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
 
   css: ["@/app.css"],
-  modules: ["@vueuse/nuxt", "nuxt-auth-utils", "@nuxt/fonts", "@nuxt/image"],
+  modules: ["@vueuse/nuxt", "@nuxt/fonts", "@nuxt/image"],
 
   fonts: { processCSSVariables: true },
 
   runtimeConfig: {
+    authSecret: "",
+    authTrustedProxyIps: "",
     s3: {
       accessKeyId: "",
       secretAccessKey: "",

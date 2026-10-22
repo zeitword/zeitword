@@ -1,6 +1,8 @@
-import { isNull } from "drizzle-orm"
+import { isNull, sql } from "drizzle-orm"
 import {
   integer,
+  bigint,
+  index,
   snakeCase,
   uuid,
   text,
@@ -54,16 +56,20 @@ export const organisations = snakeCase.table("organisations", {
   ...timestamps
 })
 
-export const users = snakeCase.table("users", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  name: text().notNull(),
-  email: text().notNull().unique(),
-  password: text(),
-  resetPasswordToken: text(),
-  resetPasswordExpiresAt: timestamp({ withTimezone: true }),
-  ...organisationId,
-  ...timestamps
-})
+export const users = snakeCase.table(
+  "users",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    name: text().notNull(),
+    email: text().notNull().unique(),
+    emailVerified: boolean().notNull().default(false),
+    authVersion: integer().notNull().default(0),
+    image: text(),
+    ...organisationId,
+    ...timestamps
+  },
+  (t) => [uniqueIndex("users_email_normalized_unique").on(sql`lower(${t.email})`)]
+)
 
 export const userInvitations = snakeCase.table("user_invitations", {
   id: uuid().primaryKey().$defaultFn(uuidv7),
@@ -79,16 +85,68 @@ export const userInvitations = snakeCase.table("user_invitations", {
 })
 
 export const sessions = snakeCase.table(
-  "sessions",
+  "auth_sessions",
   {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
     token: text().notNull().unique(),
     userId: uuid()
       .notNull()
       .references(() => users.id),
-    ...timestamps
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    ipAddress: text(),
+    userAgent: text(),
+    authVersion: integer().notNull().default(0),
+    ...organisationId,
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow()
   },
-  (t) => [primaryKey({ columns: [t.token, t.userId] })]
+  (t) => [index("auth_sessions_user_idx").on(t.userId)]
 )
+
+export const accounts = snakeCase.table(
+  "auth_accounts",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    accountId: text().notNull(),
+    providerId: text().notNull(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id),
+    password: text(),
+    accessToken: text(),
+    refreshToken: text(),
+    idToken: text(),
+    accessTokenExpiresAt: timestamp({ withTimezone: true }),
+    refreshTokenExpiresAt: timestamp({ withTimezone: true }),
+    scope: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow()
+  },
+  (t) => [
+    uniqueIndex("auth_accounts_provider_account_unique").on(t.providerId, t.accountId),
+    index("auth_accounts_user_idx").on(t.userId)
+  ]
+)
+
+export const verifications = snakeCase.table(
+  "auth_verifications",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    identifier: text().notNull(),
+    value: text().notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow()
+  },
+  (t) => [index("auth_verifications_identifier_idx").on(t.identifier)]
+)
+
+export const authRateLimits = snakeCase.table("auth_rate_limits", {
+  id: uuid().primaryKey().$defaultFn(uuidv7),
+  key: text().notNull().unique(),
+  count: integer().notNull(),
+  lastRequest: bigint({ mode: "number" }).notNull()
+})
 
 export const components = snakeCase.table(
   "components",

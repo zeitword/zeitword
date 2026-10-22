@@ -10,12 +10,11 @@ const success = ref(false)
 async function requestPasswordReset() {
   loading.value = true
   try {
-    await $fetch("/api/forgot-password", {
-      method: "POST",
-      body: {
-        email: email.value
-      }
+    const { error } = await authClient.requestPasswordReset({
+      email: email.value,
+      redirectTo: "/reset-password"
     })
+    if (error) throw error
     success.value = true
   } catch (e: any) {
     // const statusCode = e.statusCode
