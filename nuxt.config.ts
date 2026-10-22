@@ -8,6 +8,9 @@ export default defineNuxtConfig({
   experimental: { nitroAutoImports: true },
   vite: {
     plugins: [tailwindcss()],
+    // The theme uses native light-dark() with a runtime color-scheme switch.
+    // We target current browsers; preserve modern CSS instead of legacy fallbacks.
+    build: { cssTarget: "esnext" },
     optimizeDeps: {
       include: ["@lucide/vue", "reka-ui", "uuidv7"]
     }
