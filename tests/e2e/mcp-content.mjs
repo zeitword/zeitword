@@ -33,6 +33,54 @@ export async function testContentEditing({
   await sql(
     "insert into languages(code,name,native_name) values('de','German','Deutsch') on conflict do nothing"
   )
+  const siteInputs = workspaces.map((workspace, i) => ({
+    workspaceId: workspace.id,
+    id: randomUUID(),
+    name: `Created site ${i}`,
+    ...(i === 0 ? { domain: "https://example.test", defaultLanguage: "de" } : {})
+  }))
+  const deniedSite = { ...siteInputs[0], id: randomUUID() }
+  const denied = await rpc(
+    "tools/call",
+    { name: "create_site", arguments: deniedSite },
+    readerToken
+  )
+  assert.equal(denied.status, 403)
+  assert.match(denied.headers.get("www-authenticate"), /mcp:write/)
+  assert.equal((await sql("select id from sites where id=$1", [deniedSite.id])).length, 0)
+  const newSites = await Promise.all(siteInputs.map((input) => ok("create_site", input)))
+  for (const [i, site] of newSites.entries()) {
+    assert.equal(site.id, siteInputs[i].id)
+    assert.equal(site.workspaceId, workspaces[i].id)
+    assert.equal(site.defaultLanguage, i === 0 ? "de" : "en")
+    assert.equal(site.domain, i === 0 ? "https://example.test" : "")
+    assert.deepEqual(await ok("get_site", { siteId: site.id }), site)
+    assert.ok(
+      (await ok("list_sites", { workspaceId: workspaces[i].id })).some((s) => s.id === site.id)
+    )
+    assert.deepEqual(
+      await sql("select language_code from site_languages where site_id=$1", [site.id]),
+      [{ language_code: site.defaultLanguage }]
+    )
+  }
+  await fail("create_site", siteInputs[0], "CONFLICT")
+  const invalidSite = { ...siteInputs[0], id: randomUUID(), defaultLanguage: "unknown" }
+  await fail("create_site", invalidSite, "VALIDATION")
+  assert.equal((await sql("select id from sites where id=$1", [invalidSite.id])).length, 0)
+  const [foreign] = await sql("select organisation_id from sites where id=$1", [otherSite])
+  await fail(
+    "create_site",
+    { ...siteInputs[0], id: randomUUID(), workspaceId: foreign.organisation_id },
+    "NOT_FOUND"
+  )
+  await sql("update organisations set deleted_at=now() where id=$1", [workspaces[1].id])
+  await fail("create_site", { ...siteInputs[1], id: randomUUID() }, "NOT_FOUND")
+  await sql("update organisations set deleted_at=null where id=$1", [workspaces[1].id])
+  // Keep subsequent existing site-list assertions focused on their original fixtures.
+  for (const site of newSites) {
+    await sql("delete from site_languages where site_id=$1", [site.id])
+    await sql("delete from sites where id=$1", [site.id])
+  }
   for (let i = 0; i < siteIds.length; i++) {
     roots.push(randomUUID())
     children.push(randomUUID())
@@ -227,6 +275,7 @@ export async function testContentEditing({
     [userId, workspaces[1].id]
   )
   await fail("patch_story_content", secondPatch, "NOT_FOUND")
+  await fail("create_site", { ...siteInputs[1], id: randomUUID() }, "NOT_FOUND")
   await sql(
     "update organisation_members set deleted_at=null where user_id=$1 and organisation_id=$2",
     [userId, workspaces[1].id]
