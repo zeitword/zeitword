@@ -1,11 +1,17 @@
 import { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 
+import { MAX_UPLOAD_BYTES } from "./asset-source"
 import { patchInput, object, fieldKey } from "./content"
+import { componentMetadata, schemaFields } from "./schema"
 import { ContentError, ContentStore } from "./store"
 
 export const contentWriteTools = new Set([
   "create_site",
+  "create_component",
+  "update_component",
+  "import_asset",
+  "upload_asset",
   "patch_story_content",
   "create_story",
   "update_story",
@@ -132,8 +138,27 @@ export function registerContentTools(server: McpServer, store: ContentStore, can
     ({ siteId }) => store.listComponents(siteId)
   )
   tool(
+    "create_component",
+    "Create a component and its fields/options atomically. Component and option IDs must be client-generated UUIDs; fieldKey is the stable field identity. Block whitelists use existing component names in this site (self-reference allowed). Identical retries return the existing component; changed inputs or duplicate names return CONFLICT. Inspect get_component after a timeout.",
+    { siteId, id: z.uuid(), ...componentMetadata.shape, fields: schemaFields.default([]) },
+    ({ siteId, ...input }) => store.writeComponent(siteId, input)
+  )
+  tool(
+    "update_component",
+    "Update component metadata and/or REPLACE its entire fields array atomically using expectedRevision from get_component. Omitted fields preserves fields; supplied fields replaces all fields/options, so include everything to keep. Preserve option UUIDs and fieldKeys. Does not migrate existing story content. Reread and reconcile on CONFLICT.",
+    {
+      siteId,
+      componentId: z.uuid(),
+      expectedRevision: z.string().min(1),
+      ...componentMetadata.partial().shape,
+      fields: schemaFields.optional()
+    },
+    ({ siteId, componentId, ...input }) =>
+      store.writeComponent(siteId, { id: componentId, ...input })
+  )
+  tool(
     "get_component",
-    "Read a component schema and all its fields in this site.",
+    "Read a component schema, fields/options and revision. Read before update_component and pass its revision as expectedRevision.",
     { siteId, componentId: z.uuid() },
     async ({ siteId, componentId }) => {
       const schema = (await store.listComponents(siteId)).find((s) => s.id === componentId)
@@ -240,6 +265,35 @@ export function registerContentTools(server: McpServer, store: ContentStore, can
     "Read an asset, including URL, filename, MIME type and size.",
     { siteId, assetId: z.uuid() },
     ({ siteId, assetId }) => store.asset(siteId, assetId)
+  )
+  const assetInput = {
+    siteId,
+    id: z
+      .uuid()
+      .describe("Stable client-generated asset UUID; retries must reuse the same ID and inputs"),
+    fileName: z.string().min(1).max(255),
+    contentType: z
+      .string()
+      .max(255)
+      .regex(/^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/)
+  }
+  tool(
+    "import_asset",
+    "Download a public HTTP(S) URL to this site's asset storage (max 50 MiB, 30-second download, up to 3 redirects). Returns asset ID, src URL and metadata. Private-network URLs and URL credentials are rejected. Exact retries return the existing asset; reuse the same ID and inputs after timeouts. Optional contentType overrides the source MIME type.",
+    { ...assetInput, contentType: assetInput.contentType.optional(), url: z.url().max(8192) },
+    ({ siteId, ...input }) => store.createAsset(siteId, input)
+  )
+  tool(
+    "upload_asset",
+    "Upload base64-encoded file bytes (max 8 MiB decoded; standard padded base64, no data URL prefix). Returns asset ID, src URL and metadata. Exact retries are idempotent; changed inputs with the same ID return CONFLICT. Prefer import_asset for larger files available at a public URL.",
+    {
+      ...assetInput,
+      base64: z
+        .string()
+        .min(4)
+        .max(4 * Math.ceil(MAX_UPLOAD_BYTES / 3))
+    },
+    ({ siteId, ...input }) => store.createAsset(siteId, input)
   )
   tool(
     "update_asset",

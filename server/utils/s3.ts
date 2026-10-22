@@ -3,6 +3,7 @@ import type { _Object } from "@aws-sdk/client-s3"
 import {
   S3Client,
   PutObjectCommand,
+  HeadObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
@@ -16,6 +17,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 let _client: S3Client | null = null
 
 interface PutItemOptions {
+  ifNoneMatch?: string
+  abortSignal?: AbortSignal
   contentType?: string
   cacheControl?: string
   metadata?: Record<string, string>
@@ -69,9 +72,10 @@ export function useS3() {
       Body: body,
       ContentType: options.contentType,
       CacheControl: options.cacheControl,
-      Metadata: options.metadata
+      Metadata: options.metadata,
+      IfNoneMatch: options.ifNoneMatch
     })
-    return client.send(command)
+    return client.send(command, { abortSignal: options.abortSignal })
   }
 
   /**
@@ -293,6 +297,10 @@ export function useS3() {
   }
 
   return {
+    headItem: (key: string) =>
+      client.send(new HeadObjectCommand({ Bucket: config.s3.bucket, Key: key }), {
+        abortSignal: AbortSignal.timeout(30_000)
+      }),
     putItem,
     getItem,
     getItemAsString,

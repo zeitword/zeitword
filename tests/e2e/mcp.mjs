@@ -9,6 +9,7 @@ import { Pool } from "pg"
 import { chromium, request } from "playwright"
 
 import { testContentEditing } from "./mcp-content.mjs"
+import { startAssetStorage, testSchemaAssets } from "./mcp-schema-assets.mjs"
 
 const dsn = process.env.TEST_DSN
 assert.ok(dsn, "Set TEST_DSN to an empty disposable local database")
@@ -17,6 +18,7 @@ const pool = new Pool({ connectionString: dsn })
 const port = Number(process.env.TEST_PORT ?? 3201)
 const base = `http://127.0.0.1:${port}`
 let server, browser, page
+const storage = await startAssetStorage()
 let log = ""
 const api = await request.newContext({ baseURL: base, extraHTTPHeaders: { Origin: base } })
 async function json(response) {
@@ -33,6 +35,11 @@ try {
     env: {
       ...process.env,
       NUXT_DSN: dsn,
+      NUXT_S3_ENDPOINT: storage.endpoint,
+      NUXT_S3_BUCKET: "test-assets",
+      NUXT_S3_REGION: "test-region",
+      NUXT_S3_ACCESS_KEY_ID: "test-key",
+      NUXT_S3_SECRET_ACCESS_KEY: "test-secret",
       NUXT_AUTH_SECRET: "local-mcp-test-secret-at-least-thirty-two-characters",
       NUXT_PUBLIC_APP_URL: base,
       PORT: String(port),
@@ -251,6 +258,16 @@ try {
   })
   const writer = await writerResponse.json()
   assert.equal(writerResponse.status, 200, JSON.stringify(writer))
+  await testSchemaAssets({
+    rpc,
+    sql,
+    workspaceId: workspaces[0].id,
+    otherSite,
+    userId,
+    writerToken: writer.access_token,
+    readerToken: tokens.access_token,
+    storage
+  })
   await testContentEditing({
     rpc,
     sql,
@@ -357,4 +374,6 @@ try {
   await api.dispose()
   server?.kill()
   await pool.end()
+  storage.server.closeAllConnections()
+  await new Promise((resolve) => storage.server.close(resolve))
 }
