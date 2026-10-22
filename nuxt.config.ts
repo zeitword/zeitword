@@ -8,6 +8,9 @@ export default defineNuxtConfig({
   experimental: { nitroAutoImports: true },
   vite: {
     plugins: [tailwindcss()],
+    // The theme uses native light-dark() with a runtime color-scheme switch.
+    // Older CSS targets lower it to helper variables that cannot follow that switch.
+    build: { cssTarget: ["chrome123", "firefox120", "safari17.5"] },
     optimizeDeps: {
       include: ["@lucide/vue", "reka-ui", "uuidv7"]
     }
