@@ -1,0 +1,451 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "254ba96d-7579-4bc5-936b-e13d59905164",
+  "prevIds": [
+    "8bfe91dc-e5f2-4097-a8b8-612e4b209008"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "organisation_members"
+      ],
+      "writes": [
+        "s|tbl|public.organisation_members",
+        "n|tbl|public.organisation_members",
+        "e|tbl|public.organisation_members",
+        "n|rel|public.organisation_members",
+        "n|type|public.organisation_members",
+        "n|rel|public.organisation_members_pkey",
+        "n|rel|public.organisation_members_user_org_unique"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "users"
+      ],
+      "writes": [
+        "s|fk|public.users.users_organisation_id_organisations_id_fk",
+        "n|fk|public.users.users_organisation_id_organisations_id_fk",
+        "e|fk|public.users.users_organisation_id_organisations_id_fk",
+        "n|con|public.users.users_organisation_id_organisations_id_fk"
+      ],
+      "reads": [
+        "n|tbl|public.users",
+        "n|sch|public",
+        "e|col|public.users.organisation_id"
+      ]
+    },
+    {
+      "statementType": "drop_unique",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_invitations"
+      ],
+      "writes": [
+        "s|uq|public.user_invitations.user_invitations_email_unique",
+        "n|uq|public.user_invitations.user_invitations_email_unique",
+        "e|uq|public.user_invitations.user_invitations_email_unique",
+        "n|con|public.user_invitations.user_invitations_email_unique",
+        "n|rel|public.user_invitations_email_unique"
+      ],
+      "reads": [
+        "n|tbl|public.user_invitations",
+        "n|sch|public",
+        "e|col|public.user_invitations.email"
+      ],
+      "sharedWrites": [
+        "e|uniqueness|public.user_invitations.email"
+      ]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "auth_sessions",
+        "membership_version"
+      ],
+      "writes": [
+        "s|col|public.auth_sessions.membership_version",
+        "n|col|public.auth_sessions.membership_version",
+        "e|col|public.auth_sessions.membership_version"
+      ],
+      "reads": [
+        "n|tbl|public.auth_sessions",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "drop_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "users",
+        "organisation_id"
+      ],
+      "writes": [
+        "s|col|public.users.organisation_id",
+        "n|col|public.users.organisation_id",
+        "e|col|public.users.organisation_id"
+      ],
+      "reads": [
+        "n|tbl|public.users",
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "alter_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "auth_sessions",
+        "organisation_id"
+      ],
+      "writes": [
+        "s|colprop|public.auth_sessions.organisation_id.notNull"
+      ],
+      "reads": [
+        "n|tbl|public.auth_sessions",
+        "n|sch|public",
+        "n|col|public.auth_sessions.organisation_id"
+      ],
+      "sqlHash": "f7d3a44090054ace"
+    },
+    {
+      "statementType": "add_unique",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_invitations"
+      ],
+      "writes": [
+        "s|uq|public.user_invitations.user_invitations_org_email_unique",
+        "n|uq|public.user_invitations.user_invitations_org_email_unique",
+        "e|uq|public.user_invitations.user_invitations_org_email_unique",
+        "n|con|public.user_invitations.user_invitations_org_email_unique",
+        "n|rel|public.user_invitations_org_email_unique"
+      ],
+      "reads": [
+        "n|tbl|public.user_invitations",
+        "n|sch|public",
+        "n|col|public.user_invitations.organisation_id",
+        "n|col|public.user_invitations.email"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "organisation_members"
+      ],
+      "writes": [
+        "s|fk|public.organisation_members.organisation_members_user_id_users_id_fkey",
+        "n|fk|public.organisation_members.organisation_members_user_id_users_id_fkey",
+        "e|fk|public.organisation_members.organisation_members_user_id_users_id_fkey",
+        "n|con|public.organisation_members.organisation_members_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.organisation_members",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.organisation_members.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "organisation_members"
+      ],
+      "writes": [
+        "s|fk|public.organisation_members.organisation_members_organisation_id_organisations_id_fkey",
+        "n|fk|public.organisation_members.organisation_members_organisation_id_organisations_id_fkey",
+        "e|fk|public.organisation_members.organisation_members_organisation_id_organisations_id_fkey",
+        "n|con|public.organisation_members.organisation_members_organisation_id_organisations_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.organisation_members",
+        "n|sch|public",
+        "n|tbl|public.organisations",
+        "n|sch|public",
+        "n|col|public.organisation_members.organisation_id",
+        "n|col|public.organisations.id",
+        "e|uniqueness|public.organisations.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "organisation_members",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "user_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "organisation_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "role",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'member'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "auth_version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "deleted_at",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "auth_sessions",
+        "name": "membership_version",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "organisation_members_user_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "user_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "organisation_members_organisation_id_organisations_id_fkey",
+        "nameExplicit": false,
+        "columns": [
+          "organisation_id"
+        ],
+        "schemaTo": "public",
+        "tableTo": "organisations",
+        "columnsTo": [
+          "id"
+        ],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "organisation_members_pkey",
+        "columns": [
+          "id"
+        ],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "organisation_members",
+        "name": "organisation_members_user_org_unique",
+        "nameExplicit": true,
+        "columns": [
+          "user_id",
+          "organisation_id"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "user_invitations",
+        "name": "user_invitations_org_email_unique",
+        "nameExplicit": true,
+        "columns": [
+          "organisation_id",
+          "email"
+        ],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "drop",
+      "key": "columns\u0000[\"public\",\"users\",\"organisation_id\"]"
+    },
+    {
+      "op": "drop",
+      "key": "fks\u0000[\"public\",\"users\",\"users_organisation_id_organisations_id_fk\"]"
+    },
+    {
+      "op": "drop",
+      "key": "uniques\u0000[\"public\",\"user_invitations\",\"user_invitations_email_unique\"]"
+    },
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"auth_sessions\",\"organisation_id\"]",
+      "set": {
+        "notNull": false
+      }
+    }
+  ]
+}

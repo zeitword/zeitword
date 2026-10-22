@@ -65,24 +65,44 @@ export const users = snakeCase.table(
     emailVerified: boolean().notNull().default(false),
     authVersion: integer().notNull().default(0),
     image: text(),
-    ...organisationId,
     ...timestamps
   },
   (t) => [uniqueIndex("users_email_normalized_unique").on(sql`lower(${t.email})`)]
 )
 
-export const userInvitations = snakeCase.table("user_invitations", {
-  id: uuid().primaryKey().$defaultFn(uuidv7),
-  email: text().notNull().unique(),
-  token: text().notNull().unique(),
-  invitedBy: uuid()
-    .notNull()
-    .references(() => users.id),
-  expiresAt: timestamp({ withTimezone: true }).notNull(),
-  acceptedAt: timestamp({ withTimezone: true }),
-  ...organisationId,
-  ...timestamps
-})
+export const organisationMembers = snakeCase.table(
+  "organisation_members",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id),
+    ...organisationId,
+    role: text({ enum: ["owner", "member"] })
+      .notNull()
+      .default("member"),
+    authVersion: integer().notNull().default(0),
+    ...timestamps
+  },
+  (t) => [unique("organisation_members_user_org_unique").on(t.userId, t.organisationId)]
+)
+
+export const userInvitations = snakeCase.table(
+  "user_invitations",
+  {
+    id: uuid().primaryKey().$defaultFn(uuidv7),
+    email: text().notNull(),
+    token: text().notNull().unique(),
+    invitedBy: uuid()
+      .notNull()
+      .references(() => users.id),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    acceptedAt: timestamp({ withTimezone: true }),
+    ...organisationId,
+    ...timestamps
+  },
+  (t) => [unique("user_invitations_org_email_unique").on(t.organisationId, t.email)]
+)
 
 export const sessions = snakeCase.table(
   "auth_sessions",
@@ -96,7 +116,8 @@ export const sessions = snakeCase.table(
     ipAddress: text(),
     userAgent: text(),
     authVersion: integer().notNull().default(0),
-    ...organisationId,
+    organisationId: uuid().references(() => organisations.id),
+    membershipVersion: integer().notNull().default(0),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow()
   },

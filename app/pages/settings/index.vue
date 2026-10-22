@@ -5,6 +5,7 @@ interface User {
   id: string
   name: string
   email: string
+  role: "owner" | "member"
   createdAt: string
   deletedAt: string | null
 }
@@ -136,6 +137,7 @@ function formatDate(date: string) {
                   <div>
                     <div class="flex items-center gap-2">
                       <p class="text-copy font-medium">{{ user.name }}</p>
+                      <span class="text-neutral-subtle text-xs">{{ user.role }}</span>
                       <div
                         v-if="user.id === me?.id"
                         class="bg-neutral-strong text-neutral-subtle text-copy-sm rounded px-2 py-0.5 leading-tight"
@@ -148,7 +150,7 @@ function formatDate(date: string) {
                 </div>
                 <div class="flex gap-2">
                   <DButton
-                    v-if="user.id !== me?.id"
+                    v-if="me?.role === 'owner' && user.role !== 'owner'"
                     variant="secondary"
                     size="sm"
                     :icon-left="LucideArchive"
@@ -237,6 +239,7 @@ function formatDate(date: string) {
                     variant="secondary"
                     size="sm"
                     :icon-left="LucideArchiveRestore"
+                    v-if="me?.role === 'owner'"
                     @click="unarchiveUser(user.id)"
                   >
                     Restore

@@ -1,26 +1,23 @@
-import { users } from "~~/server/database/schema"
+import { and, eq } from "drizzle-orm"
+import { organisationMembers } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireAppSession(event)
-  if (!secure) throw createError({ statusCode: 401, statusMessage: "Unauthorized" })
-
-  const userId = getRouterParam(event, "userId")
-  if (!userId) {
-    throw createError({ statusCode: 400, statusMessage: "User ID is required" })
-  }
-
-  // Get user to unarchive
-  const [userToUnarchive] = await useDrizzle()
-    .select()
-    .from(users)
-    .where(and(eq(users.id, userId), eq(users.organisationId, secure.organisationId)))
-
-  if (!userToUnarchive) {
-    throw createError({ statusCode: 404, statusMessage: "User not found" })
-  }
-
-  // Unarchive the user by setting deletedAt to null
-  await useDrizzle().update(users).set({ deletedAt: null }).where(eq(users.id, userId))
-
-  return { success: true }
+  const userId = getRouterParam(event, "userId")!
+  return db.transaction(async (tx) => {
+    await lockOrganisation(tx, secure.organisationId)
+    await requireMembership(tx, secure.userId, secure.organisationId, true)
+    const [member] = await tx
+      .update(organisationMembers)
+      .set({ deletedAt: null, updatedAt: new Date() })
+      .where(
+        and(
+          eq(organisationMembers.userId, userId),
+          eq(organisationMembers.organisationId, secure.organisationId)
+        )
+      )
+      .returning({ id: organisationMembers.id })
+    if (!member) throw createError({ statusCode: 404, statusMessage: "Member not found" })
+    return { success: true }
+  })
 })

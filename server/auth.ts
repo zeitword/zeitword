@@ -12,6 +12,7 @@ import {
   accounts,
   authRateLimits,
   organisations,
+  organisationMembers,
   sessions,
   users,
   verifications
@@ -53,7 +54,6 @@ export function createAuth(
     },
     user: {
       additionalFields: {
-        organisationId: { type: "string", required: true, input: false },
         authVersion: {
           type: "number",
           required: true,
@@ -68,7 +68,8 @@ export function createAuth(
       disableSessionRefresh: true,
       cookieCache: { enabled: false },
       additionalFields: {
-        organisationId: { type: "string", required: true, input: false },
+        organisationId: { type: "string", required: false, input: false },
+        membershipVersion: { type: "number", defaultValue: 0, input: false },
         authVersion: {
           type: "number",
           required: true,
@@ -121,21 +122,31 @@ export function createAuth(
         create: {
           before: async (session) => {
             const [user] = await database
-              .select({ organisationId: users.organisationId, authVersion: users.authVersion })
+              .select({ authVersion: users.authVersion })
               .from(users)
-              .innerJoin(organisations, eq(organisations.id, users.organisationId))
+              .where(and(eq(users.id, session.userId), isNull(users.deletedAt)))
+            if (!user) throw new APIError("UNAUTHORIZED", { message: "Account is unavailable" })
+            const [membership] = await database
+              .select({
+                organisationId: organisationMembers.organisationId,
+                version: organisationMembers.authVersion
+              })
+              .from(organisationMembers)
+              .innerJoin(organisations, eq(organisations.id, organisationMembers.organisationId))
               .where(
                 and(
-                  eq(users.id, session.userId),
-                  isNull(users.deletedAt),
+                  eq(organisationMembers.userId, session.userId),
+                  isNull(organisationMembers.deletedAt),
                   isNull(organisations.deletedAt)
                 )
               )
-            if (!user) throw new APIError("UNAUTHORIZED", { message: "Account is unavailable" })
+              .orderBy(organisationMembers.createdAt, organisationMembers.id)
+              .limit(1)
             return {
               data: {
                 ...session,
-                organisationId: user.organisationId,
+                organisationId: membership?.organisationId ?? null,
+                membershipVersion: membership?.version ?? 0,
                 authVersion: user.authVersion
               }
             }
@@ -146,21 +157,29 @@ export function createAuth(
     plugins: [
       customSession(async ({ user, session }) => {
         const [active] = await database
-          .select({ organisationId: users.organisationId })
+          .select({
+            id: users.id,
+            organisationId: sessions.organisationId,
+            membershipVersion: sessions.membershipVersion
+          })
           .from(users)
-          .innerJoin(organisations, eq(organisations.id, users.organisationId))
           .innerJoin(sessions, and(eq(sessions.userId, users.id), eq(sessions.id, session.id)))
           .where(
             and(
               eq(users.id, user.id),
               eq(users.authVersion, sessions.authVersion),
-              eq(users.organisationId, sessions.organisationId),
-              isNull(users.deletedAt),
-              isNull(organisations.deletedAt)
+              isNull(users.deletedAt)
             )
           )
         if (!active) throw new APIError("UNAUTHORIZED", { message: "Account is unavailable" })
-        return { user: { ...user, organisationId: active.organisationId }, session }
+        return {
+          user,
+          session: {
+            ...session,
+            organisationId: active.organisationId,
+            membershipVersion: active.membershipVersion
+          }
+        }
       })
     ]
   })

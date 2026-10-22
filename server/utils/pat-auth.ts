@@ -1,7 +1,12 @@
 import type { H3Event } from "h3"
 
 import { eq, and, isNull } from "drizzle-orm"
-import { personalAccessTokens, users } from "~~/server/database/schema"
+import {
+  personalAccessTokens,
+  users,
+  organisationMembers,
+  organisations
+} from "~~/server/database/schema"
 
 export interface PatAuthResult {
   userId: string
@@ -65,10 +70,25 @@ export async function validatePat(token: string): Promise<PatAuthResult> {
         id: users.id,
         name: users.name,
         email: users.email,
-        organisationId: users.organisationId
+        organisationId: organisationMembers.organisationId
       })
       .from(users)
-      .where(and(eq(users.id, tokenRecord.userId), isNull(users.deletedAt)))
+      .innerJoin(
+        organisationMembers,
+        and(
+          eq(organisationMembers.userId, users.id),
+          eq(organisationMembers.organisationId, tokenRecord.organisationId)
+        )
+      )
+      .innerJoin(organisations, eq(organisations.id, organisationMembers.organisationId))
+      .where(
+        and(
+          eq(users.id, tokenRecord.userId),
+          isNull(users.deletedAt),
+          isNull(organisationMembers.deletedAt),
+          isNull(organisations.deletedAt)
+        )
+      )
       .limit(1)
 
     if (!user || user.organisationId !== tokenRecord.organisationId) {

@@ -1,16 +1,14 @@
-import { and, eq, gt, isNull, sql } from "drizzle-orm"
+import { and, eq, gt, isNull } from "drizzle-orm"
 import { z } from "zod"
 import {
   accounts,
-  organisations,
-  personalAccessTokens,
+  organisationMembers,
   sessions,
   userInvitations,
-  users,
-  verifications
+  users
 } from "~~/server/database/schema"
 
-const bodySchema = z
+const newAccountSchema = z
   .object({
     name: z.string().trim().min(1).max(255),
     password: z.string().min(8).max(128),
@@ -22,11 +20,10 @@ const bodySchema = z
 export default defineEventHandler(async (event) => {
   requireAuthOrigin(event)
   const token = getRouterParam(event, "token")!
-  const body = await readValidatedBody(event, bodySchema.parse)
+  const body = await readBody(event)
   await limitOnboarding(event)
-  const password = await hashPassword(body.password)
+  const current = await useAuth().api.getSession({ headers: authHeaders(event) })
   return db.transaction(async (tx) => {
-    // Lock before consuming, so competing accept requests cannot both succeed.
     const [invitation] = await tx
       .select()
       .from(userInvitations)
@@ -41,75 +38,68 @@ export default defineEventHandler(async (event) => {
       .for("update")
     if (!invitation)
       throw createError({ statusCode: 400, statusMessage: "Invitation is invalid or expired" })
-    const [organisation] = await tx
-      .select()
-      .from(organisations)
-      .where(and(eq(organisations.id, invitation.organisationId), isNull(organisations.deletedAt)))
-    if (!organisation)
-      throw createError({ statusCode: 400, statusMessage: "Organisation is unavailable" })
+    await lockOrganisation(tx, invitation.organisationId)
     const [existing] = await tx
       .select()
       .from(users)
       .where(eq(users.email, invitation.email))
       .for("update")
-    if (existing && !existing.deletedAt)
-      throw createError({
-        statusCode: 409,
-        statusMessage: "This account is already active. Sign in instead."
-      })
-
-    let user
+    let userId: string
+    let signup: z.infer<typeof newAccountSchema> | undefined
     if (existing) {
-      // The emailed secret proves ownership. Reactivation/transfer happens only
-      // here, never when the invitation is sent. Revoke old organisation access.
-      await tx.delete(sessions).where(eq(sessions.userId, existing.id))
-      await tx
-        .update(personalAccessTokens)
-        .set({ deletedAt: new Date() })
-        .where(eq(personalAccessTokens.userId, existing.id))
-      await tx.delete(verifications).where(eq(verifications.value, existing.id))
-      ;[user] = await tx
-        .update(users)
-        .set({
-          name: body.name,
-          organisationId: invitation.organisationId,
-          deletedAt: null,
-          emailVerified: true,
-          updatedAt: new Date(),
-          authVersion: sql`${users.authVersion} + 1`
+      // Membership invitations must never reset an existing account's password.
+      if (!current || current.user.id !== existing.id)
+        throw createError({
+          statusCode: 401,
+          statusMessage: "Sign in with the invited email to accept"
         })
-        .where(eq(users.id, existing.id))
-        .returning()
+      if (existing.deletedAt)
+        throw createError({ statusCode: 403, statusMessage: "Account is unavailable" })
+      userId = existing.id
     } else {
-      ;[user] = await tx
-        .insert(users)
-        .values({
-          name: body.name,
-          email: invitation.email,
-          emailVerified: true,
-          organisationId: invitation.organisationId
+      if (current)
+        throw createError({
+          statusCode: 403,
+          statusMessage: "Sign out to create the invited account"
         })
+      signup = newAccountSchema.parse(body)
+      const [user] = await tx
+        .insert(users)
+        .values({ name: signup.name, email: invitation.email, emailVerified: true })
         .returning()
-    }
-    if (!user) throw new Error("Failed to create user")
-    await tx
-      .insert(accounts)
-      .values({
-        userId: user.id,
-        accountId: user.id,
+      userId = user!.id
+      await tx.insert(accounts).values({
+        userId,
+        accountId: userId,
         providerId: "credential",
-        password
+        password: await hashPassword(signup.password)
       })
+    }
+    const [membership] = await tx
+      .insert(organisationMembers)
+      .values({ userId, organisationId: invitation.organisationId })
       .onConflictDoUpdate({
-        target: [accounts.providerId, accounts.accountId],
-        set: { password, updatedAt: new Date() }
+        target: [organisationMembers.userId, organisationMembers.organisationId],
+        set: { deletedAt: null, updatedAt: new Date() }
       })
+      .returning()
+    await tx.update(users).set({ emailVerified: true }).where(eq(users.id, userId))
     await tx
       .update(userInvitations)
       .set({ acceptedAt: new Date() })
       .where(eq(userInvitations.id, invitation.id))
+    if (current) {
+      await tx
+        .update(sessions)
+        .set({
+          organisationId: invitation.organisationId,
+          membershipVersion: membership!.authVersion
+        })
+        .where(and(eq(sessions.id, current.session.id), eq(sessions.userId, userId)))
+      return { success: true }
+    }
     const response = await useAuth(tx).api.signInEmail({
-      body: { email: user.email, password: body.password },
+      body: { email: invitation.email, password: signup!.password },
       headers: authHeaders(event),
       asResponse: true
     })

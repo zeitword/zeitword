@@ -1,4 +1,4 @@
-import { users } from "~~/server/database/schema"
+import { users, organisationMembers } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
   const { secure } = await requireAppSession(event)
@@ -10,11 +10,13 @@ export default defineEventHandler(async (event) => {
       id: users.id,
       name: users.name,
       email: users.email,
-      createdAt: users.createdAt,
-      deletedAt: users.deletedAt
+      role: organisationMembers.role,
+      createdAt: organisationMembers.createdAt,
+      deletedAt: organisationMembers.deletedAt
     })
     .from(users)
-    .where(eq(users.organisationId, secure.organisationId))
+    .innerJoin(organisationMembers, eq(organisationMembers.userId, users.id))
+    .where(eq(organisationMembers.organisationId, secure.organisationId))
     .orderBy(users.id)
 
   return orgUsers

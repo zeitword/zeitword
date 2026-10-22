@@ -1,184 +1,144 @@
 <script setup lang="ts">
-import { z } from "zod"
-
-const route = useRoute()
-const token = route.params.token as string
-
-definePageMeta({
-  layout: false
-})
-
-// Fetch invitation details
-const { data: invitation, error: invitationError } = await useFetch<{
-  email: string
-  organisationName: string
-}>(`/api/invitations/${token}`, {
-  server: false
-})
-
-const formData = ref({
-  name: "",
-  password: "",
-  confirmPassword: ""
-})
-
-const formErrors = ref<Record<string, string>>({})
-const isSubmitting = ref(false)
-const submitError = ref("")
-
-const formSchema = z
-  .object({
-    name: z.string().min(1, "Name is required"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(8, "Please confirm your password")
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"]
-  })
-
-async function handleSubmit() {
-  // Reset errors
-  formErrors.value = {}
-  submitError.value = ""
-
-  // Validate form
+definePageMeta({ layout: false })
+const token = useRoute().params.token as string
+const { data: invitation, error: invitationError } = await useFetch(`/api/invitations/${token}`)
+const { data: current } = await authClient.getSession()
+const signedIn = ref(current?.user ?? null)
+const existingAccount = ref(true)
+const name = ref("")
+const password = ref("")
+const confirmPassword = ref("")
+const busy = ref(false)
+const error = ref("")
+const { transition } = useOrganisationTransition()
+async function accept() {
+  busy.value = true
+  error.value = ""
   try {
-    formSchema.parse(formData.value)
-  } catch (error: any) {
-    if (error.errors) {
-      error.errors.forEach((err: any) => {
-        formErrors.value[err.path[0]] = err.message
+    if (!signedIn.value && existingAccount.value) {
+      const result = await authClient.signIn.email({
+        email: invitation.value!.email,
+        password: password.value
       })
+      if (result.error) throw new Error(result.error.message)
+      signedIn.value = result.data.user
     }
-    return
-  }
-
-  isSubmitting.value = true
-
-  try {
-    await $fetch(`/api/invitations/${token}/accept`, {
-      method: "POST",
-      body: formData.value
-    })
-
-    // Redirect to sites page
-    navigateTo("/sites")
-  } catch (error: any) {
-    submitError.value = error.data?.statusMessage || "Failed to accept invitation"
+    await transition(() =>
+      $fetch(`/api/invitations/${token}/accept`, {
+        method: "POST",
+        body: signedIn.value
+          ? {}
+          : {
+              name: name.value,
+              password: password.value,
+              confirmPassword: confirmPassword.value
+            }
+      })
+    )
+  } catch (err: any) {
+    error.value = err.data?.statusMessage || err.message || "Unable to accept invitation"
   } finally {
-    isSubmitting.value = false
+    busy.value = false
   }
+}
+async function signOut() {
+  await authClient.signOut()
+  signedIn.value = null
 }
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-neutral-100 p-4">
-    <div class="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-lg">
-      <div class="text-center">
-        <h1 class="text-3xl font-bold">Accept Invitation</h1>
-      </div>
-
-      <!-- Error state -->
-      <div
+  <main class="bg-neutral-weak text-neutral flex min-h-screen items-center justify-center p-6">
+    <div class="bg-neutral border-neutral w-full max-w-md space-y-6 rounded-lg border p-8 shadow">
+      <h1 class="text-2xl font-semibold">Accept invitation</h1>
+      <p
         v-if="invitationError"
-        class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800"
+        role="alert"
       >
-        <p class="font-medium">{{ invitationError.data?.statusMessage || "Invalid invitation" }}</p>
-      </div>
-
-      <!-- Success state - show form -->
-      <div
-        v-else-if="invitation"
-        class="space-y-6"
-      >
-        <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-          <p class="text-sm text-neutral-600">You've been invited to join:</p>
-          <p class="text-lg font-semibold">{{ invitation.organisationName }}</p>
-          <p class="text-sm text-neutral-600">as {{ invitation.email }}</p>
-        </div>
-
+        This invitation is invalid or expired.
+      </p>
+      <template v-else-if="invitation">
+        <p>
+          Join
+          <strong>{{ invitation.organisationName }}</strong>
+          as {{ invitation.email }}.
+        </p>
+        <template
+          v-if="signedIn && signedIn.email.toLowerCase() !== invitation.email.toLowerCase()"
+        >
+          <p>
+            You are signed in as {{ signedIn.email }}. Sign in with the invited email to continue.
+          </p>
+          <DButton @click="signOut">Sign out</DButton>
+        </template>
         <form
-          @submit.prevent="handleSubmit"
+          v-else
+          @submit.prevent="accept"
           class="space-y-4"
         >
-          <div>
-            <DFormGroup>
-              <DLabel>Name</DLabel>
-              <DInput
-                v-model="formData.name"
-                placeholder="Your name"
-                :class="{ 'border-red-500': formErrors.name }"
-              />
-              <p
-                v-if="formErrors.name"
-                class="mt-1 text-sm text-red-600"
-              >
-                {{ formErrors.name }}
-              </p>
-            </DFormGroup>
-          </div>
-
-          <div>
-            <DFormGroup>
-              <DLabel>Password</DLabel>
-              <DInput
-                v-model="formData.password"
-                type="password"
-                placeholder="At least 8 characters"
-                :class="{ 'border-red-500': formErrors.password }"
-              />
-              <p
-                v-if="formErrors.password"
-                class="mt-1 text-sm text-red-600"
-              >
-                {{ formErrors.password }}
-              </p>
-            </DFormGroup>
-          </div>
-
-          <div>
-            <DFormGroup>
-              <DLabel>Confirm Password</DLabel>
-              <DInput
-                v-model="formData.confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                :class="{ 'border-red-500': formErrors.confirmPassword }"
-              />
-              <p
-                v-if="formErrors.confirmPassword"
-                class="mt-1 text-sm text-red-600"
-              >
-                {{ formErrors.confirmPassword }}
-              </p>
-            </DFormGroup>
-          </div>
-
-          <div
-            v-if="submitError"
-            class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          <template v-if="!signedIn">
+            <DInput
+              v-if="!existingAccount"
+              v-model="name"
+              placeholder="Your name"
+              aria-label="Name"
+              required
+            />
+            <DInput
+              v-model="password"
+              type="password"
+              placeholder="Password"
+              aria-label="Password"
+              required
+              minlength="8"
+            />
+            <DInput
+              v-if="!existingAccount"
+              v-model="confirmPassword"
+              type="password"
+              placeholder="Confirm password"
+              aria-label="Confirm password"
+              required
+            />
+          </template>
+          <p
+            v-if="error"
+            role="alert"
+            class="text-danger"
           >
-            {{ submitError }}
-          </div>
-
+            {{ error }}
+          </p>
           <DButton
             type="submit"
-            :disabled="isSubmitting"
-            class="w-full"
+            :disabled="busy"
           >
-            {{ isSubmitting ? "Creating account..." : "Accept & Create Account" }}
+            {{
+              signedIn
+                ? "Accept invitation"
+                : existingAccount
+                  ? "Sign in & accept"
+                  : "Create account & accept"
+            }}
           </DButton>
+          <DButton
+            v-if="!signedIn"
+            type="button"
+            variant="transparent"
+            @click="existingAccount = !existingAccount"
+          >
+            {{
+              existingAccount ? "Create a new account instead" : "Already have an account? Sign in"
+            }}
+          </DButton>
+          <NuxtLink
+            v-if="!signedIn"
+            to="/forgot-password"
+            class="text-neutral-subtle block text-sm"
+          >
+            Forgot password?
+          </NuxtLink>
         </form>
-      </div>
-
-      <!-- Loading state -->
-      <div
-        v-else
-        class="text-center text-neutral-600"
-      >
-        Loading invitation...
-      </div>
+      </template>
     </div>
-  </div>
+  </main>
 </template>

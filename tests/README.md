@@ -44,6 +44,8 @@ No external AI, email, or S3 credentials are needed for this test. Live email de
 
 ## Authentication migration end-to-end test
 
+The suite also covers the subsequent multi-organisation migration, owner/member permissions, session-local workspace switching, independent invitations, membership-scoped revocation, and browser workspace creation.
+
 The auth test requires a **fresh, empty, disposable PostgreSQL database**. It applies the old migrations, inserts legacy credentials, PATs, site API keys and an invitation, then applies the Better Auth migration. It starts and stops the built app itself on port 3198 (`TEST_PORT` overrides it).
 
 ```sh

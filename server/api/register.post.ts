@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { accounts, organisations, users } from "../database/schema"
+import { accounts, organisations, organisationMembers, users } from "../database/schema"
 
 const bodySchema = z
   .object({
@@ -29,11 +29,13 @@ export default defineEventHandler(async (event) => {
         .insert(users)
         .values({
           name: body.name,
-          email: body.email,
-          organisationId: organisation.id
+          email: body.email
         })
         .returning()
       if (!user) throw new Error("Failed to create user")
+      await tx
+        .insert(organisationMembers)
+        .values({ userId: user.id, organisationId: organisation.id, role: "owner" })
       await tx.insert(accounts).values({
         userId: user.id,
         accountId: user.id,

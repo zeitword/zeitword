@@ -176,9 +176,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.organisations.id,
       to: r.assets.organisationId
     }),
-    users: r.many.users({
+    members: r.many.organisationMembers({
       from: r.organisations.id,
-      to: r.users.organisationId
+      to: r.organisationMembers.organisationId
     }),
     personalAccessTokens: r.many.personalAccessTokens({
       from: r.organisations.id,
@@ -221,9 +221,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.users.id,
       to: r.sessions.userId
     }),
-    organisation: r.one.organisations({
-      from: r.users.organisationId,
-      to: r.organisations.id
+    memberships: r.many.organisationMembers({
+      from: r.users.id,
+      to: r.organisationMembers.userId
     }),
     personalAccessTokens: r.many.personalAccessTokens({
       from: r.users.id,

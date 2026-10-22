@@ -34,6 +34,7 @@ const sizeClasses: { [key: string]: string } = {
 const emit = defineEmits<{
   close: []
   confirm: []
+  openAutoFocus: [event: Event]
 }>()
 
 function close() {
@@ -60,6 +61,7 @@ function confirm() {
           class="data-[state=open]:animate-overlayShow bg-neutral-inverse/5 fixed inset-0 z-10 backdrop-blur-xs"
         />
         <DialogContent
+          @open-auto-focus="emit('openAutoFocus', $event)"
           class="data-[state=open]:animate-contentShow bg-neutral relative z-20 flex h-fit w-full flex-col rounded-lg shadow-lg outline-none"
           :class="[sizeClasses[size], 'max-h-[80vh]']"
         >
