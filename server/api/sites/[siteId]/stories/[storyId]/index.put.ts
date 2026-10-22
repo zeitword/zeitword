@@ -50,8 +50,8 @@ export default defineEventHandler(async (event) => {
   if (data.componentId !== undefined) updateData.componentId = data.componentId
   if (data.content !== undefined) {
     updateData.content = {
-      ...(currentStory.content || {}),
-      ...((data.content as object) || {})
+      ...currentStory.content,
+      ...(data.content as object)
     }
   }
 

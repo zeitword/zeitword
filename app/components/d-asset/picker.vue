@@ -9,7 +9,7 @@ import {
   CheckIcon,
   UploadCloudIcon,
   LoaderCircleIcon
-} from "lucide-vue-next"
+} from "@lucide/vue"
 
 import type { AssetType } from "~/types"
 import type { DAsset } from "~/types/models"

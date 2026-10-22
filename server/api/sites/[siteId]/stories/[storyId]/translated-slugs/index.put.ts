@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
 
   // Skip empty values and prepare translations for insert
   const slugsToInsert = langEntries
-    .filter(([_, slug]) => slug && slug.trim())
+    .filter(([, slug]) => slug && slug.trim())
     .map(([languageCode, slug]) => ({
       storyId,
       languageCode,

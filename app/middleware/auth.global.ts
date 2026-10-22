@@ -9,7 +9,7 @@ const publicRoutes = [
   "/accept-invitation"
 ]
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path.startsWith("/api")) return
 
   if (to.path === "/logout") {

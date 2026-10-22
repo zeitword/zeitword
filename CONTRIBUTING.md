@@ -21,7 +21,8 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
 
    ```bash
    # Install dependencies
-   bun i
+   mise install
+   mise exec -- npm ci
 
    # Set up environment variables
    cp .env.example .env
@@ -30,7 +31,7 @@ Thank you for your interest in contributing to Zeitword! We aim to make the cont
    docker compose up -d
 
    # Start development server
-   bun dev
+   mise exec -- npm run dev
    ```
 
 ## Making Changes

@@ -5,7 +5,7 @@ import { getValidationSchemaForComponent } from "~~/server/utils/validation"
 
 const createStorySchema = z.object({
   slug: z
-    .stringFormat("slug", /^[a-z0-9\/-]+$/)
+    .stringFormat("slug", /^[a-z0-9/-]+$/)
     .min(1)
     .lowercase(),
   title: z.string().min(1),

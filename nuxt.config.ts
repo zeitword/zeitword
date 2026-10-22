@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
-      include: ["lucide-vue-next", "reka-ui", "uuidv7"]
+      include: ["@lucide/vue", "reka-ui", "uuidv7"]
     }
   },
   ssr: false,
@@ -43,7 +43,6 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    // preset: "bun",
     // experimental: {
     //   openAPI: true
     // },

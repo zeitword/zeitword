@@ -175,15 +175,6 @@ const navigationFields: { [key: string]: DField } = {
   }
 }
 
-const parentLinkFields = {
-  text: { displayName: "Text", type: "text" },
-  links: {
-    displayName: "Links",
-    type: "blocks",
-    componentWhitelist: ["d-text-link"]
-  }
-}
-
 const footerFields: { [key: string]: DField } = {
   logo: {
     displayName: "Logo",

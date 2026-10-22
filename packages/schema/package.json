@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "^1.4.3",
+    "@types/node": "^26.6.5",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {

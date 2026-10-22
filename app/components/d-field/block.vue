@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDownIcon, Trash2Icon } from "lucide-vue-next"
+import { ChevronDownIcon, Trash2Icon } from "@lucide/vue"
 
 import type { DComponent } from "~/types/models"
 

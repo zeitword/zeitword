@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useDropZone, useEventListener } from "@vueuse/core"
 import {
   ImageIcon,
   FilmIcon,
@@ -13,7 +12,8 @@ import {
   CheckIcon,
   SearchIcon,
   XIcon
-} from "lucide-vue-next"
+} from "@lucide/vue"
+import { useDropZone, useEventListener } from "@vueuse/core"
 
 import type { DAsset } from "~/types/models"
 

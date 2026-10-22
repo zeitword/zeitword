@@ -85,7 +85,7 @@ function buildValidationSchemaForField(
             )
           }
         }
-      } catch (error) {
+      } catch {
         // Silently handle errors and return fallback schema
       }
 
@@ -129,7 +129,7 @@ function buildValidationSchemaForComponent(
         [field.fieldKey]: field.required ? fieldSchema : fieldSchema.optional()
       })
     }
-  } catch (error) {}
+  } catch {}
 
   return schema
 }

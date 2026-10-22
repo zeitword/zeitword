@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { SearchIcon } from "@lucide/vue"
 import { useDebounceFn } from "@vueuse/core"
-import { SearchIcon } from "lucide-vue-next"
 import { computed, ref, watch } from "vue"
 
 import type { Item as StoryListItem } from "~/components/d-story-list/index.vue"

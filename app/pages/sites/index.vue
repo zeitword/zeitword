@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileTextIcon } from "lucide-vue-next"
+import { FileTextIcon } from "@lucide/vue"
 const { data: sites, refresh } = await useFetch("/api/sites")
 const { data: me } = await useFetch("/api/me")
 const { data: availableLanguages } = await useFetch("/api/languages")

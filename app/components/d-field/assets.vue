@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { GripVertical, UploadCloudIcon, LoaderCircleIcon, ImageIcon } from "@lucide/vue"
 import { useFileDialog, useDropZone } from "@vueuse/core"
 import { LexoRank } from "lexorank"
-import { GripVertical, UploadCloudIcon, LoaderCircleIcon, ImageIcon } from "lucide-vue-next"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue"

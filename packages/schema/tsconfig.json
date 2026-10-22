@@ -3,7 +3,7 @@
     // Enable latest features
     "lib": ["ESNext", "DOM"],
     "target": "ESNext",
-    "types": ["bun"],
+    "types": ["node"],
     "module": "ESNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",

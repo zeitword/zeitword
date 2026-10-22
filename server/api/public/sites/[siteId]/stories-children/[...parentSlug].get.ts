@@ -1,6 +1,6 @@
 import { like, notLike, eq, and, or, isNull } from "drizzle-orm"
 import { stories, components, sites, storyTranslatedSlugs } from "~~/server/database/schema"
-import { mergeWithFallback, mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
+import { mergeWithFallbackAndTransformLinks } from "~~/server/utils/content"
 
 export default defineEventHandler(async (event) => {
   const siteId = getRouterParam(event, "siteId")
@@ -64,7 +64,6 @@ export default defineEventHandler(async (event) => {
   }
 
   let parentStory = parentStoryResults.length > 0 ? parentStoryResults[0] : undefined
-  let originalRequestSlug = requestedParentSlug
 
   // If not found and using non-default language, try to find by translated slug
   if (!parentStory && requestedLang && requestedLang !== site.defaultLanguage) {
@@ -85,7 +84,6 @@ export default defineEventHandler(async (event) => {
 
     if (translatedSlugResults.length > 0) {
       const translatedSlugEntry = translatedSlugResults[0]
-      originalRequestSlug = translatedSlugEntry.slug
 
       // First check if the story exists directly (for folder-type stories without components)
       const storyExistsResults = await useDrizzle()

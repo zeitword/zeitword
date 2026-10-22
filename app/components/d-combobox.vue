@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon } from "lucide-vue-next"
+import { ChevronDownIcon, ChevronUpIcon, CheckIcon, XIcon } from "@lucide/vue"
 import {
   ComboboxRoot,
   ComboboxAnchor,

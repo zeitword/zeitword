@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useSessionStorage } from "@vueuse/core"
 import {
   LogOutIcon,
   PanelLeftClose,
@@ -9,7 +8,8 @@ import {
   FolderIcon,
   FoldersIcon,
   FileIcon
-} from "lucide-vue-next"
+} from "@lucide/vue"
+import { useSessionStorage } from "@vueuse/core"
 
 const organisationName = ref("Zeitword")
 

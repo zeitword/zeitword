@@ -1,4 +1,4 @@
-import { sql, eq, and, exists, aliasedTable, or } from "drizzle-orm"
+import { sql, eq, and, exists, aliasedTable } from "drizzle-orm"
 import { uuidv7 } from "uuidv7"
 import { useDrizzle, tables } from "~~/server/utils/drizzle"
 

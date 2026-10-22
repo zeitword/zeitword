@@ -38,7 +38,7 @@ const hasChanges = computed(() => {
 
 function resetChanges() {
   formData.value = { title: story.value?.title || "", slug: story.value?.slug || "" }
-  translatedSlugData.value = { ...(translatedSlugs.value || {}) }
+  translatedSlugData.value = { ...translatedSlugs.value }
 }
 
 const { toast } = useToast()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Trash2, BlocksIcon } from "lucide-vue-next"
+import { Trash2, BlocksIcon } from "@lucide/vue"
 
 definePageMeta({
   layout: "site"

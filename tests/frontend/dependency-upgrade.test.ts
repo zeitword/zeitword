@@ -1,9 +1,10 @@
 import { compileScript, parse } from "@vue/compiler-sfc"
-import { afterAll, expect, test } from "bun:test"
 import { Window } from "happy-dom"
+import assert from "node:assert/strict"
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+import { afterAll, test } from "vitest"
 
 const window = new Window({ url: "http://localhost/" })
 for (const name of [
@@ -60,8 +61,8 @@ async function component(path: string) {
     "useSlots"
   ].filter((name) => !Object.hasOwn(compiled.bindings, name))
   const source = `import { ${autoImports.join(", ")} } from 'vue';\n${compiled.content}`
-  const file = resolve(generated, path.replaceAll("/", "-") + ".js")
-  await writeFile(file, new Bun.Transpiler({ loader: "ts" }).transformSync(source))
+  const file = resolve(generated, path.replaceAll("/", "-") + ".ts")
+  await writeFile(file, source)
   return (await import(file)).default
 }
 
@@ -108,24 +109,24 @@ test("rich text preserves headings and formatting without duplicate extensions o
     await settle()
     const editor = (mounted.host.querySelector(".tiptap") as any).editor
     const names = editor.extensionManager.extensions.map((extension: any) => extension.name)
-    expect(new Set(names).size).toBe(names.length)
-    expect(editor.getHTML()).toContain("<h2>Heading</h2>")
-    expect(editor.getHTML()).toContain("<u>Underline</u>")
-    expect(editor.getHTML()).toContain('href="https://example.com"')
-    expect(updates).toEqual([])
+    assert.equal(new Set(names).size, names.length)
+    assert.ok(editor.getHTML().includes("<h2>Heading</h2>"))
+    assert.ok(editor.getHTML().includes("<u>Underline</u>"))
+    assert.ok(editor.getHTML().includes('href="https://example.com"'))
+    assert.deepEqual(updates, [])
 
     mounted.state.modelValue = "<h3>External heading</h3>"
     await settle()
-    expect(editor.getHTML()).toContain("<h3>External heading</h3>")
-    expect(updates).toEqual([])
+    assert.ok(editor.getHTML().includes("<h3>External heading</h3>"))
+    assert.deepEqual(updates, [])
     editor.commands.insertContent("Edited ")
     await settle()
-    expect(updates.length).toBeGreaterThan(0)
-    expect(updates.at(-1)).toContain("<h3>")
+    assert.ok(updates.length > 0)
+    assert.ok(updates.at(-1)?.includes("<h3>"))
 
     mounted.state.modelValue = ""
     await settle()
-    expect(editor.isEmpty).toBe(true)
+    assert.equal(editor.isEmpty, true)
   } finally {
     mounted.unmount()
   }
@@ -151,10 +152,10 @@ test("Reka select accepts heading values and the null paragraph option", async (
     const paragraph = Array.from(document.querySelectorAll('[role="option"]')).find((node) =>
       node.textContent?.includes("Paragraph")
     )!
-    expect(paragraph).toBeDefined()
+    assert.ok(paragraph)
     paragraph.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
     await settle()
-    expect(values).toEqual([null])
+    assert.deepEqual(values, [null])
   } finally {
     mounted.unmount()
   }
@@ -170,10 +171,10 @@ test("Reka pagination translates next page back into an offset", async () => {
   })
   try {
     const next = mounted.host.querySelector('[aria-label="Next Page"]') as HTMLElement
-    expect(next).not.toBeNull()
+    assert.ok(next)
     next.click()
     await settle()
-    expect(offsets).toEqual([10])
+    assert.deepEqual(offsets, [10])
   } finally {
     mounted.unmount()
   }
@@ -197,10 +198,10 @@ test("Reka combobox filters and selects object options", async () => {
     const option = Array.from(document.querySelectorAll('[role="option"]')).find((node) =>
       node.textContent?.includes("Beta")
     ) as HTMLElement
-    expect(option).toBeDefined()
+    assert.ok(option)
     option.click()
     await settle()
-    expect(values.at(-1)).toEqual({ value: "b", display: "Beta" })
+    assert.deepEqual(values.at(-1), { value: "b", display: "Beta" })
   } finally {
     mounted.unmount()
   }
@@ -219,10 +220,10 @@ test("router-backed buttons navigate using Vue Router 5", async () => {
   const mounted = await mount(Button, { to: "/target" }, router)
   try {
     const link = mounted.host.querySelector("a")!
-    expect(link.getAttribute("href")).toBe("/target")
+    assert.equal(link.getAttribute("href"), "/target")
     link.click()
     await settle()
-    expect(router.currentRoute.value.path).toBe("/target")
+    assert.equal(router.currentRoute.value.path, "/target")
   } finally {
     mounted.unmount()
   }

@@ -62,7 +62,6 @@ async function migrateStoryVideoFields(isDryRun: boolean) {
         continue
       }
 
-      let contentChanged = false
       const originalContentString = JSON.stringify(story.content)
 
       try {
@@ -70,7 +69,6 @@ async function migrateStoryVideoFields(isDryRun: boolean) {
         const updatedContentString = JSON.stringify(updatedContent)
 
         if (originalContentString !== updatedContentString) {
-          contentChanged = true
         } else {
           skippedCount++
           continue

@@ -1,17 +1,13 @@
-ARG NODE_VERSION=24.22.1-alpine
-ARG BUN_VERSION=1.4.3-alpine
-
-FROM oven/bun:${BUN_VERSION} AS bun
+ARG NODE_VERSION=26.12.1-alpine
 
 FROM node:${NODE_VERSION} AS build
 WORKDIR /usr/src/app
-COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
 
 # Prepare Nuxt only after its configuration and source files are available.
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --ignore-scripts
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
 COPY . .
-RUN bun run postinstall && bun run build
+RUN npm run postinstall && npm run build
 
 # Nuxt's output includes all required runtime dependencies.
 FROM node:${NODE_VERSION} AS release

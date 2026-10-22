@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { PlusIcon, GripVertical } from "@lucide/vue"
 import { LexoRank } from "lexorank"
-import { PlusIcon, GripVertical } from "lucide-vue-next"
 import Sortable from "sortablejs"
 import { uuidv7 } from "uuidv7"
 

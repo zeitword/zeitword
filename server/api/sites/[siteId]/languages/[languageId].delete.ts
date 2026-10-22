@@ -2,7 +2,7 @@ import { and, eq, isNull } from "drizzle-orm"
 import { siteLanguages, stories, sites } from "~~/server/database/schema"
 
 export default defineEventHandler(async (event) => {
-  const { organisationId } = await requireAuth(event)
+  await requireAuth(event)
 
   const siteId = getRouterParam(event, "siteId")
   const languageCode = getRouterParam(event, "languageId")

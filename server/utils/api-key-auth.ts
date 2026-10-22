@@ -89,7 +89,7 @@ export async function validateApiKey(apiKey: string): Promise<ApiKeyAuthResult> 
         availableLanguages: languages.map((l) => l.languageCode)
       }
     }
-  } catch (error) {
+  } catch {
     throw createError({
       statusCode: 401,
       statusMessage: "Invalid API key"

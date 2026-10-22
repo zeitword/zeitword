@@ -128,7 +128,7 @@ export default defineEventHandler(async (event) => {
     .set({
       ...data,
       content: {
-        ...(story.content || {}),
+        ...story.content,
         ...(data.content ? { [data.language || auth.site.defaultLanguage]: data.content } : {})
       },
       updatedAt: new Date()

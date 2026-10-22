@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     .digest("hex")
 
   try {
-    const [entry] = await useDrizzle()
+    await useDrizzle()
       .insert(waitlist)
       .values({
         email: data.email,

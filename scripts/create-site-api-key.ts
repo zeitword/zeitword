@@ -10,7 +10,7 @@ const siteId = process.argv[2]
 const name = process.argv[3] || "Import"
 
 if (!siteId) {
-  throw new Error("Usage: bun scripts/create-site-api-key.ts <site-id> [name]")
+  throw new Error("Usage: npm run api-key:create -- <site-id> [name]")
 }
 
 const dsn = process.env.NUXT_DSN
