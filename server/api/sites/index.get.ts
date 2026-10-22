@@ -6,6 +6,6 @@ export default defineEventHandler(async (event) => {
   const result = await useDrizzle()
     .select()
     .from(sites)
-    .where(eq(sites.organisationId, organisationId))
+    .where(and(eq(sites.organisationId, organisationId), isNull(sites.deletedAt)))
   return result
 })
