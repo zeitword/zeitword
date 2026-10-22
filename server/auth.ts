@@ -1,13 +1,17 @@
+import { cimd } from "@better-auth/cimd"
+import { fetchClientMetadataResource } from "@better-auth/cimd/node"
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2"
+import { mcp } from "@better-auth/mcp"
 import { betterAuth } from "better-auth"
 import { APIError } from "better-auth/api"
-import { customSession } from "better-auth/plugins"
+import { customSession, jwt } from "better-auth/plugins"
 import { and, eq, isNull } from "drizzle-orm"
 import { Resend } from "resend"
 import { uuidv7 } from "uuidv7"
 
 import type { db } from "./utils/drizzle"
 
+import * as oauthSchema from "./database/oauth-schema"
 import {
   accounts,
   authRateLimits,
@@ -35,10 +39,12 @@ export function createAuth(
     appName: "Zeitword",
     secret: options.secret,
     baseURL: options.baseURL,
+    disabledPaths: ["/token"],
     database: drizzleAdapter(database, {
       provider: "pg",
       transaction: true,
       schema: {
+        ...oauthSchema,
         user: users,
         session: sessions,
         account: accounts,
@@ -155,6 +161,14 @@ export function createAuth(
       }
     },
     plugins: [
+      jwt(),
+      mcp({
+        loginPage: "/auth/mcp",
+        consentPage: "/auth/mcp",
+        resource: `${options.baseURL.replace(/\/$/, "")}/mcp`,
+        scopes: ["openid", "profile", "offline_access", "mcp:read", "mcp:write"]
+      }),
+      cimd({ fetchClientMetadataResource, metadataProfile: "mcp-2026-07-28" }),
       customSession(async ({ user, session }) => {
         const [active] = await database
           .select({

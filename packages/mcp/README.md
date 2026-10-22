@@ -1,5 +1,10 @@
 # @zeitword/mcp
 
+> This directory contains the previous local MCP implementation. The current
+> hosted OAuth endpoint and its supported tools are documented in
+> [Hosted MCP](../../docs/hosted-mcp.md). The local authorization endpoint has been
+> removed; the setup below is historical and is not supported by the new server.
+
 MCP (Model Context Protocol) server for Zeitword CMS. Allows AI assistants to manage sites, content, and schemas.
 
 ## Setup

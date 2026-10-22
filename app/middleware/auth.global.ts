@@ -6,6 +6,7 @@ const publicRoutes = [
   "/up",
   "/forgot-password",
   "/reset-password",
+  "/auth/mcp",
   "/accept-invitation"
 ]
 

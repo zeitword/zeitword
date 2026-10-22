@@ -1,112 +1,122 @@
 <script setup lang="ts">
-definePageMeta({
-  layout: false
-})
-
+definePageMeta({ layout: false })
 const route = useRoute()
-const { data: session } = authClient.useSession()
-const user = computed(() => session.value?.user)
-
-const callbackPort = computed(() => {
-  const port = route.query.port
-  if (!port || typeof port !== "string") return null
-  const parsed = parseInt(port, 10)
-  if (isNaN(parsed) || parsed < 1024 || parsed > 65535) return null
-  return parsed
-})
-
-const loading = ref(false)
+const query = computed(() => route.fullPath.split("?")[1]?.split("#")[0] ?? "")
+const { data, error: requestError } = await useFetch("/api/mcp/authorization", { query: { query } })
+const email = ref("")
+const password = ref("")
+const busy = ref(false)
 const error = ref("")
-const authorized = ref(false)
 
-async function authorize() {
-  if (!callbackPort.value) return
-
+async function login() {
+  busy.value = true
+  error.value = ""
   try {
-    loading.value = true
-    error.value = ""
-
-    const result = await $fetch("/api/auth/mcp/authorize", {
-      method: "POST",
-      body: {
-        callbackPort: callbackPort.value
-      }
-    })
-
-    authorized.value = true
-
-    // Redirect to the MCP server's local callback with the token
-    window.location.href = `${result.callbackUrl}?token=${encodeURIComponent(result.token)}`
-  } catch (e: any) {
-    error.value = e?.data?.message || "Failed to authorize. Please try again."
+    const result = await authClient.signIn.email({ email: email.value, password: password.value })
+    if (result.error) throw new Error(result.error.message)
+    // The OAuth client plugin resumes the signed authorization flow.
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "Unable to sign in"
   } finally {
-    loading.value = false
+    busy.value = false
+  }
+}
+async function consent(accept: boolean) {
+  busy.value = true
+  error.value = ""
+  try {
+    const result = await authClient.oauth2.consent({ accept })
+    if (result.error) throw new Error(result.error.message)
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "Unable to authorize"
+  } finally {
+    busy.value = false
   }
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-100 px-8 pt-24">
-    <div class="mx-auto max-w-sm rounded-lg border border-neutral-50 bg-white p-8 shadow">
-      <h1 class="mb-2 text-center text-2xl font-semibold text-neutral-900">Zeitword</h1>
-      <p class="mb-6 text-center text-sm text-neutral-500">MCP Authorization</p>
-
-      <div
-        v-if="!callbackPort"
-        class="text-center"
+  <main class="bg-neutral text-neutral flex min-h-screen items-center justify-center p-8">
+    <div class="border-neutral flex w-full max-w-md flex-col gap-5 rounded-lg border p-8">
+      <h1 class="text-title-sm">Connect to Zeitword</h1>
+      <p
+        v-if="requestError"
+        role="alert"
       >
-        <p class="text-sm text-red-600">Invalid authorization request. Missing callback port.</p>
-      </div>
-
-      <div
-        v-else-if="authorized"
-        class="text-center"
-      >
-        <p class="text-sm text-neutral-600">Authorization successful. You can close this window.</p>
-      </div>
-
-      <div
-        v-else
-        class="flex flex-col gap-4"
-      >
-        <div class="rounded-md bg-neutral-50 p-4">
-          <p class="text-sm text-neutral-700">
-            An MCP client is requesting access to your Zeitword account.
-          </p>
-          <p class="mt-2 text-sm text-neutral-500">
-            Signed in as
-            <strong class="text-neutral-700">{{ user?.email }}</strong>
-          </p>
-        </div>
-
-        <p class="text-xs text-neutral-500">
-          This will create a personal access token that allows the MCP client to manage your sites,
-          content, and schemas on your behalf.
-        </p>
-
-        <DButton
-          :loading="loading"
-          @click="authorize"
-          text-center
+        This authorization request is invalid or has expired. Start again from your MCP client.
+      </p>
+      <template v-else-if="data">
+        <form
+          v-if="!data.signedIn"
+          class="flex flex-col gap-4"
+          @submit.prevent="login"
         >
-          Authorize
-        </DButton>
-
-        <DButton
-          variant="secondary"
-          text-center
-          @click="$router.push('/sites')"
-        >
-          Cancel
-        </DButton>
-
-        <div
+          <label for="mcp-email">Email</label>
+          <DInput
+            v-model="email"
+            name="mcp-email"
+            type="email"
+            autocomplete="email"
+            required
+          />
+          <label for="mcp-password">Password</label>
+          <DInput
+            v-model="password"
+            name="mcp-password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+          <DButton
+            type="submit"
+            :loading="busy"
+          >
+            Sign in
+          </DButton>
+        </form>
+        <template v-else>
+          <p>
+            <strong>{{ data.clientName }}</strong>
+            wants to connect to your Zeitword account.
+          </p>
+          <p>Signed in as {{ data.email }}</p>
+          <p>
+            Access covers all your current and future workspaces, limited to your membership
+            permissions.
+          </p>
+          <ul class="list-inside list-disc">
+            <li
+              v-for="scope in data.scopes"
+              :key="scope"
+            >
+              {{ scope }}
+            </li>
+          </ul>
+          <pre
+            v-if="data.claims"
+            class="overflow-auto text-sm whitespace-pre-wrap"
+            >{{ data.claims }}</pre>
+          <DButton
+            :loading="busy"
+            @click="consent(true)"
+          >
+            Authorize
+          </DButton>
+          <DButton
+            variant="secondary"
+            :disabled="busy"
+            @click="consent(false)"
+          >
+            Cancel
+          </DButton>
+        </template>
+        <p
           v-if="error"
-          class="rounded-md bg-red-100 px-4 py-2 text-center text-sm text-red-600"
+          role="alert"
         >
           {{ error }}
-        </div>
-      </div>
+        </p>
+      </template>
     </div>
-  </div>
+  </main>
 </template>
