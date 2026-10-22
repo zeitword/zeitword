@@ -60,6 +60,56 @@ export class ContentStore {
     private baseURL: string
   ) {}
 
+  async createSite(input: {
+    workspaceId: string
+    id: string
+    name: string
+    domain?: string
+    defaultLanguage: string
+  }) {
+    return this.database.transaction(async (tx) => {
+      const [workspace] = await tx
+        .select({ id: organisations.id })
+        .from(organisations)
+        .innerJoin(organisationMembers, eq(organisationMembers.organisationId, organisations.id))
+        .innerJoin(users, eq(users.id, organisationMembers.userId))
+        .where(
+          and(
+            eq(organisations.id, input.workspaceId),
+            eq(users.id, this.userId),
+            isNull(organisations.deletedAt),
+            isNull(organisationMembers.deletedAt),
+            isNull(users.deletedAt)
+          )
+        )
+        .for("share")
+      if (!workspace) throw new ContentError("NOT_FOUND", "Workspace not found or access revoked")
+      const [language] = await tx
+        .select({ code: languages.code })
+        .from(languages)
+        .where(and(eq(languages.code, input.defaultLanguage), isNull(languages.deletedAt)))
+      if (!language) throw new ContentError("VALIDATION", "Unknown default language")
+      const [site] = await tx
+        .insert(sites)
+        .values({
+          id: input.id,
+          name: input.name,
+          domain: input.domain ?? "",
+          defaultLanguage: language.code,
+          organisationId: workspace.id
+        })
+        .returning()
+      await tx.insert(siteLanguages).values({ siteId: site.id, languageCode: language.code })
+      return {
+        id: site.id,
+        name: site.name,
+        domain: site.domain,
+        workspaceId: site.organisationId,
+        defaultLanguage: site.defaultLanguage
+      }
+    })
+  }
+
   async inSite<T>(
     siteId: string,
     run: (tx: AuthDatabase, site: typeof sites.$inferSelect) => Promise<T>

@@ -8,6 +8,7 @@ One OAuth connection gives an account access to all its current workspaces. Avai
 - `list_workspaces`: workspace IDs, names and roles
 - `list_sites(workspaceId)`: active sites in an explicitly selected workspace
 - `get_site(siteId)`: site details and owning workspace
+- `create_site(workspaceId, id, name, domain?, defaultLanguage?)`: create a site and enable its default language (defaults to `en`) in one transaction
 - `list_stories(siteId, offset?, limit?)`: paginated story summaries
 - `get_story`: stored content, revision and editor URL; use `full: true` before editing
 - `search_content`: paginated title, slug and content search across folders
@@ -39,6 +40,9 @@ race an already-authorized edit.
 
 Creates require a client-generated UUID. After a lost response, inspect that ID;
 do not retry with a new ID. Duplicate IDs or active slugs return `CONFLICT`.
+For site creation, use `get_site(siteId)` to inspect the supplied ID. Any current
+workspace member can create a site with write authorization. The default language
+must exist in the supported language catalog; invalid languages create nothing.
 Deletion soft-deletes one story, never a folder and its descendants.
 
 OAuth grants apply to the account, including workspaces joined later. Memberships
@@ -84,6 +88,7 @@ refreshes tokens, connects the official MCP client, and checks concurrent
 workspace access, tenant isolation, soft deletion and authorization revocation.
 The migration is additive and must run before deploying the new server.
 
-The E2E suite also checks write-scope step-up, nested block edits, cross-workspace
-creation, locale preservation, dry runs, validation rollback, concurrent edits,
+The E2E suite also checks site creation and default-language initialization,
+write-scope step-up, nested block edits, cross-workspace creation,
+locale preservation, dry runs, validation rollback, concurrent edits,
 foreign references, asset renaming and story soft deletion.

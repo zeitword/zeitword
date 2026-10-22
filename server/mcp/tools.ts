@@ -5,6 +5,7 @@ import { patchInput, object, fieldKey } from "./content"
 import { ContentError, ContentStore } from "./store"
 
 export const contentWriteTools = new Set([
+  "create_site",
   "patch_story_content",
   "create_story",
   "update_story",
@@ -61,7 +62,7 @@ export function registerContentTools(server: McpServer, store: ContentStore, can
               : pgError?.code === "23505"
                 ? new ContentError(
                     "CONFLICT",
-                    "A story with this ID or slug already exists. Inspect it before retrying."
+                    "A record with this ID or slug already exists. Inspect it before retrying."
                   )
                 : new ContentError("REQUEST_FAILED", "Content operation failed")
           if (failure.code === "REQUEST_FAILED")
@@ -83,6 +84,18 @@ export function registerContentTools(server: McpServer, store: ContentStore, can
       }
     )
   }
+  tool(
+    "create_site",
+    "Create a site in an accessible workspace and enable its default language atomically. Supply a new UUID; after a timeout, inspect that ID with get_site before retrying. Default language must be a supported language code.",
+    {
+      workspaceId: z.uuid().describe("Workspace UUID returned by list_workspaces"),
+      id: z.uuid().describe("Client-generated UUID for the new site"),
+      name: z.string().trim().min(1).max(255),
+      domain: z.string().max(255).optional(),
+      defaultLanguage: locale.default("en")
+    },
+    (args) => store.createSite(args)
+  )
   tool(
     "get_story",
     "Read a story with its revision and editor URL. full=true returns the complete content tree; use it before editing. language restricts output to one stored locale, without fallback.",
