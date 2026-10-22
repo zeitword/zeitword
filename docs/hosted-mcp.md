@@ -19,7 +19,7 @@ One OAuth connection gives an account access to all its current workspaces. Avai
 - `patch_story_content`: atomic, schema-validated edits to one locale, with dry-run support
 - `create_story`, `update_story`, `delete_story`: create, rename or soft-delete stories
 - `list_assets`, `get_asset`, `update_asset`: discover assets and rename filename metadata
-- `import_asset`: import a public HTTP(S) URL into site asset storage (up to 50 MiB)
+- `import_asset`: stream a public HTTP(S) URL into site asset storage (up to 512 MiB)
 - `upload_asset`: upload base64 file bytes into site asset storage (up to 8 MiB decoded)
 
 ## Component schemas
@@ -57,11 +57,16 @@ Both ingestion tools accept `siteId`, a client-generated asset `id`, and `fileNa
 responses include `id`, `src`, `type`, `contentType`, `fileSize`, and owning site.
 Use these IDs/URLs in story asset fields.
 
-URL import has a 30-second download deadline, a 50 MiB limit, and up to three
+URL import has a 10-minute transfer deadline, a 512 MiB (536,870,912-byte) limit, and up to three
 redirects. It accepts only public HTTP(S) addresses; DNS answers are validated
 and pinned for each connection and redirect. It sends no credentials/cookies or
 custom headers. Upload is limited to 8 MiB decoded bytes. No extra infrastructure
 or database migration is needed; the existing configured S3 bucket is used.
+Imports stream sequential 8 MiB multipart chunks with backpressure rather than
+buffering the complete file. Failed transfers abort their multipart upload.
+Use a client timeout of at least 10 minutes. A proxy/client timeout does not imply
+the server transfer failed: inspect `get_asset` and reuse the same ID and inputs
+when retrying. In-flight retries serialize; a completed retry returns the asset.
 
 Exact retries with the same ID and inputs return the existing asset. Reusing an ID
 with changed inputs returns `CONFLICT`. Immutable deterministic storage keys also
@@ -72,6 +77,13 @@ failed upload creates no asset row; a stored object left by a failed database
 commit is reused on retry rather than overwritten.
 
 ## Editing content
+
+Richtext fields store **HTML strings**, not TipTap JSON. Existing Directus HTML
+can be assigned directly, for example `content.de.body = "<p>Hello <strong>world</strong></p>"`.
+The editor supports paragraphs, headings 1–3, lists, blockquotes, links,
+bold/italic/underline/strike, code and horizontal rules. Unsupported structures
+such as tables, embeds and inline images may be discarded on editor roundtrip;
+use dedicated blocks/asset fields for these when continued editing is required.
 
 Writes require both `mcp:read` and `mcp:write`. A read-only token receives the
 standard OAuth `insufficient_scope` challenge on a write, so the client can

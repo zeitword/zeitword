@@ -279,7 +279,7 @@ export function registerContentTools(server: McpServer, store: ContentStore, can
   }
   tool(
     "import_asset",
-    "Download a public HTTP(S) URL to this site's asset storage (max 50 MiB, 30-second download, up to 3 redirects). Returns asset ID, src URL and metadata. Private-network URLs and URL credentials are rejected. Exact retries return the existing asset; reuse the same ID and inputs after timeouts. Optional contentType overrides the source MIME type.",
+    "Stream a public HTTP(S) URL to this site's asset storage (max 512 MiB, 10-minute transfer deadline, up to 3 redirects). Returns asset ID, src URL and metadata. Use a client timeout of at least 10 minutes for large files. If the client/proxy times out, inspect get_asset and retry only with the same ID and inputs: a running transfer can still complete. Private-network URLs and URL credentials are rejected. Exact retries return the existing asset. Optional contentType overrides the source MIME type.",
     { ...assetInput, contentType: assetInput.contentType.optional(), url: z.url().max(8192) },
     ({ siteId, ...input }) => store.createAsset(siteId, input)
   )

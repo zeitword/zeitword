@@ -25,6 +25,7 @@ interface PutItemOptions {
 }
 
 interface MultipartUploadOptions {
+  abortSignal?: AbortSignal
   contentType?: string
   cacheControl?: string
   metadata?: Record<string, string>
@@ -173,7 +174,7 @@ export function useS3() {
       Metadata: options.metadata
     })
 
-    const response = await client.send(command)
+    const response = await client.send(command, { abortSignal: options.abortSignal })
 
     if (!response.UploadId) {
       console.log(response)
@@ -190,7 +191,8 @@ export function useS3() {
     key: string,
     uploadId: string,
     partNumber: number,
-    body: Buffer | Uint8Array
+    body: Buffer | Uint8Array,
+    abortSignal?: AbortSignal
   ): Promise<MultipartPart> {
     const command = new UploadPartCommand({
       Bucket: config.s3.bucket,
@@ -200,7 +202,7 @@ export function useS3() {
       Body: body
     })
 
-    const response = await client.send(command)
+    const response = await client.send(command, { abortSignal })
 
     if (!response.ETag) {
       throw new Error(`Missing ETag for part ${partNumber} of key: ${key}`)
@@ -212,14 +214,20 @@ export function useS3() {
   /**
    * Finalize a multipart upload with the given parts.
    */
-  async function completeMultipartUpload(key: string, uploadId: string, parts: MultipartPart[]) {
+  async function completeMultipartUpload(
+    key: string,
+    uploadId: string,
+    parts: MultipartPart[],
+    options: { ifNoneMatch?: string; abortSignal?: AbortSignal } = {}
+  ) {
     const command = new CompleteMultipartUploadCommand({
       Bucket: config.s3.bucket,
       Key: key,
       UploadId: uploadId,
-      MultipartUpload: { Parts: parts }
+      MultipartUpload: { Parts: parts },
+      IfNoneMatch: options.ifNoneMatch
     })
-    return client.send(command)
+    return client.send(command, { abortSignal: options.abortSignal })
   }
 
   /**
@@ -231,7 +239,7 @@ export function useS3() {
       Key: key,
       UploadId: uploadId
     })
-    return client.send(command)
+    return client.send(command, { abortSignal: AbortSignal.timeout(30_000) })
   }
 
   /**
