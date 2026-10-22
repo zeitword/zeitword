@@ -35,7 +35,7 @@ Zeitword is built with modern and reliable technologies:
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/)
+- [mise](https://mise.jdx.dev/getting-started.html) (activate it in your shell)
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
@@ -48,8 +48,12 @@ Zeitword is built with modern and reliable technologies:
    git clone https://github.com/yourusername/zeitword.git
    cd zeitword
 
+   # Trust and install Node.js 24.22.1 and Bun 1.4.3
+   mise trust
+   mise install
+
    # Install dependencies
-   bun i
+   bun install --frozen-lockfile
    ```
 
 2. **Start the Infrastructure**
