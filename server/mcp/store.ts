@@ -1,4 +1,5 @@
 import { and, eq, isNull, sql, getTableColumns, inArray, ilike, or } from "drizzle-orm"
+import { LexoRank } from "lexorank"
 import { createHash } from "node:crypto"
 
 import type { AuthDatabase } from "../auth"
@@ -16,6 +17,8 @@ import {
   languages,
   assets
 } from "../database/schema"
+import { useS3 } from "../utils/s3"
+import { persistAsset, type AssetInput } from "./asset-storage"
 import {
   applyContentPatch,
   enrichBlocks,
@@ -25,6 +28,7 @@ import {
   type ComponentSchema,
   type ContentIssue
 } from "./content"
+import { componentDefinition, schemaRevision, type SchemaFields } from "./schema"
 
 export class ContentError extends Error {
   constructor(
@@ -99,6 +103,7 @@ export class ContentStore {
           organisationId: workspace.id
         })
         .returning()
+      if (!site) throw new Error("Site insert returned no row")
       await tx.insert(siteLanguages).values({ siteId: site.id, languageCode: language.code })
       return {
         id: site.id,
@@ -174,7 +179,10 @@ export class ContentStore {
   async schemas(tx: AuthDatabase, site: typeof sites.$inferSelect) {
     const [schemas, fields, options] = await Promise.all([
       tx
-        .select()
+        .select({
+          ...getTableColumns(components),
+          versionTimestamp: sql<string>`${components.updatedAt}::text`
+        })
         .from(components)
         .where(
           and(
@@ -192,7 +200,7 @@ export class ContentStore {
             eq(componentFields.organisationId, site.organisationId)
           )
         )
-        .orderBy(componentFields.order),
+        .orderBy(componentFields.order, componentFields.fieldKey),
       tx
         .select()
         .from(fieldOptions)
@@ -202,6 +210,7 @@ export class ContentStore {
             eq(fieldOptions.organisationId, site.organisationId)
           )
         )
+        .orderBy(fieldOptions.id)
     ])
     return schemas.map((schema) => ({
       ...schema,
@@ -315,7 +324,211 @@ export class ContentStore {
     return this.inSite(siteId, async (tx, site) => this.view(await this.story(tx, site, storyId)))
   }
   listComponents(siteId: string) {
-    return this.inSite(siteId, (tx, site) => this.schemas(tx, site))
+    return this.inSite(siteId, async (tx, site) =>
+      (await this.schemas(tx, site)).map((schema) => ({
+        ...schema,
+        revision: schemaRevision(schema)
+      }))
+    )
+  }
+
+  createAsset(siteId: string, input: AssetInput) {
+    return this.inSite(siteId, async (tx, site) => {
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtextextended(${"mcp-asset:" + input.id}, 0))`
+      )
+      const fingerprint = createHash("sha256")
+        .update(
+          JSON.stringify([
+            siteId,
+            input.id,
+            input.fileName,
+            input.contentType ?? null,
+            input.url ?? null,
+            input.base64 ?? null
+          ])
+        )
+        .digest("hex")
+      const key = `mcp/${siteId}/${input.id}/${fingerprint}`
+      const src = useS3().getPublicUrl(key)
+      const [existing] = await tx.select().from(assets).where(eq(assets.id, input.id))
+      if (existing) {
+        if (
+          existing.siteId !== siteId ||
+          existing.organisationId !== site.organisationId ||
+          existing.deletedAt ||
+          existing.src !== src
+        )
+          throw new ContentError(
+            "CONFLICT",
+            "Asset ID already exists with different inputs. Inspect it before retrying."
+          )
+        return existing
+      }
+      let uploaded
+      try {
+        uploaded = await persistAsset(key, input)
+      } catch (error) {
+        throw new ContentError(
+          "IMPORT_FAILED",
+          "Asset download or storage failed; retry only with the same ID and inputs.",
+          {
+            reason: error instanceof Error ? error.message : "Unknown storage error"
+          }
+        )
+      }
+      const type = uploaded.contentType.startsWith("image/")
+        ? "image"
+        : uploaded.contentType.startsWith("video/")
+          ? "video"
+          : uploaded.contentType.startsWith("audio/")
+            ? "audio"
+            : uploaded.contentType === "application/pdf"
+              ? "pdf"
+              : "other"
+      const [asset] = await tx
+        .insert(assets)
+        .values({
+          id: input.id,
+          siteId,
+          organisationId: site.organisationId,
+          uploadedBy: this.userId,
+          fileName: input.fileName,
+          src,
+          type,
+          ...uploaded
+        })
+        .returning()
+      return asset
+    })
+  }
+
+  writeComponent(
+    siteId: string,
+    input: {
+      id: string
+      expectedRevision?: string
+      name?: string
+      displayName?: string
+      previewImage?: string | null
+      previewField?: string | null
+      renderPreview?: boolean
+      fields?: SchemaFields
+    }
+  ) {
+    return this.inSite(siteId, async (tx, site) => {
+      // Dashboard writers do not lock the parent component or advance its revision.
+      // Brief table locks cover field/option inserts as well as updates during compare-and-write.
+      await tx.execute(
+        sql`LOCK TABLE ${components}, ${componentFields}, ${fieldOptions} IN SHARE ROW EXCLUSIVE MODE`
+      )
+      const schemas = await this.schemas(tx, site)
+      const current = schemas.find((schema) => schema.id === input.id)
+      if (input.expectedRevision !== undefined) {
+        if (!current) throw new ContentError("NOT_FOUND", "Component not found in this site")
+        if (schemaRevision(current) !== input.expectedRevision)
+          throw new ContentError(
+            "CONFLICT",
+            "Component changed. Read it again and reconcile your schema."
+          )
+      } else if (current) {
+        if (
+          schemaRevision(componentDefinition(current)) ===
+          schemaRevision(componentDefinition(input))
+        )
+          return { ...current, revision: schemaRevision(current) }
+        throw new ContentError("CONFLICT", "Component ID already exists. Read it before retrying.")
+      }
+      const name = input.name ?? current?.name
+      if (!name || !(input.displayName ?? current?.displayName))
+        throw new ContentError("VALIDATION", "Component name and displayName are required")
+      const fields = input.fields ?? current?.fields ?? []
+      const names = new Set(schemas.filter((s) => s.id !== input.id).map((s) => s.name))
+      names.add(name)
+      for (const field of fields) {
+        for (const allowed of (field.componentWhitelist ?? []) as string[])
+          if (!names.has(allowed))
+            throw new ContentError("VALIDATION", `Unknown block component: ${allowed}`)
+      }
+      if (
+        current &&
+        name !== current.name &&
+        schemas.some(
+          (schema) =>
+            schema.id !== current.id &&
+            schema.fields.some(
+              (field) =>
+                Array.isArray(field.componentWhitelist) &&
+                field.componentWhitelist.includes(current.name)
+            )
+        )
+      )
+        throw new ContentError(
+          "VALIDATION",
+          "Update referencing block whitelists before renaming this component"
+        )
+      const previewField =
+        input.previewField === undefined ? current?.previewField : input.previewField
+      if (previewField && !fields.some((field) => field.fieldKey === previewField))
+        throw new ContentError("VALIDATION", "previewField must name a field in this component")
+      const { id, expectedRevision: _revision, fields: suppliedFields, ...metadata } = input
+      if (current) {
+        await tx
+          .update(components)
+          .set({ ...metadata, updatedAt: sql`clock_timestamp()` })
+          .where(eq(components.id, id))
+      } else {
+        await tx.insert(components).values({
+          ...metadata,
+          id,
+          name,
+          displayName: input.displayName!,
+          siteId,
+          organisationId: site.organisationId
+        })
+      }
+      if (suppliedFields !== undefined) {
+        const scoped = and(
+          eq(componentFields.componentId, id),
+          eq(componentFields.siteId, siteId),
+          eq(componentFields.organisationId, site.organisationId)
+        )
+        await tx
+          .delete(fieldOptions)
+          .where(
+            and(
+              eq(fieldOptions.componentId, id),
+              eq(fieldOptions.siteId, siteId),
+              eq(fieldOptions.organisationId, site.organisationId)
+            )
+          )
+        await tx.delete(componentFields).where(scoped)
+        let rank = LexoRank.middle()
+        for (const field of suppliedFields) {
+          const { options, ...data } = field
+          await tx.insert(componentFields).values({
+            ...data,
+            order: data.order ?? rank.toString(),
+            componentId: id,
+            siteId,
+            organisationId: site.organisationId
+          })
+          rank = rank.genNext()
+          if (options.length)
+            await tx.insert(fieldOptions).values(
+              options.map((option) => ({
+                ...option,
+                componentId: id,
+                fieldKey: field.fieldKey,
+                siteId,
+                organisationId: site.organisationId
+              }))
+            )
+        }
+      }
+      const schema = (await this.schemas(tx, site)).find((schema) => schema.id === id)!
+      return { ...schema, revision: schemaRevision(schema) }
+    })
   }
   listLanguages(siteId: string) {
     return this.inSite(siteId, (tx, site) => this.enabledLanguages(tx, site))

@@ -99,7 +99,7 @@ export function createAccountMcp(
         { name: "zeitword", version: "0.3.0" },
         {
           instructions:
-            "Start with list_workspaces, then list_sites with an explicit workspaceId. Every site belongs to a workspace. No active workspace is stored; calls across workspaces can run independently. Inspect component schemas before creating content. Read get_story with full=true before editing and use its revision. Patch one locale at a time with stable block IDs. On CONFLICT reread and reconcile; never blindly retry. Never retry creates with new IDs after a timeout. Only current memberships grant access."
+            "Start with list_workspaces, then list_sites with an explicit workspaceId. Every site belongs to a workspace. No active workspace is stored; calls across workspaces can run independently. Inspect component schemas before creating content. Read get_component before update_component and use its revision; a supplied fields array replaces all fields/options. Block whitelists use component names. Import assets from public URLs with import_asset or upload base64 bytes with upload_asset. Read get_story with full=true before editing and use its revision. Patch one locale at a time with stable block IDs. On CONFLICT reread and reconcile; never blindly retry. Never retry creates with new IDs after a timeout. Only current memberships grant access."
         }
       )
       const annotations = { readOnlyHint: true, openWorldHint: false }
