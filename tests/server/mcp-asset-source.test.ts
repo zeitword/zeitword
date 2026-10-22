@@ -27,6 +27,12 @@ function respond(
     return request
   })
 }
+async function consume(url = "https://cms.example/image") {
+  const source = await fetchAsset(url)
+  let size = 0
+  for await (const chunk of source.body) size += chunk.length
+  return size
+}
 beforeEach(() => {
   vi.resetAllMocks()
   mocks.lookup.mockResolvedValue([{ address: "93.184.216.34", family: 4 }])
@@ -35,7 +41,10 @@ describe("asset URL transport", () => {
   it("pins a public DNS answer to the actual socket and reads bytes", async () => {
     respond(200, { "content-type": "image/png; charset=binary" })
     const result = await fetchAsset("https://cms.example/assets/image")
-    expect(result).toEqual({ body: Buffer.from("image"), contentType: "image/png" })
+    expect(result.contentType).toBe("image/png")
+    const chunks = []
+    for await (const chunk of result.body) chunks.push(chunk)
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from("image"))
     const options = mocks.request.mock.calls[0]![1]
     const callback = vi.fn()
     options.lookup("cms.example", { all: true }, callback)
@@ -86,9 +95,9 @@ describe("asset URL transport", () => {
   )
   it("enforces declared and streamed size limits", async () => {
     respond(200, { "content-length": String(MAX_IMPORT_BYTES + 1) })
-    await expect(fetchAsset("https://cms.example/image")).rejects.toThrow(/50 MiB/)
-    respond(200, {}, [Buffer.alloc(MAX_IMPORT_BYTES / 2 + 1), Buffer.alloc(MAX_IMPORT_BYTES / 2)])
-    await expect(fetchAsset("https://cms.example/image")).rejects.toThrow(/50 MiB/)
+    await expect(consume()).rejects.toThrow(/512 MiB/)
+    respond(200, {}, Array(513).fill(Buffer.alloc(1024 * 1024)))
+    await expect(consume()).rejects.toThrow(/512 MiB/)
   })
   it("rejects error pages, encoded and empty bodies", async () => {
     respond(404, {})
@@ -96,7 +105,7 @@ describe("asset URL transport", () => {
     respond(200, { "content-encoding": "gzip" })
     await expect(fetchAsset("https://cms.example/image")).rejects.toThrow(/uncompressed/)
     respond(200, {}, [])
-    await expect(fetchAsset("https://cms.example/image")).rejects.toThrow(/empty body/)
+    await expect(consume()).rejects.toThrow(/empty body/)
   })
   it("validates base64 bytes", () => {
     expect(decodeUpload("aGVsbG8=").toString()).toBe("hello")

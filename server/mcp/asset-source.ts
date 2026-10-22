@@ -3,7 +3,8 @@ import { request as httpRequest } from "node:http"
 import { request as httpsRequest } from "node:https"
 import { BlockList, isIP } from "node:net"
 
-export const MAX_IMPORT_BYTES = 50 * 1024 * 1024
+export const MAX_IMPORT_BYTES = 512 * 1024 * 1024
+export const IMPORT_TIMEOUT_MS = 10 * 60 * 1000
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 const blocked = new BlockList()
 for (const [address, prefix] of [
@@ -49,8 +50,7 @@ export function decodeUpload(base64: string): Buffer {
 
 // Resolve and pin every connection, including redirects. Node's HTTP client has no proxy
 // or cookie jar here, and never receives caller credentials or arbitrary request headers.
-export async function fetchAsset(source: string): Promise<{ body: Buffer; contentType: string }> {
-  const signal = AbortSignal.timeout(30_000)
+export async function fetchAsset(source: string, signal = AbortSignal.timeout(IMPORT_TIMEOUT_MS)) {
   let url = new URL(source)
   for (let redirects = 0; redirects <= 3; redirects++) {
     if (!["https:", "http:"].includes(url.protocol) || url.username || url.password)
@@ -74,7 +74,12 @@ export async function fetchAsset(source: string): Promise<{ body: Buffer; conten
             else callback(null, pinned.address, pinned.family)
           }
         },
-        resolve
+        (response) => {
+          // Keep source errors handled while an S3 part is being uploaded;
+          // the async iterator will still surface the failure to the transfer.
+          response.on("error", () => {})
+          resolve(response)
+        }
       )
       request.on("error", reject)
       request.end()
@@ -95,24 +100,27 @@ export async function fetchAsset(source: string): Promise<{ body: Buffer; conten
     }
     if (Number(response.headers["content-length"]) > MAX_IMPORT_BYTES) {
       response.destroy()
-      throw new Error("Asset exceeds the 50 MiB import limit")
+      throw new Error("Asset exceeds the 512 MiB import limit")
     }
-    const chunks: Buffer[] = []
-    let size = 0
-    for await (const raw of response) {
-      const chunk = Buffer.from(raw)
-      size += chunk.length
-      if (size > MAX_IMPORT_BYTES) {
+    async function* body() {
+      let size = 0
+      try {
+        for await (const raw of response) {
+          signal.throwIfAborted()
+          const chunk = Buffer.isBuffer(raw) ? raw : Buffer.from(raw)
+          size += chunk.length
+          if (size > MAX_IMPORT_BYTES) throw new Error("Asset exceeds the 512 MiB import limit")
+          yield chunk
+        }
+        if (!size) throw new Error("Asset source returned an empty body")
+      } finally {
         response.destroy()
-        throw new Error("Asset exceeds the 50 MiB import limit")
       }
-      chunks.push(chunk)
     }
-    if (!size) throw new Error("Asset source returned an empty body")
     const contentType = (response.headers["content-type"] ?? "application/octet-stream")
       .split(";")[0]!
       .trim()
-    return { body: Buffer.concat(chunks), contentType }
+    return { body: body(), contentType, close: () => response.destroy() }
   }
   throw new Error("Asset redirect limit exceeded")
 }
