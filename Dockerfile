@@ -1,4 +1,4 @@
-ARG NODE_VERSION=24.22.0-alpine
+ARG NODE_VERSION=24.22.1-alpine
 ARG BUN_VERSION=1.4.3-alpine
 
 FROM oven/bun:${BUN_VERSION} AS bun
