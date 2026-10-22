@@ -22,7 +22,20 @@ export function handleAuthRequest(event: H3Event) {
       "/reset-password",
       "/error"
     ]
-    if (!publicPaths.includes(path) && !path.startsWith("/reset-password/")) {
+    // Protocol endpoints authenticate their own OAuth grants, not dashboard cookies.
+    const protocolPaths = [
+      "/jwks",
+      "/oauth2/authorize",
+      "/oauth2/token",
+      "/oauth2/revoke",
+      "/oauth2/introspect"
+    ]
+    if (
+      !publicPaths.includes(path) &&
+      !protocolPaths.includes(path) &&
+      !path.startsWith("/.well-known/") &&
+      !path.startsWith("/reset-password/")
+    ) {
       // Apply Zeitword's current-account checks to Better Auth's session-based
       // account-management endpoints, not only to CMS endpoints.
       await requireAccountSession(event)

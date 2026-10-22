@@ -17,16 +17,21 @@
     "fmt": "oxfmt",
     "test": "vitest run",
     "test:e2e": "node tests/e2e/dependency-upgrade.mjs",
-    "test:e2e:auth": "node --import tsx tests/e2e/auth.mjs"
+    "test:e2e:auth": "node --import tsx tests/e2e/auth.mjs",
+    "test:e2e:mcp": "node tests/e2e/mcp.mjs"
   },
   "dependencies": {
     "@adonisjs/hash": "^10.1.1",
     "@ai-sdk/openai": "^4.0.99",
     "@aws-sdk/client-s3": "3.1154.0",
     "@aws-sdk/s3-request-presigner": "^3.1154.0",
+    "@better-auth/cimd": "^1.7.12",
     "@better-auth/drizzle-adapter": "^1.7.12",
+    "@better-auth/mcp": "^1.7.12",
+    "@better-auth/oauth-provider": "^1.7.12",
     "@libsql/client": "^0.18.0",
     "@lucide/vue": "^1.61.0",
+    "@modelcontextprotocol/server": "^2.3.1",
     "@nuxt/fonts": "^1.0.1",
     "@nuxt/image": "2.2.0",
     "@nuxt/kit": "^4.6.2",
@@ -66,6 +71,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
