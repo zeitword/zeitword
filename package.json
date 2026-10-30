@@ -33,7 +33,7 @@
     "@lucide/vue": "^1.61.0",
     "@modelcontextprotocol/server": "^2.3.1",
     "@nuxt/fonts": "^1.0.1",
-    "@nuxt/image": "2.2.0",
+    "@nuxt/image": "2.2.1",
     "@nuxt/kit": "^4.6.2",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
